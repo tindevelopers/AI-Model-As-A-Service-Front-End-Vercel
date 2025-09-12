@@ -1,32 +1,123 @@
 # AI Model as a Service - Deployment Guide
 
-## 🚀 GitHub Actions + Google Cloud Run Deployment
+## 🚀 Automated GitHub Actions + Google Cloud Run Deployment
 
-This guide covers the complete deployment setup for the AI Model as a Service frontend.
+This guide covers the complete deployment setup for the AI Model as a Service frontend using automated scripts.
 
 ## 📋 Prerequisites
 
-### 1. Google Cloud Setup
+### Required Tools
+- [Google Cloud CLI](https://cloud.google.com/sdk/docs/install) (`gcloud`)
+- [GitHub CLI](https://cli.github.com/) (`gh`)
+- [Docker](https://docs.docker.com/get-docker/) (for local testing)
+- [Node.js 18+](https://nodejs.org/) (for local development)
+
+### Google Cloud Setup
 - Google Cloud Project with billing enabled
-- Cloud Run API enabled
-- Artifact Registry API enabled
-- Service account with appropriate permissions
+- Project owner or editor permissions
+- Access to your AI Gateway backend service
 
-### 2. GitHub Repository
+### GitHub Setup
 - Repository: `tindevelopers/AI-Model-As-A-Service`
-- GitHub Actions enabled
+- Admin access to configure secrets and actions
 
-## 🔧 Required GitHub Secrets
+## 🛠️ Quick Setup (Automated)
 
-Configure these secrets in your GitHub repository settings:
+### Step 1: Clone and Setup Google Cloud Resources
 
-### Google Cloud Secrets
 ```bash
-GCP_PROJECT_ID=your-gcp-project-id
-GCP_SA_KEY={"type":"service_account",...} # Service account JSON key
+# Clone the repository
+git clone https://github.com/tindevelopers/AI-Model-As-A-Service.git
+cd AI-Model-As-A-Service
+
+# Make scripts executable
+chmod +x scripts/*.sh
+
+# Set your Google Cloud project
+gcloud config set project YOUR_PROJECT_ID
+
+# Run the automated GCP setup
+./scripts/setup-gcp-deployment.sh
 ```
 
-### Application Secrets
+This script will:
+- ✅ Enable required Google Cloud APIs
+- ✅ Create service account with proper IAM roles
+- ✅ Generate service account key
+- ✅ Create Artifact Registry repository
+- ✅ Configure GitHub secrets for GCP
+
+### Step 2: Configure Application Secrets
+
+```bash
+# Configure application secrets from your credentials folder
+./scripts/configure-app-secrets.sh
+```
+
+This script will:
+- ✅ Auto-detect your credentials folder
+- ✅ Extract secrets from credential files
+- ✅ Set GitHub repository secrets
+- ✅ Prompt for missing values
+
+### Step 3: Trigger Deployment
+
+```bash
+# Push a commit to trigger deployment
+git add .
+git commit -m "Configure deployment secrets"
+git push origin main
+```
+
+## 🔧 Manual Setup (Alternative)
+
+If you prefer manual configuration or the automated scripts don't work in your environment:
+
+### 1. Google Cloud Configuration
+
+```bash
+# Enable APIs
+gcloud services enable run.googleapis.com
+gcloud services enable artifactregistry.googleapis.com
+gcloud services enable cloudbuild.googleapis.com
+gcloud services enable iam.googleapis.com
+
+# Create service account
+gcloud iam service-accounts create github-actions \
+    --description="Service account for GitHub Actions deployment" \
+    --display-name="GitHub Actions"
+
+# Grant roles
+gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
+    --member="serviceAccount:github-actions@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
+    --role="roles/run.admin"
+
+gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
+    --member="serviceAccount:github-actions@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
+    --role="roles/artifactregistry.admin"
+
+# Create service account key
+gcloud iam service-accounts keys create github-actions-key.json \
+    --iam-account="github-actions@YOUR_PROJECT_ID.iam.gserviceaccount.com"
+
+# Create Artifact Registry repository
+gcloud artifacts repositories create ai-model-service-frontend \
+    --repository-format=docker \
+    --location=us-central1 \
+    --description="AI Model Service Frontend Docker images"
+```
+
+### 2. GitHub Secrets Configuration
+
+Configure these secrets in your GitHub repository (`Settings > Secrets and variables > Actions`):
+
+#### Google Cloud Secrets
+```bash
+GCP_PROJECT_ID=your-gcp-project-id
+GCP_SA_KEY={"type":"service_account",...}  # Contents of github-actions-key.json
+```
+
+#### Application Secrets
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...your-anon-key
@@ -35,201 +126,123 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...your-service-role-key
 GATEWAY_ADMIN_API_KEY=sk-admin-your-admin-key
 ```
 
-## 🛠️ Google Cloud Setup Steps
+## 🔍 Monitoring and Troubleshooting
 
-### 1. Create Service Account
+### Check Deployment Status
+
 ```bash
-# Create service account
-gcloud iam service-accounts create github-actions \
-    --description="Service account for GitHub Actions" \
-    --display-name="GitHub Actions"
+# View recent workflow runs
+gh run list --repo tindevelopers/AI-Model-As-A-Service
 
-# Grant necessary roles
-gcloud projects add-iam-policy-binding PROJECT_ID \
-    --member="serviceAccount:github-actions@PROJECT_ID.iam.gserviceaccount.com" \
-    --role="roles/run.admin"
+# View specific run details
+gh run view RUN_ID --log
 
-gcloud projects add-iam-policy-binding PROJECT_ID \
-    --member="serviceAccount:github-actions@PROJECT_ID.iam.gserviceaccount.com" \
-    --role="roles/storage.admin"
-
-gcloud projects add-iam-policy-binding PROJECT_ID \
-    --member="serviceAccount:github-actions@PROJECT_ID.iam.gserviceaccount.com" \
-    --role="roles/artifactregistry.admin"
-
-# Create and download key
-gcloud iam service-accounts keys create key.json \
-    --iam-account=github-actions@PROJECT_ID.iam.gserviceaccount.com
+# Check Cloud Run service
+gcloud run services describe ai-model-service-frontend --region=us-central1
 ```
 
-### 2. Create Artifact Registry Repository
+### Common Issues and Solutions
+
+#### 1. **Authentication Errors**
+```
+Error: google-github-actions/auth failed
+```
+**Solution:** Ensure `GCP_SA_KEY` secret contains valid service account JSON.
+
+#### 2. **Permission Denied**
+```
+Error: Permission denied on Artifact Registry
+```
+**Solution:** Verify service account has `artifactregistry.admin` role.
+
+#### 3. **Build Failures**
+```
+Error: Docker build failed
+```
+**Solution:** Check Dockerfile and ensure all dependencies are properly specified.
+
+#### 4. **Environment Variable Issues**
+```
+Error: Missing environment variables
+```
+**Solution:** Verify all required secrets are set in GitHub repository settings.
+
+### Debugging Commands
+
 ```bash
-gcloud artifacts repositories create ai-model-service-frontend \
-    --repository-format=docker \
-    --location=us-central1 \
-    --description="AI Model Service Frontend Docker images"
+# Check current secrets (names only, not values)
+gh secret list --repo tindevelopers/AI-Model-As-A-Service
+
+# View service logs
+gcloud logs read --service=ai-model-service-frontend --region=us-central1
+
+# Test local build
+docker build -t ai-model-service-frontend .
+docker run -p 3000:3000 ai-model-service-frontend
 ```
 
-### 3. Enable Required APIs
+## 🔄 Deployment Workflow
+
+The GitHub Actions workflow automatically:
+
+1. **Validates Secrets** - Checks all required secrets are present
+2. **Builds Application** - Installs dependencies and builds Next.js app
+3. **Creates Docker Image** - Builds optimized production container
+4. **Pushes to Registry** - Uploads image to Google Artifact Registry
+5. **Deploys to Cloud Run** - Updates service with new image
+6. **Creates Release** - Tags successful deployments
+
+### Deployment Triggers
+
+- ✅ **Push to `main` branch** - Full deployment pipeline
+- ✅ **Pull Request** - Build validation only (no deployment)
+- ✅ **Manual trigger** - Via GitHub Actions UI
+
+## 🌐 Custom Domain Setup
+
+After successful deployment, you can configure a custom domain:
+
 ```bash
-gcloud services enable run.googleapis.com
-gcloud services enable artifactregistry.googleapis.com
-gcloud services enable cloudbuild.googleapis.com
+# Map custom domain to Cloud Run service
+gcloud run domain-mappings create --service=ai-model-service-frontend \
+    --domain=your-domain.com --region=us-central1
+
+# Get DNS configuration
+gcloud run domain-mappings describe --domain=your-domain.com --region=us-central1
 ```
 
-## 🔐 GitHub Secrets Configuration
+## 📊 Performance and Scaling
 
-### Add Secrets via GitHub CLI
-```bash
-# Navigate to your repository
-gh secret set GCP_PROJECT_ID --body "your-project-id"
-gh secret set GCP_SA_KEY --body "$(cat key.json)"
+The deployment is configured with:
+- **Memory:** 1GB
+- **CPU:** 1 vCPU
+- **Concurrency:** 100 requests per instance
+- **Scaling:** 0-10 instances (auto-scaling)
+- **Cold starts:** Minimized with optimized Docker image
 
-# Application secrets (get from your credential guides)
-gh secret set NEXT_PUBLIC_SUPABASE_URL --body "https://your-project.supabase.co"
-gh secret set NEXT_PUBLIC_SUPABASE_ANON_KEY --body "your-anon-key"
-gh secret set NEXT_PUBLIC_GATEWAY_URL --body "https://your-gateway.run.app"
-gh secret set SUPABASE_SERVICE_ROLE_KEY --body "your-service-role-key"
-gh secret set GATEWAY_ADMIN_API_KEY --body "sk-admin-your-key"
-```
+## 🔐 Security Features
 
-### Add Secrets via GitHub Web Interface
-1. Go to repository → Settings → Secrets and variables → Actions
-2. Click "New repository secret"
-3. Add each secret from the list above
+- ✅ **Secrets Management** - All sensitive data stored in GitHub Secrets
+- ✅ **IAM Roles** - Least-privilege service account permissions
+- ✅ **HTTPS Only** - Automatic SSL/TLS termination
+- ✅ **Container Security** - Multi-stage Docker builds
+- ✅ **Network Security** - Cloud Run security policies
 
-## 🚀 Deployment Process
+## 📚 Additional Resources
 
-### Automatic Deployment
-- **Trigger**: Push to `main` branch
-- **Process**: Build → Test → Deploy to Cloud Run
-- **URL**: Automatically generated Cloud Run URL
+- [Google Cloud Run Documentation](https://cloud.google.com/run/docs)
+- [GitHub Actions Documentation](https://docs.github.com/en/actions)
+- [Next.js Deployment Guide](https://nextjs.org/docs/deployment)
+- [Docker Best Practices](https://docs.docker.com/develop/dev-best-practices/)
 
-### Manual Deployment
-```bash
-# Build and deploy manually
-gcloud run deploy ai-model-service-frontend \
-    --image us-central1-docker.pkg.dev/PROJECT_ID/ai-model-service-frontend/ai-model-service-frontend:latest \
-    --region us-central1 \
-    --allow-unauthenticated \
-    --port 3000 \
-    --memory 1Gi \
-    --cpu 1
-```
+## 🆘 Support
 
-## 📊 Monitoring and Logs
+If you encounter issues:
 
-### View Logs
-```bash
-# View Cloud Run logs
-gcloud logs tail --follow --resource-type=cloud_run_revision \
-    --resource-labels=service_name=ai-model-service-frontend
+1. **Check the automated setup logs** in the scripts output
+2. **Review GitHub Actions logs** for deployment errors
+3. **Verify all secrets** are properly configured
+4. **Test locally** using Docker to isolate issues
+5. **Check Google Cloud logs** for runtime errors
 
-# View GitHub Actions logs
-gh run list
-gh run view [RUN_ID]
-```
-
-### Monitoring
-- **Cloud Run Console**: Monitor performance, requests, errors
-- **GitHub Actions**: Build and deployment status
-- **Application Logs**: Available in Google Cloud Console
-
-## 🔧 Configuration
-
-### Environment Variables
-All environment variables are configured via GitHub Secrets and passed to Cloud Run during deployment.
-
-### Custom Domain (Optional)
-```bash
-# Map custom domain
-gcloud run domain-mappings create \
-    --service ai-model-service-frontend \
-    --domain your-domain.com \
-    --region us-central1
-```
-
-### SSL Certificate
-- Automatically provisioned by Google Cloud Run
-- No additional configuration needed
-
-## 🚨 Troubleshooting
-
-### Common Issues
-
-**Build Failures**
-- Check GitHub Actions logs
-- Verify all secrets are configured
-- Ensure Dockerfile syntax is correct
-
-**Deployment Failures**
-- Check service account permissions
-- Verify Artifact Registry repository exists
-- Check Cloud Run quotas
-
-**Runtime Errors**
-- Check Cloud Run logs
-- Verify environment variables
-- Test locally with same configuration
-
-### Debug Commands
-```bash
-# Check service status
-gcloud run services describe ai-model-service-frontend --region us-central1
-
-# View recent deployments
-gcloud run revisions list --service ai-model-service-frontend --region us-central1
-
-# Test service locally
-docker run -p 3000:3000 \
-    us-central1-docker.pkg.dev/PROJECT_ID/ai-model-service-frontend/ai-model-service-frontend:latest
-```
-
-## 📈 Scaling and Performance
-
-### Auto Scaling
-- **Min instances**: 0 (scales to zero when not in use)
-- **Max instances**: 10 (adjustable based on needs)
-- **Concurrency**: 100 requests per instance
-
-### Performance Optimization
-- **Cold starts**: ~2-3 seconds for Next.js
-- **Memory**: 1GB (adjustable)
-- **CPU**: 1 vCPU (adjustable)
-
-## 💰 Cost Optimization
-
-### Pricing Factors
-- **Requests**: $0.40 per million requests
-- **CPU time**: $0.0000024 per vCPU-second
-- **Memory**: $0.0000025 per GB-second
-- **Networking**: Free within Google Cloud
-
-### Cost Reduction Tips
-- Use minimum required resources
-- Enable scale-to-zero
-- Optimize build process
-- Use efficient Docker layers
-
-## 🔄 CI/CD Pipeline
-
-### Workflow Steps
-1. **Checkout**: Get latest code
-2. **Authenticate**: Google Cloud authentication
-3. **Build**: Create Docker image
-4. **Push**: Upload to Artifact Registry
-5. **Deploy**: Deploy to Cloud Run
-6. **Release**: Create GitHub release
-
-### Branch Strategy
-- **main**: Production deployments
-- **develop**: Staging deployments (configure separately)
-- **feature/***: No automatic deployment
-
-## 📞 Support
-
-For deployment issues:
-1. Check GitHub Actions logs
-2. Review Cloud Run service logs
-3. Verify all prerequisites are met
-4. Consult Google Cloud Run documentation
+For additional help, refer to the troubleshooting section above or check the repository issues.
