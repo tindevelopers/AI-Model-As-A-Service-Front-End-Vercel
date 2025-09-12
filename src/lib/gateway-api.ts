@@ -31,6 +31,28 @@ export interface GatewayApiResponse<T> {
   message?: string
 }
 
+export interface Model {
+  id: string
+  name: string
+  provider: string
+  type: string
+  [key: string]: unknown
+}
+
+export interface User {
+  id: string
+  email: string
+  created_at: string
+  [key: string]: unknown
+}
+
+export interface SystemStats {
+  total_requests: number
+  active_users: number
+  total_tokens: number
+  [key: string]: unknown
+}
+
 class GatewayApiClient {
   private baseUrl: string
   private adminApiKey?: string
@@ -90,7 +112,7 @@ class GatewayApiClient {
   }
 
   // Get available AI models
-  async getModels(): Promise<GatewayApiResponse<any[]>> {
+  async getModels(): Promise<GatewayApiResponse<Model[]>> {
     return this.request('/v1/models')
   }
 
@@ -119,14 +141,14 @@ class GatewayApiClient {
   }
 
   // Admin Operations (server-side only)
-  async adminGetAllUsers(): Promise<GatewayApiResponse<any[]>> {
+  async adminGetAllUsers(): Promise<GatewayApiResponse<User[]>> {
     if (!this.adminApiKey) {
       throw new Error('Admin API key not available - this method is server-side only')
     }
     return this.request('/admin/users')
   }
 
-  async adminGetSystemStats(): Promise<GatewayApiResponse<any>> {
+  async adminGetSystemStats(): Promise<GatewayApiResponse<SystemStats>> {
     if (!this.adminApiKey) {
       throw new Error('Admin API key not available - this method is server-side only')
     }
