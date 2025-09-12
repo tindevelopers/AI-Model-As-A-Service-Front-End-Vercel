@@ -4,11 +4,16 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session, AuthError } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 
+interface UserMetadata {
+  full_name?: string
+  [key: string]: unknown
+}
+
 interface AuthContextType {
   user: User | null
   session: Session | null
   loading: boolean
-  signUp: (email: string, password: string, userData?: any) => Promise<{ error: AuthError | null }>
+  signUp: (email: string, password: string, userData?: UserMetadata) => Promise<{ error: AuthError | null }>
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>
   signOut: () => Promise<{ error: AuthError | null }>
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>
@@ -44,7 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe()
   }, [])
 
-  const signUp = async (email: string, password: string, userData?: any) => {
+  const signUp = async (email: string, password: string, userData?: UserMetadata) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
