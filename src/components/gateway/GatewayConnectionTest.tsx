@@ -4,13 +4,15 @@ import { useState } from 'react'
 import { gatewayApi } from '@/lib/gateway-api'
 import Button from '@/components/ui/button/Button'
 
+interface TestResult {
+  success: boolean
+  message: string
+  data?: unknown
+}
+
 export default function GatewayConnectionTest() {
   const [testing, setTesting] = useState(false)
-  const [result, setResult] = useState<{
-    success: boolean
-    message: string
-    data?: any
-  } | null>(null)
+  const [result, setResult] = useState<TestResult | null>(null)
 
   const testConnection = async () => {
     setTesting(true)
