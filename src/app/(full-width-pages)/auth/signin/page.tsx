@@ -4,9 +4,9 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import { Label } from '@/components/ui/Label'
+import Button from '@/components/ui/button/Button'
+import Input from '@/components/form/input/InputField'
+import Label from '@/components/form/Label'
 
 export default function SignInPage() {
   const [email, setEmail] = useState('')
@@ -28,7 +28,7 @@ export default function SignInPage() {
       if (error) {
         setError(error.message)
       } else {
-        router.push('/dashboard')
+        router.push('/') // Redirect to dashboard
       }
     } catch (err) {
       setError('An unexpected error occurred')
@@ -65,11 +65,11 @@ export default function SignInPage() {
                 id="email"
                 name="email"
                 type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
+                defaultValue={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
+                error={!!error}
               />
             </div>
             
@@ -79,11 +79,11 @@ export default function SignInPage() {
                 id="password"
                 name="password"
                 type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
+                defaultValue={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
+                error={!!error}
               />
             </div>
           </div>
@@ -91,7 +91,7 @@ export default function SignInPage() {
           <div className="flex items-center justify-between">
             <Link
               href="/auth/forgot-password"
-              className="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400"
+              className="text-sm text-brand-600 hover:text-brand-500 dark:text-brand-400"
             >
               Forgot your password?
             </Link>
@@ -99,9 +99,9 @@ export default function SignInPage() {
 
           <div>
             <Button
-              type="submit"
+              onClick={handleSubmit}
+              disabled={loading || !email || !password}
               className="w-full"
-              disabled={loading}
             >
               {loading ? 'Signing in...' : 'Sign in'}
             </Button>
@@ -112,7 +112,7 @@ export default function SignInPage() {
               Don't have an account?{' '}
               <Link
                 href="/auth/signup"
-                className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"
+                className="font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400"
               >
                 Sign up
               </Link>
