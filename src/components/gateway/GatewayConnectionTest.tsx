@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { gatewayApi } from '@/lib/gateway-api'
-import { Button } from '@/components/ui/Button'
+import Button from '@/components/ui/button/Button'
 
 export default function GatewayConnectionTest() {
   const [testing, setTesting] = useState(false)
