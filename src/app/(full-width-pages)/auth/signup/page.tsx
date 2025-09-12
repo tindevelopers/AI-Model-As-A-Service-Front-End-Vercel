@@ -4,9 +4,9 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import { Label } from '@/components/ui/Label'
+import Button from '@/components/ui/button/Button'
+import Input from '@/components/form/input/InputField'
+import Label from '@/components/form/Label'
 
 export default function SignUpPage() {
   const [email, setEmail] = useState('')
@@ -48,7 +48,7 @@ export default function SignUpPage() {
         setSuccess(true)
         // Redirect to dashboard after successful signup
         setTimeout(() => {
-          router.push('/dashboard')
+          router.push('/')
         }, 2000)
       }
     } catch (err) {
@@ -108,11 +108,11 @@ export default function SignUpPage() {
                 id="fullName"
                 name="fullName"
                 type="text"
-                autoComplete="name"
-                required
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
                 placeholder="Enter your full name"
+                defaultValue={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                disabled={loading}
+                error={!!error}
               />
             </div>
             
@@ -122,11 +122,11 @@ export default function SignUpPage() {
                 id="email"
                 name="email"
                 type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
+                defaultValue={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
+                error={!!error}
               />
             </div>
             
@@ -136,11 +136,11 @@ export default function SignUpPage() {
                 id="password"
                 name="password"
                 type="password"
-                autoComplete="new-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
                 placeholder="Create a password (min 6 characters)"
+                defaultValue={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
+                error={!!error}
               />
             </div>
             
@@ -150,20 +150,20 @@ export default function SignUpPage() {
                 id="confirmPassword"
                 name="confirmPassword"
                 type="password"
-                autoComplete="new-password"
-                required
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirm your password"
+                defaultValue={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                disabled={loading}
+                error={!!error}
               />
             </div>
           </div>
 
           <div>
             <Button
-              type="submit"
+              onClick={handleSubmit}
+              disabled={loading || !email || !password || !confirmPassword || !fullName}
               className="w-full"
-              disabled={loading}
             >
               {loading ? 'Creating account...' : 'Create account'}
             </Button>
@@ -174,7 +174,7 @@ export default function SignUpPage() {
               Already have an account?{' '}
               <Link
                 href="/auth/signin"
-                className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"
+                className="font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400"
               >
                 Sign in
               </Link>
