@@ -1,8 +1,8 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@custom-variant dark (&:is(.dark *));
-
-@theme {
+:root {
   --font-*: initial;
   --font-outfit: Outfit, sans-serif;
 
@@ -185,103 +185,104 @@
   }
 
   body {
-    @apply relative font-normal font-outfit z-1 bg-gray-50;
+    @apply relative font-normal bg-gray-50;
   }
 }
 
-@utility menu-item {
-  @apply relative flex items-center w-full gap-3 px-3 py-2 font-medium rounded-lg text-theme-sm;
-}
-
-@utility menu-item-active {
-  @apply bg-brand-50 text-brand-500 dark:bg-brand-500/[0.12] dark:text-brand-400;
-}
-
-@utility menu-item-inactive {
-  @apply text-gray-700 hover:bg-gray-100 group-hover:text-gray-700 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-gray-300;
-}
-
-@utility menu-item-icon {
-  @apply text-gray-500 group-hover:text-gray-700 dark:text-gray-400;
-}
-
-@utility menu-item-icon-active {
-  @apply text-brand-500 dark:text-brand-400;
-}
-
-@utility menu-item-icon-inactive {
-  @apply text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-300;
-}
-
-@utility menu-item-arrow {
-  @apply relative;
-}
-
-@utility menu-item-arrow-active {
-  @apply rotate-180 text-brand-500 dark:text-brand-400;
-}
-
-@utility menu-item-arrow-inactive {
-  @apply text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-300;
-}
-
-@utility menu-dropdown-item {
-  @apply relative text-sm flex items-center gap-3 rounded-lg px-3 py-2.5  font-medium;
-}
-
-@utility menu-dropdown-item-active {
-  @apply bg-brand-50 text-brand-500 dark:bg-brand-500/[0.12] dark:text-brand-400;
-}
-
-@utility menu-dropdown-item-inactive {
-  @apply text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5;
-}
-
-@utility menu-dropdown-badge {
-  @apply text-success-600 dark:text-success-500 block rounded-full px-2.5 py-0.5 text-xs font-medium uppercase;
-}
-
-@utility menu-dropdown-badge-active {
-  @apply bg-success-100 dark:bg-success-500/20;
-}
-
-@utility menu-dropdown-badge-inactive {
-  @apply bg-success-50 group-hover:bg-success-100 dark:bg-success-500/15 dark:group-hover:bg-success-500/20;
-}
-
-@utility menu-dropdown-badge-pro {
-  @apply text-brand-600 dark:text-brand-500 block rounded-full px-2.5 py-0.5 text-xs font-medium uppercase;
-}
-
-@utility menu-dropdown-badge-pro-active {
-  @apply bg-brand-100 dark:bg-brand-500/20;
-}
-
-@utility menu-dropdown-badge-pro-inactive {
-  @apply bg-brand-50 group-hover:bg-brand-100 dark:bg-brand-500/15 dark:group-hover:bg-brand-500/20;
-}
-
-@utility no-scrollbar {
-  /* Chrome, Safari and Opera */
-  &::-webkit-scrollbar {
-    display: none;
+@layer utilities {
+  .menu-item {
+    @apply relative flex items-center w-full gap-3 px-3 py-2 font-medium rounded-lg text-sm;
   }
 
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
-}
-
-@utility custom-scrollbar {
-  &::-webkit-scrollbar {
-    @apply size-1.5;
+  .menu-item-active {
+    @apply bg-blue-50 text-blue-500 dark:bg-blue-500/[0.12] dark:text-blue-400;
   }
 
-  &::-webkit-scrollbar-track {
-    @apply rounded-full;
+  .menu-item-inactive {
+    @apply text-gray-700 hover:bg-gray-100 group-hover:text-gray-700 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-gray-300;
   }
 
-  &::-webkit-scrollbar-thumb {
-    @apply bg-gray-200 rounded-full dark:bg-gray-700;
+  .menu-item-icon {
+    @apply text-gray-500 group-hover:text-gray-700 dark:text-gray-400;
+  }
+
+  .menu-item-icon-active {
+    @apply text-blue-500 dark:text-blue-400;
+  }
+
+  .menu-item-icon-inactive {
+    @apply text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-300;
+  }
+
+  .menu-item-arrow {
+    @apply relative;
+  }
+
+  .menu-item-arrow-active {
+    @apply rotate-180 text-blue-500 dark:text-blue-400;
+  }
+
+  .menu-item-arrow-inactive {
+    @apply text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-300;
+  }
+
+  .menu-dropdown-item {
+    @apply relative text-sm flex items-center gap-3 rounded-lg px-3 py-2.5 font-medium;
+  }
+
+  .menu-dropdown-item-active {
+    @apply bg-blue-50 text-blue-500 dark:bg-blue-500/[0.12] dark:text-blue-400;
+  }
+
+  .menu-dropdown-item-inactive {
+    @apply text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5;
+  }
+
+  .menu-dropdown-badge {
+    @apply text-green-600 dark:text-green-500 block rounded-full px-2.5 py-0.5 text-xs font-medium uppercase;
+  }
+
+  .menu-dropdown-badge-active {
+    @apply bg-green-100 dark:bg-green-500/20;
+  }
+
+  .menu-dropdown-badge-inactive {
+    @apply bg-green-50 group-hover:bg-green-100 dark:bg-green-500/15 dark:group-hover:bg-green-500/20;
+  }
+
+  .menu-dropdown-badge-pro {
+    @apply text-blue-600 dark:text-blue-500 block rounded-full px-2.5 py-0.5 text-xs font-medium uppercase;
+  }
+
+  .menu-dropdown-badge-pro-active {
+    @apply bg-blue-100 dark:bg-blue-500/20;
+  }
+
+  .menu-dropdown-badge-pro-inactive {
+    @apply bg-blue-50 group-hover:bg-blue-100 dark:bg-blue-500/15 dark:group-hover:bg-blue-500/20;
+  }
+  .no-scrollbar {
+    /* Chrome, Safari and Opera */
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+
+  .custom-scrollbar {
+    &::-webkit-scrollbar {
+      @apply w-1.5 h-1.5;
+    }
+
+    &::-webkit-scrollbar-track {
+      @apply rounded-full;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      @apply bg-gray-200 rounded-full dark:bg-gray-700;
+    }
   }
 }
 
@@ -310,7 +311,7 @@
 }
 
 .apexcharts-tooltip.apexcharts-theme-light {
-  @apply gap-1 !rounded-lg !border-gray-200 p-3 !shadow-theme-sm dark:!border-gray-800 dark:!bg-gray-900;
+  @apply gap-1 !rounded-lg !border-gray-200 p-3 !shadow-sm dark:!border-gray-800 dark:!bg-gray-900;
 }
 
 .apexcharts-tooltip-marker {
@@ -334,7 +335,7 @@
 }
 
 .apexcharts-tooltip-text {
-  @apply !text-theme-xs !text-gray-700 dark:!text-white/90;
+  @apply !text-xs !text-gray-700 dark:!text-white/90;
 }
 
 .apexcharts-tooltip-text-y-value {
@@ -342,7 +343,7 @@
 }
 
 .apexcharts-gridline {
-  @apply !stroke-gray-100 dark:stroke-gray-800!;
+  @apply !stroke-gray-100 dark:!stroke-gray-800;
 }
 
 #chartDarkStyle .apexcharts-datalabels-group .apexcharts-text {
@@ -354,7 +355,19 @@
 }
 
 .fc .fc-view-harness {
-  @apply max-w-full overflow-x-auto custom-scrollbar;
+  @apply max-w-full overflow-x-auto;
+}
+
+.fc .fc-view-harness::-webkit-scrollbar {
+  @apply w-1.5 h-1.5;
+}
+
+.fc .fc-view-harness::-webkit-scrollbar-track {
+  @apply rounded-full;
+}
+
+.fc .fc-view-harness::-webkit-scrollbar-thumb {
+  @apply bg-gray-200 rounded-full dark:bg-gray-700;
 }
 
 .fc-dayGridMonth-view.fc-view.fc-daygrid {
