@@ -68,9 +68,9 @@ class GatewayApiClient {
     options: RequestInit = {},
     userApiKey?: string
   ): Promise<GatewayApiResponse<T>> {
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...(options.headers as Record<string, string>),
     }
 
     // Use user API key if provided, otherwise admin key for server-side operations
