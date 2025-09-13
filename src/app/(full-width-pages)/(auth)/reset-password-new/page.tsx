@@ -124,7 +124,6 @@ export default function ResetPasswordPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
                 error={!!error}
-                required
               />
             </div>
 
@@ -139,7 +138,6 @@ export default function ResetPasswordPage() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 disabled={loading}
                 error={!!error}
-                required
               />
             </div>
           </div>

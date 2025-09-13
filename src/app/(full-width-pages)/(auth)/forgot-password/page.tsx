@@ -96,7 +96,6 @@ export default function ForgotPasswordPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={loading}
                 error={!!error}
-                required
               />
             </div>
 
