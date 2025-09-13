@@ -1,120 +1,60 @@
 # AI Model as a Service - Deployment Guide
 
-## 🚀 Automated GitHub Actions + Google Cloud Run Deployment
+## 🚀 Automated GitHub Actions + Vercel Deployment
 
-This guide covers the complete deployment setup for the AI Model as a Service frontend using automated scripts.
+This guide covers the complete deployment setup for the AI Model as a Service frontend using Vercel's platform.
 
 ## 📋 Prerequisites
 
 ### Required Tools
-- [Google Cloud CLI](https://cloud.google.com/sdk/docs/install) (`gcloud`)
-- [GitHub CLI](https://cli.github.com/) (`gh`)
-- [Docker](https://docs.docker.com/get-docker/) (for local testing)
+- [Vercel CLI](https://vercel.com/cli) (`vercel`)
+- [GitHub CLI](https://cli.github.com/) (`gh`) (optional)
 - [Node.js 18+](https://nodejs.org/) (for local development)
 
-### Google Cloud Setup
-- Google Cloud Project with billing enabled
-- Project owner or editor permissions
+### Vercel Setup
+- [Vercel Account](https://vercel.com/signup) (free tier available)
 - Access to your AI Gateway backend service
 
 ### GitHub Setup
 - Repository: `tindevelopers/AI-Model-As-A-Service`
 - Admin access to configure secrets and actions
 
-## 🛠️ Quick Setup (Automated)
+## 🛠️ Quick Setup (Recommended)
 
-### Step 1: Clone and Setup Google Cloud Resources
+### Step 1: Create Vercel Project
 
+1. **Sign up/Login to Vercel**
+   - Go to [vercel.com](https://vercel.com)
+   - Sign up with your GitHub account
+
+2. **Import GitHub Repository**
+   - Click "New Project"
+   - Import `tindevelopers/AI-Model-As-A-Service`
+   - Choose "Next.js" as framework (auto-detected)
+
+3. **Configure Environment Variables**
+   Add these environment variables in Vercel dashboard:
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...your-anon-key
+   NEXT_PUBLIC_GATEWAY_URL=https://your-gateway.run.app
+   SUPABASE_SERVICE_ROLE_KEY=eyJ...your-service-role-key
+   GATEWAY_ADMIN_API_KEY=sk-admin-your-admin-key
+   ```
+
+4. **Deploy**
+   - Click "Deploy"
+   - Vercel will automatically build and deploy your app
+
+### Step 2: Configure GitHub Actions (Optional)
+
+For automated deployments with GitHub Actions, configure these secrets:
+
+#### Vercel Secrets
 ```bash
-# Clone the repository
-git clone https://github.com/tindevelopers/AI-Model-As-A-Service.git
-cd AI-Model-As-A-Service
-
-# Make scripts executable
-chmod +x scripts/*.sh
-
-# Set your Google Cloud project
-gcloud config set project YOUR_PROJECT_ID
-
-# Run the automated GCP setup
-./scripts/setup-gcp-deployment.sh
-```
-
-This script will:
-- ✅ Enable required Google Cloud APIs
-- ✅ Create service account with proper IAM roles
-- ✅ Generate service account key
-- ✅ Create Artifact Registry repository
-- ✅ Configure GitHub secrets for GCP
-
-### Step 2: Configure Application Secrets
-
-```bash
-# Configure application secrets from your credentials folder
-./scripts/configure-app-secrets.sh
-```
-
-This script will:
-- ✅ Auto-detect your credentials folder
-- ✅ Extract secrets from credential files
-- ✅ Set GitHub repository secrets
-- ✅ Prompt for missing values
-
-### Step 3: Trigger Deployment
-
-```bash
-# Push a commit to trigger deployment
-git add .
-git commit -m "Configure deployment secrets"
-git push origin main
-```
-
-## 🔧 Manual Setup (Alternative)
-
-If you prefer manual configuration or the automated scripts don't work in your environment:
-
-### 1. Google Cloud Configuration
-
-```bash
-# Enable APIs
-gcloud services enable run.googleapis.com
-gcloud services enable artifactregistry.googleapis.com
-gcloud services enable cloudbuild.googleapis.com
-gcloud services enable iam.googleapis.com
-
-# Create service account
-gcloud iam service-accounts create github-actions \
-    --description="Service account for GitHub Actions deployment" \
-    --display-name="GitHub Actions"
-
-# Grant roles
-gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
-    --member="serviceAccount:github-actions@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
-    --role="roles/run.admin"
-
-gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
-    --member="serviceAccount:github-actions@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
-    --role="roles/artifactregistry.admin"
-
-# Create service account key
-gcloud iam service-accounts keys create github-actions-key.json \
-    --iam-account="github-actions@YOUR_PROJECT_ID.iam.gserviceaccount.com"
-
-# Create Artifact Registry repository
-gcloud artifacts repositories create ai-model-service-frontend \
-    --repository-format=docker \
-    --location=us-central1 \
-    --description="AI Model Service Frontend Docker images"
-```
-
-### 2. GitHub Secrets Configuration
-
-Configure these secrets in your GitHub repository (`Settings > Secrets and variables > Actions`):
-
-#### Google Cloud Secrets
-```bash
-GCP_PROJECT_ID=your-gcp-project-id
-GCP_SA_KEY={"type":"service_account",...}  # Contents of github-actions-key.json
+VERCEL_TOKEN=your-vercel-token
+VERCEL_ORG_ID=your-org-id  
+VERCEL_PROJECT_ID=your-project-id
 ```
 
 #### Application Secrets
@@ -126,9 +66,74 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...your-service-role-key
 GATEWAY_ADMIN_API_KEY=sk-admin-your-admin-key
 ```
 
+### Step 3: Get Vercel Credentials
+
+To find your Vercel credentials:
+
+1. **Get Vercel Token**
+   ```bash
+   # Install Vercel CLI
+   npm i -g vercel
+   
+   # Login and get token
+   vercel login
+   # Go to https://vercel.com/account/tokens to create a token
+   ```
+
+2. **Get Organization ID**
+   ```bash
+   # In your project directory
+   vercel link
+   # This creates .vercel/project.json with your IDs
+   cat .vercel/project.json
+   ```
+
+## 🔧 Manual Deployment (Alternative)
+
+### Using Vercel CLI
+
+```bash
+# Install Vercel CLI
+npm install -g vercel
+
+# Login to Vercel
+vercel login
+
+# Deploy to preview
+vercel
+
+# Deploy to production
+vercel --prod
+```
+
+### Using Git Integration
+
+1. **Connect Repository**
+   - In Vercel dashboard, go to "Import Project"
+   - Select your GitHub repository
+   - Vercel will auto-deploy on every push to main
+
+2. **Configure Build Settings**
+   - Build Command: `npm run build`
+   - Output Directory: `.next`
+   - Install Command: `npm ci`
+
 ## 🔍 Monitoring and Troubleshooting
 
 ### Check Deployment Status
+
+```bash
+# View recent deployments
+vercel ls
+
+# View deployment logs
+vercel logs [deployment-url]
+
+# Check project info
+vercel inspect [deployment-url]
+```
+
+### GitHub Actions Monitoring
 
 ```bash
 # View recent workflow runs
@@ -136,113 +141,156 @@ gh run list --repo tindevelopers/AI-Model-As-A-Service
 
 # View specific run details
 gh run view RUN_ID --log
-
-# Check Cloud Run service
-gcloud run services describe ai-model-service-frontend --region=us-central1
 ```
 
 ### Common Issues and Solutions
 
-#### 1. **Authentication Errors**
+#### 1. **Build Failures**
 ```
-Error: google-github-actions/auth failed
+Error: Build failed with exit code 1
 ```
-**Solution:** Ensure `GCP_SA_KEY` secret contains valid service account JSON.
+**Solution:** 
+- Check build logs in Vercel dashboard
+- Ensure all dependencies are in `package.json`
+- Verify environment variables are set
 
-#### 2. **Permission Denied**
-```
-Error: Permission denied on Artifact Registry
-```
-**Solution:** Verify service account has `artifactregistry.admin` role.
-
-#### 3. **Build Failures**
-```
-Error: Docker build failed
-```
-**Solution:** Check Dockerfile and ensure all dependencies are properly specified.
-
-#### 4. **Environment Variable Issues**
+#### 2. **Environment Variable Issues**
 ```
 Error: Missing environment variables
 ```
-**Solution:** Verify all required secrets are set in GitHub repository settings.
+**Solution:** 
+- Add variables in Vercel dashboard under Project Settings > Environment Variables
+- Ensure `NEXT_PUBLIC_` prefix for client-side variables
+
+#### 3. **Function Timeout**
+```
+Error: Function execution timed out
+```
+**Solution:**
+- Optimize API routes
+- Consider upgrading Vercel plan for longer timeouts
+- Check `vercel.json` function configuration
+
+#### 4. **Domain Issues**
+```
+Error: Domain not found
+```
+**Solution:**
+- Configure custom domain in Vercel dashboard
+- Update DNS records as instructed by Vercel
 
 ### Debugging Commands
 
 ```bash
-# Check current secrets (names only, not values)
-gh secret list --repo tindevelopers/AI-Model-As-A-Service
+# Check current environment variables
+vercel env ls
 
-# View service logs
-gcloud logs read --service=ai-model-service-frontend --region=us-central1
+# Pull environment variables locally
+vercel env pull .env.local
 
-# Test local build
-docker build -t ai-model-service-frontend .
-docker run -p 3000:3000 ai-model-service-frontend
+# Test build locally
+npm run build
+npm start
+
+# Check function logs
+vercel logs --follow
 ```
 
 ## 🔄 Deployment Workflow
 
-The GitHub Actions workflow automatically:
+### Automatic Deployments (Git Integration)
+- ✅ **Push to `main` branch** - Production deployment
+- ✅ **Push to other branches** - Preview deployment
+- ✅ **Pull Request** - Preview deployment with comment
 
+### GitHub Actions Workflow
 1. **Validates Secrets** - Checks all required secrets are present
 2. **Builds Application** - Installs dependencies and builds Next.js app
-3. **Creates Docker Image** - Builds optimized production container
-4. **Pushes to Registry** - Uploads image to Google Artifact Registry
-5. **Deploys to Cloud Run** - Updates service with new image
-6. **Creates Release** - Tags successful deployments
+3. **Preview Deployment** - Creates preview for PRs
+4. **Production Deployment** - Deploys to production on main branch
+5. **PR Comments** - Adds preview URLs to pull requests
 
 ### Deployment Triggers
-
-- ✅ **Push to `main` branch** - Full deployment pipeline
-- ✅ **Pull Request** - Build validation only (no deployment)
-- ✅ **Manual trigger** - Via GitHub Actions UI
+- ✅ **Git Push** - Automatic via Vercel Git integration
+- ✅ **GitHub Actions** - Via workflow on push/PR
+- ✅ **Manual** - Via Vercel CLI or dashboard
 
 ## 🌐 Custom Domain Setup
 
-After successful deployment, you can configure a custom domain:
+### Add Custom Domain
 
-```bash
-# Map custom domain to Cloud Run service
-gcloud run domain-mappings create --service=ai-model-service-frontend \
-    --domain=your-domain.com --region=us-central1
+1. **In Vercel Dashboard**
+   - Go to Project Settings > Domains
+   - Add your custom domain
+   - Follow DNS configuration instructions
 
-# Get DNS configuration
-gcloud run domain-mappings describe --domain=your-domain.com --region=us-central1
-```
+2. **DNS Configuration**
+   ```
+   # For apex domain (example.com)
+   A record: 76.76.19.61
+
+   # For subdomain (www.example.com)  
+   CNAME record: cname.vercel-dns.com
+   ```
+
+### SSL Certificate
+- ✅ **Automatic SSL** - Vercel provides free SSL certificates
+- ✅ **Auto-renewal** - Certificates renew automatically
+- ✅ **HTTPS redirect** - HTTP automatically redirects to HTTPS
 
 ## 📊 Performance and Scaling
 
-The deployment is configured with:
-- **Memory:** 1GB
-- **CPU:** 1 vCPU
-- **Concurrency:** 100 requests per instance
-- **Scaling:** 0-10 instances (auto-scaling)
-- **Cold starts:** Minimized with optimized Docker image
+### Vercel Features
+- **Edge Network:** Global CDN with 100+ edge locations
+- **Automatic Scaling:** Serverless functions scale automatically
+- **Image Optimization:** Built-in Next.js image optimization
+- **Caching:** Intelligent caching at edge locations
+- **Analytics:** Built-in Web Vitals and performance monitoring
+
+### Performance Optimizations
+- ✅ **Static Generation** - Pages pre-built at build time
+- ✅ **Edge Functions** - API routes run at edge locations
+- ✅ **Image Optimization** - WebP/AVIF format conversion
+- ✅ **Code Splitting** - Automatic bundle optimization
+- ✅ **Compression** - Gzip/Brotli compression enabled
 
 ## 🔐 Security Features
 
-- ✅ **Secrets Management** - All sensitive data stored in GitHub Secrets
-- ✅ **IAM Roles** - Least-privilege service account permissions
+- ✅ **Environment Variables** - Secure secret management
 - ✅ **HTTPS Only** - Automatic SSL/TLS termination
-- ✅ **Container Security** - Multi-stage Docker builds
-- ✅ **Network Security** - Cloud Run security policies
+- ✅ **Security Headers** - XSS protection, CSP, etc.
+- ✅ **DDoS Protection** - Built-in protection at edge
+- ✅ **Access Control** - Team-based access management
+
+## 💰 Cost Optimization
+
+### Free Tier Limits
+- **Bandwidth:** 100GB/month
+- **Function Executions:** 100GB-hours/month
+- **Build Time:** 6,000 minutes/month
+- **Serverless Functions:** 12 per deployment
+
+### Pro Plan Benefits ($20/month)
+- **Unlimited** bandwidth and function executions
+- **Advanced analytics** and monitoring
+- **Password protection** for preview deployments
+- **Custom function timeout** (up to 5 minutes)
 
 ## 📚 Additional Resources
 
-- [Google Cloud Run Documentation](https://cloud.google.com/run/docs)
-- [GitHub Actions Documentation](https://docs.github.com/en/actions)
-- [Next.js Deployment Guide](https://nextjs.org/docs/deployment)
-- [Docker Best Practices](https://docs.docker.com/develop/dev-best-practices/)
+- [Vercel Documentation](https://vercel.com/docs)
+- [Next.js on Vercel](https://vercel.com/docs/frameworks/nextjs)
+- [GitHub Actions for Vercel](https://vercel.com/guides/how-can-i-use-github-actions-with-vercel)
+- [Custom Domains on Vercel](https://vercel.com/docs/concepts/projects/custom-domains)
 
 ## 🆘 Support
 
 If you encounter issues:
 
-1. **Check the automated setup logs** in the scripts output
-2. **Review GitHub Actions logs** for deployment errors
-3. **Verify all secrets** are properly configured
-4. **Test locally** using Docker to isolate issues
-5. **Check Google Cloud logs** for runtime errors
+1. **Check Vercel Dashboard** - View build and function logs
+2. **Review GitHub Actions logs** - For CI/CD pipeline errors
+3. **Test locally** - Use `vercel dev` for local testing
+4. **Check environment variables** - Ensure all secrets are configured
+5. **Vercel Community** - [Vercel Discussions](https://github.com/vercel/vercel/discussions)
 
 For additional help, refer to the troubleshooting section above or check the repository issues.
