@@ -3,9 +3,6 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   output: 'standalone', // Required for Docker deployment
-  experimental: {
-    outputFileTracingRoot: undefined,
-  },
   webpack(config) {
     config.module.rules.push({
       test: /\.svg$/,
