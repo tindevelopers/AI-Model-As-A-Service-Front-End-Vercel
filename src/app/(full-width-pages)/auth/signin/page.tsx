@@ -30,7 +30,7 @@ export default function SignInPage() {
       } else {
         router.push('/') // Redirect to dashboard
       }
-    } catch (error) {
+    } catch {
       setError('An unexpected error occurred')
     } finally {
       setLoading(false)
