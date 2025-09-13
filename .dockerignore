@@ -1,52 +1,7 @@
-# Dependencies
-node_modules
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Local env files
-.env*.local
-.env
-env.template
-
-# Vercel
-.vercel
-
-# Next.js
-.next/
-out/
-
-# Production
-/build
-
-# Misc
-.DS_Store
-*.pem
-
-# Debug
-*.log
-
-# Local development
-.vscode/
-.idea/
-
-# Testing
-coverage/
-.nyc_output/
-
-# Storybook
-.storybook/
-storybook-static/
-
-# Git
-.git
-.gitignore
-README.md
-SETUP_GUIDE.md
-
-# Documentation
-docs/
-*.md
-
-# CI/CD
-.github/
+# This .dockerignore file is no longer needed for Vercel deployment
+# 
+# The deployment has been migrated from Google Cloud Run to Vercel
+# Vercel uses .vercelignore for similar functionality if needed
+#
+# If you need to deploy to a containerized environment in the future,
+# you can restore this file from the git history.
