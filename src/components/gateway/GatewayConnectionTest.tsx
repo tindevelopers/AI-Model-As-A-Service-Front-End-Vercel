@@ -132,11 +132,11 @@ export default function GatewayConnectionTest() {
         )}
 
         <div className="text-sm text-gray-600 dark:text-gray-400">
-          <p><strong>Note:</strong> These tests will fail until you configure your environment variables:</p>
-          <ul className="list-disc list-inside mt-2 space-y-1">
-            <li><code>NEXT_PUBLIC_GATEWAY_URL</code> - Your Gateway service URL</li>
-            <li><code>GATEWAY_ADMIN_API_KEY</code> - Admin API key (server-side only)</li>
-          </ul>
+          <p><strong>Backend:</strong> Connected to AI Gateway at:</p>
+          <code className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+            https://ai-gateway-170185267560.us-central1.run.app
+          </code>
+          <p className="mt-2"><strong>Available endpoints:</strong> /health, /v1/models, /v1/chat/completions, /v1/api-keys</p>
         </div>
       </div>
     </div>

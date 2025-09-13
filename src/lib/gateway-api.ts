@@ -1,4 +1,4 @@
-const GATEWAY_URL = process.env.NEXT_PUBLIC_GATEWAY_URL || 'https://placeholder.run.app'
+const GATEWAY_URL = process.env.NEXT_PUBLIC_GATEWAY_URL || 'https://ai-gateway-170185267560.us-central1.run.app'
 
 if (typeof window !== 'undefined' && GATEWAY_URL === 'https://placeholder.run.app') {
   console.warn('Gateway URL not configured. API calls will not work.')
