@@ -120,7 +120,7 @@ export default function ResetPasswordPage() {
                 name="password"
                 type="password"
                 placeholder="Enter new password"
-                value={password}
+                defaultValue={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
                 error={!!error}
@@ -135,7 +135,7 @@ export default function ResetPasswordPage() {
                 name="confirmPassword"
                 type="password"
                 placeholder="Confirm new password"
-                value={confirmPassword}
+                defaultValue={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 disabled={loading}
                 error={!!error}
