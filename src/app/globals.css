@@ -392,7 +392,7 @@
 }
 
 .fc-button-group .fc-button {
-  @apply flex h-10 w-10 items-center justify-center rounded-lg! border border-gray-200 bg-transparent hover:border-gray-200 hover:bg-gray-50 focus:shadow-none active:border-gray-200! active:bg-transparent! active:shadow-none! dark:border-gray-800 dark:hover:border-gray-800 dark:hover:bg-gray-900 dark:active:border-gray-800!;
+  @apply flex h-10 w-10 items-center justify-center !rounded-lg border border-gray-200 bg-transparent hover:border-gray-200 hover:bg-gray-50 focus:shadow-none active:!border-gray-200 active:!bg-transparent active:!shadow-none dark:border-gray-800 dark:hover:border-gray-800 dark:hover:bg-gray-900 dark:active:!border-gray-800;
 }
 
 .fc-button-group .fc-button.fc-prev-button:before {
@@ -418,11 +418,11 @@
 }
 
 .fc-addEventButton-button {
-  @apply !rounded-lg !border-0 !bg-brand-500 !px-4 py-2.5! text-sm! font-medium! hover:bg-brand-600! focus:shadow-none!;
+  @apply !rounded-lg !border-0 !bg-blue-500 !px-4 !py-2.5 !text-sm !font-medium !hover:bg-blue-600 !focus:shadow-none;
 }
 
 .fc-toolbar-title {
-  @apply text-lg! font-medium! text-gray-800 dark:text-white/90;
+  @apply !text-lg !font-medium text-gray-800 dark:text-white/90;
 }
 
 .fc-header-toolbar.fc-toolbar .fc-toolbar-chunk:last-child {
@@ -430,7 +430,7 @@
 }
 
 .fc-header-toolbar.fc-toolbar .fc-toolbar-chunk:last-child .fc-button {
-  @apply h-auto! w-auto! rounded-md border-0! bg-transparent px-5! py-2! text-sm font-medium text-gray-500 hover:text-gray-700 focus:shadow-none! dark:text-gray-400;
+  @apply !h-auto !w-auto rounded-md !border-0 bg-transparent !px-5 !py-2 text-sm font-medium text-gray-500 hover:text-gray-700 !focus:shadow-none dark:text-gray-400;
 }
 
 .fc-header-toolbar.fc-toolbar
@@ -440,7 +440,7 @@
 }
 
 .fc-theme-standard th {
-  @apply border-x-0! border-t border-gray-200! bg-gray-50 !text-left dark:!border-gray-800 dark:bg-gray-900;
+  @apply !border-x-0 border-t !border-gray-200 bg-gray-50 !text-left dark:!border-gray-800 dark:bg-gray-900;
 }
 
 .fc-theme-standard td,
@@ -469,7 +469,7 @@
 }
 
 .fc .fc-daygrid-day-top {
-  @apply flex-row!;
+  @apply !flex-row;
 }
 
 .fc .fc-day-other .fc-daygrid-day-top {
@@ -645,7 +645,7 @@
 
 .jvectormap-zoomin,
 .jvectormap-zoomout {
-  @apply hidden!;
+  @apply !hidden;
 }
 
 .form-check-input:checked ~ span {
@@ -712,24 +712,24 @@
 
 .flatpickr-current-month .cur-month,
 .flatpickr-current-month input.cur-year {
-  @apply !h-auto !pt-0 !text-lg !font-medium text-gray-800! dark:text-white/90!;
+  @apply !h-auto !pt-0 !text-lg !font-medium !text-gray-800 !dark:text-white/90;
 }
 
 .flatpickr-prev-month,
 .flatpickr-next-month {
-  @apply p-0!;
+  @apply !p-0;
 }
 
 .flatpickr-weekdays {
-  @apply h-auto mt-6 mb-4 bg-transparent!;
+  @apply h-auto mt-6 mb-4 !bg-transparent;
 }
 
 .flatpickr-weekday {
-  @apply text-theme-sm! font-medium! text-gray-500! dark:text-gray-400! bg-transparent!;
+  @apply !text-theme-sm !font-medium !text-gray-500 !dark:text-gray-400 !bg-transparent;
 }
 
 .flatpickr-day {
-  @apply flex! items-center! text-theme-sm! font-medium! !text-gray-800 dark:!text-white/90 dark:hover:!border-gray-300 dark:hover:!bg-gray-900;
+  @apply !flex !items-center !text-theme-sm !font-medium !text-gray-800 dark:!text-white/90 dark:hover:!border-gray-300 dark:hover:!bg-gray-900;
 }
 
 .flatpickr-day.nextMonthDay,
@@ -771,7 +771,7 @@
 }
 
 .flatpickr-days {
-  @apply border-0!;
+  @apply !border-0;
 }
 
 span.flatpickr-weekday,
