@@ -60,7 +60,7 @@ export default function ForgotPasswordPage() {
             </div>
             <div className="mt-4">
               <Link
-                href="/auth/signin"
+                href="/signin"
                 className="text-sm font-medium text-green-800 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300"
               >
                 ← Back to sign in
@@ -111,7 +111,7 @@ export default function ForgotPasswordPage() {
 
             <div className="text-center">
               <Link
-                href="/auth/signin"
+                href="/signin"
                 className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-500"
               >
                 ← Back to sign in

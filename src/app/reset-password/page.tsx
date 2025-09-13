@@ -154,7 +154,7 @@ function ResetPasswordForm() {
 
           <div className="text-center">
             <Link
-              href="/auth/signin"
+              href="/signin"
               className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-500"
             >
               ← Back to sign in
