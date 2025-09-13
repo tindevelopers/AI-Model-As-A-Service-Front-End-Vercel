@@ -71,3 +71,4 @@ echo "- supabase/config.toml (auth settings)"
 echo "- supabase/templates/recovery.html (password reset email template)"
 echo ""
 echo -e "${GREEN}🎉 Once you update the dashboard settings, password reset will be fully functional!${NC}"
+

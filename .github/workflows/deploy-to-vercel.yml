@@ -54,15 +54,17 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
-      - name: Cache Next.js build
+      - name: Cache dependencies and Next.js build
         uses: actions/cache@v4
         with:
           path: |
             ~/.npm
             ${{ github.workspace }}/.next/cache
+            ${{ github.workspace }}/node_modules
           key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
           restore-keys: |
             ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
+            ${{ runner.os }}-nextjs-
 
       - name: Install dependencies
         run: npm ci
@@ -86,10 +88,12 @@ jobs:
           echo "Starting build process..."
           # Set Node.js memory limit to prevent OOM errors
           export NODE_OPTIONS="--max-old-space-size=4096"
-          # Clear any existing build artifacts
+          # Clear any existing build artifacts to ensure clean build
           rm -rf .next
-          # Run build with verbose output
-          npm run build -- --verbose
+          # Create cache directory if it doesn't exist
+          mkdir -p .next/cache
+          # Run build
+          npm run build
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key' }}

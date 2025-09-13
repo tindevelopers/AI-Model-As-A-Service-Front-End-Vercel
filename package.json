@@ -6,7 +6,10 @@
     "dev": "next dev ",
     "build": "next build ",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:build": "./scripts/test-build.sh",
+    "setup:secrets": "./scripts/setup-all-secrets.sh",
+    "clean": "rm -rf .next node_modules/.cache"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.19",

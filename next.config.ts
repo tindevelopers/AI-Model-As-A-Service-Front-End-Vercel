@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -10,6 +11,9 @@ const nextConfig: NextConfig = {
   
   // Enable build caching for faster builds
   distDir: '.next',
+  
+  // Set output file tracing root to fix workspace detection warning
+  outputFileTracingRoot: path.join(__dirname),
   
   // Minimal experimental features to reduce build complexity
   experimental: {
@@ -31,13 +35,16 @@ const nextConfig: NextConfig = {
   
   webpack(config) {
     // Enable persistent caching with proper configuration
-    config.cache = {
-      type: 'filesystem',
-      cacheDirectory: '.next/cache/webpack',
-      buildDependencies: {
-        config: [__filename],
-      },
-    };
+    // Only enable filesystem cache in development to avoid CI/CD issues
+    if (process.env.NODE_ENV === 'development') {
+      config.cache = {
+        type: 'filesystem',
+        cacheDirectory: path.join(__dirname, '.next/cache/webpack'),
+        buildDependencies: {
+          config: [__filename],
+        },
+      };
+    }
     
     // Reduce memory usage during build
     config.optimization = {
