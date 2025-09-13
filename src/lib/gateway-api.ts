@@ -1,9 +1,8 @@
-const GATEWAY_URL = process.env.NEXT_PUBLIC_GATEWAY_URL!
+const GATEWAY_URL = process.env.NEXT_PUBLIC_GATEWAY_URL || 'https://placeholder.run.app'
 
-if (!GATEWAY_URL) {
-  throw new Error('Missing NEXT_PUBLIC_GATEWAY_URL environment variable')
+if (typeof window !== 'undefined' && GATEWAY_URL === 'https://placeholder.run.app') {
+  console.warn('Gateway URL not configured. API calls will not work.')
 }
-
 export interface ApiKey {
   id: string
   name: string
