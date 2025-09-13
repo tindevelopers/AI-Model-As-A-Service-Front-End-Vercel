@@ -110,7 +110,7 @@ export default function GatewayConnectionTest() {
               {result.message}
             </div>
             
-            {result.data && (
+            {result.data != null && (
               <details className="mt-2">
                 <summary className={`cursor-pointer text-xs ${
                   result.success 
