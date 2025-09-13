@@ -4,9 +4,6 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
-import Button from '@/components/ui/button/Button'
-import Input from '@/components/form/input/InputField'
-import Label from '@/components/form/Label'
 
 export default function SignUpPage() {
   const [email, setEmail] = useState('')
@@ -66,7 +63,7 @@ export default function SignUpPage() {
             Or{' '}
             <Link
               href="/signin"
-              className="font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400"
+              className="font-medium text-blue-600 hover:text-blue-500"
             >
               sign in to your existing account
             </Link>
@@ -92,67 +89,79 @@ export default function SignUpPage() {
 
           <div className="rounded-md shadow-sm space-y-4">
             <div>
-              <Label htmlFor="full-name">Full Name</Label>
-              <Input
-                id="full-name"
+              <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Full Name
+              </label>
+              <input
+                id="fullName"
                 name="fullName"
                 type="text"
+                required
+                className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
                 placeholder="John Doe"
-                defaultValue={fullName}
+                value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 disabled={loading}
-                error={!!error}
               />
             </div>
             <div>
-              <Label htmlFor="email-address">Email address</Label>
-              <Input
-                id="email-address"
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Email address
+              </label>
+              <input
+                id="email"
                 name="email"
                 type="email"
+                required
+                className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
                 placeholder="you@example.com"
-                defaultValue={email}
+                value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={loading}
-                error={!!error}
               />
             </div>
             <div>
-              <Label htmlFor="password">Password</Label>
-              <Input
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Password
+              </label>
+              <input
                 id="password"
                 name="password"
                 type="password"
+                required
+                className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
                 placeholder="Enter your password"
-                defaultValue={password}
+                value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
-                error={!!error}
               />
             </div>
             <div>
-              <Label htmlFor="confirm-password">Confirm Password</Label>
-              <Input
-                id="confirm-password"
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Confirm Password
+              </label>
+              <input
+                id="confirmPassword"
                 name="confirmPassword"
                 type="password"
+                required
+                className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
                 placeholder="Confirm your password"
-                defaultValue={confirmPassword}
+                value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 disabled={loading}
-                error={!!error}
               />
             </div>
           </div>
 
           <div>
-            <Button
+            <button
               type="submit"
               disabled={loading || !email || !password || !confirmPassword || !fullName}
-              className="w-full"
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Creating account...' : 'Sign up'}
-            </Button>
+            </button>
           </div>
 
           <div className="text-center">
