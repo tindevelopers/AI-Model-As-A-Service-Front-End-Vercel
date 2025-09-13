@@ -1,0 +1,219 @@
+name: Deploy AI Model Service Frontend to Vercel
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # Validate and build for all events
+  validate-and-build:
+    runs-on: ubuntu-latest
+    outputs:
+      should-deploy: ${{ steps.check-secrets.outputs.should-deploy }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check required secrets
+        id: check-secrets
+        run: |
+          echo "Checking required secrets..."
+          
+          # Check if we're on main branch and have required secrets for deployment
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            if [[ -z "${{ secrets.VERCEL_TOKEN }}" ]]; then
+              echo "❌ Missing VERCEL_TOKEN secret"
+              echo "should-deploy=false" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+            
+            if [[ -z "${{ secrets.VERCEL_ORG_ID }}" ]]; then
+              echo "❌ Missing VERCEL_ORG_ID secret"
+              echo "should-deploy=false" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+            
+            if [[ -z "${{ secrets.VERCEL_PROJECT_ID }}" ]]; then
+              echo "❌ Missing VERCEL_PROJECT_ID secret"
+              echo "should-deploy=false" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+            
+            echo "✅ All required secrets are present"
+            echo "should-deploy=true" >> $GITHUB_OUTPUT
+          else
+            echo "📋 Pull request - skipping deployment"
+            echo "should-deploy=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key' }}
+          NEXT_PUBLIC_GATEWAY_URL: ${{ secrets.NEXT_PUBLIC_GATEWAY_URL || 'https://placeholder.run.app' }}
+
+  # Deploy to Vercel Preview for PRs
+  deploy-preview:
+    needs: validate-and-build
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Build Project Artifacts
+        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Deploy Project Artifacts to Vercel
+        id: deploy
+        run: |
+          url=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
+          echo "preview-url=$url" >> $GITHUB_OUTPUT
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Comment PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🚀 **Preview deployment ready!**
+              
+              📍 **Preview URL:** ${{ steps.deploy.outputs.preview-url }}
+              
+              This preview will be automatically updated when you push new commits to this PR.`
+            })
+
+  # Deploy to Vercel Production on main branch
+  deploy-production:
+    needs: validate-and-build
+    if: needs.validate-and-build.outputs.should-deploy == 'true'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Build Project Artifacts
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Deploy Project Artifacts to Vercel
+        id: deploy
+        run: |
+          url=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+          echo "production-url=$url" >> $GITHUB_OUTPUT
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Show Output
+        run: |
+          echo "🚀 Production deployment successful!"
+          echo "📍 Production URL: ${{ steps.deploy.outputs.production-url }}"
+
+      - name: Create Release
+        if: github.ref == 'refs/heads/main'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ github.run_number }}
+          release_name: Release v${{ github.run_number }}
+          body: |
+            🚀 Automated deployment to Vercel
+            
+            **Service Details:**
+            - Production URL: ${{ steps.deploy.outputs.production-url }}
+            - Commit: ${{ github.sha }}
+            - Build: ${{ github.run_number }}
+            
+            **Changes:**
+            ${{ github.event.head_commit.message }}
+          draft: false
+          prerelease: false
+
+  # Show setup instructions if secrets are missing
+  setup-instructions:
+    needs: validate-and-build
+    if: needs.validate-and-build.outputs.should-deploy == 'false' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Show Setup Instructions
+        run: |
+          echo "🔧 SETUP REQUIRED"
+          echo "================"
+          echo ""
+          echo "Your deployment failed because required secrets are missing."
+          echo "Please configure the following GitHub repository secrets:"
+          echo ""
+          echo "📋 Required Vercel Secrets:"
+          echo "  • VERCEL_TOKEN - Your Vercel authentication token"
+          echo "  • VERCEL_ORG_ID - Your Vercel organization/team ID"
+          echo "  • VERCEL_PROJECT_ID - Your Vercel project ID"
+          echo ""
+          echo "📋 Application Secrets:"
+          echo "  • NEXT_PUBLIC_SUPABASE_URL - Supabase project URL"
+          echo "  • NEXT_PUBLIC_SUPABASE_ANON_KEY - Supabase anon key"
+          echo "  • NEXT_PUBLIC_GATEWAY_URL - Gateway service URL"
+          echo "  • SUPABASE_SERVICE_ROLE_KEY - Supabase service role key"
+          echo "  • GATEWAY_ADMIN_API_KEY - Gateway admin API key"
+          echo ""
+          echo "🔗 Configure secrets at:"
+          echo "   https://github.com/${{ github.repository }}/settings/secrets/actions"
+          echo ""
+          echo "📚 See DEPLOYMENT_GUIDE.md for detailed setup instructions"
