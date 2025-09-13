@@ -99,7 +99,7 @@ export default function SignInPage() {
 
           <div>
             <Button
-              onClick={handleSubmit}
+              type="submit"
               disabled={loading || !email || !password}
               className="w-full"
             >
