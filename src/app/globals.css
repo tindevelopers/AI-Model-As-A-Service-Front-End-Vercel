@@ -780,7 +780,7 @@ span.flatpickr-weekday,
 }
 
 .flatpickr-rContainer {
-  @apply dark:bg-gray-dark;
+  @apply dark:bg-gray-900;
 }
 
 .flatpickr-innerContainer {
@@ -793,7 +793,7 @@ span.flatpickr-weekday,
 
 .flatpickr-day.inRange {
   box-shadow: -5px 0 0 #f9fafb, 5px 0 0 #f9fafb !important;
-  @apply dark:!shadow-datepicker;
+  @apply dark:!shadow-lg;
 }
 
 .flatpickr-day.inRange,
