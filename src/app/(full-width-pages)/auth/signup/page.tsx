@@ -161,7 +161,7 @@ export default function SignUpPage() {
 
           <div>
             <Button
-              onClick={handleSubmit}
+              type="submit"
               disabled={loading || !email || !password || !confirmPassword || !fullName}
               className="w-full"
             >
