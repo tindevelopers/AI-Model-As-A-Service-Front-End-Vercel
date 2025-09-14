@@ -320,4 +320,4 @@ class ErrorLogger {
 export const errorLogger = new ErrorLogger();
 
 // Export types for use in components
-export type { ErrorContext, EnvironmentCheck };
+export type { EnvironmentCheck };
