@@ -12,7 +12,7 @@ export default function AuthCallbackPage() {
     const handleAuthCallback = async () => {
       try {
         // Handle the auth callback from the URL
-        const { data, error } = await supabase.auth.getSession()
+        const { error } = await supabase.auth.getSession()
         
         if (error) {
           console.error('Auth callback error:', error)
@@ -23,7 +23,6 @@ export default function AuthCallbackPage() {
         // Check if we have URL parameters for auth (magic link, etc.)
         const accessToken = searchParams.get('access_token')
         const refreshToken = searchParams.get('refresh_token')
-        const type = searchParams.get('type')
 
         if (accessToken && refreshToken) {
           // Set the session with tokens from URL
