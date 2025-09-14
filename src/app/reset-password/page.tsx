@@ -29,8 +29,11 @@ function ResetPasswordForm() {
         access_token: accessToken,
         refresh_token: refreshToken
       })
+    } else {
+      // No tokens found, redirect to forgot password page
+      router.push('/forgot-password')
     }
-  }, [searchParams])
+  }, [searchParams, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

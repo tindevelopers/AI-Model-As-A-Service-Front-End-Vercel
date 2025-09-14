@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
+import { supabase } from '@/lib/supabase'
 import Button from '@/components/ui/button/Button'
 import Input from '@/components/form/input/InputField'
 import Label from '@/components/form/Label'
@@ -13,6 +14,7 @@ export default function ForgotPasswordPage() {
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [emailSent, setEmailSent] = useState(false)
+  const [resetMethod, setResetMethod] = useState<'password' | 'magic-link'>('password')
   
   const { resetPassword } = useAuth()
 
@@ -23,12 +25,31 @@ export default function ForgotPasswordPage() {
     setMessage('')
 
     try {
-      const { error } = await resetPassword(email)
+      let result
       
-      if (error) {
-        setError(error.message)
+      if (resetMethod === 'password') {
+        // Send password reset email
+        result = await resetPassword(email)
+        if (!result.error) {
+          setMessage('Password reset email sent! Check your inbox and click the link to reset your password.')
+        }
       } else {
-        setMessage('Password reset email sent! Check your inbox.')
+        // Send magic link
+        const { error } = await supabase.auth.signInWithOtp({
+          email,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/callback`
+          }
+        })
+        result = { error }
+        if (!error) {
+          setMessage('Magic link sent! Check your inbox and click the link to sign in.')
+        }
+      }
+      
+      if (result.error) {
+        setError(result.error.message)
+      } else {
         setEmailSent(true)
       }
     } catch {
@@ -46,7 +67,7 @@ export default function ForgotPasswordPage() {
             Reset your password
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-            Enter your email address and we&apos;ll send you a link to reset your password
+            Choose how you&apos;d like to reset your password
           </p>
         </div>
 
@@ -55,7 +76,10 @@ export default function ForgotPasswordPage() {
             <div className="text-sm text-green-800 dark:text-green-400">
               <p className="font-medium">Email sent successfully!</p>
               <p className="mt-1">
-                Check your inbox for a password reset link. If you don&apos;t see it, check your spam folder.
+                {resetMethod === 'password' 
+                  ? 'Check your inbox for a password reset link. If you don\'t see it, check your spam folder.'
+                  : 'Check your inbox for a magic link to sign in. If you don\'t see it, check your spam folder.'
+                }
               </p>
             </div>
             <div className="mt-4">
@@ -68,7 +92,51 @@ export default function ForgotPasswordPage() {
             </div>
           </div>
         ) : (
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div className="mt-8 space-y-6">
+            {/* Method Selection */}
+            <div className="space-y-3">
+              <Label>Choose reset method:</Label>
+              <div className="space-y-2">
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="resetMethod"
+                    value="password"
+                    checked={resetMethod === 'password'}
+                    onChange={(e) => setResetMethod(e.target.value as 'password' | 'magic-link')}
+                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                  />
+                  <div>
+                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                      Password Reset Email
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      Get a secure link to reset your password
+                    </div>
+                  </div>
+                </label>
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="resetMethod"
+                    value="magic-link"
+                    checked={resetMethod === 'magic-link'}
+                    onChange={(e) => setResetMethod(e.target.value as 'password' | 'magic-link')}
+                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                  />
+                  <div>
+                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                      Magic Link
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      Sign in instantly with a secure link
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
               <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-4">
                 <div className="text-sm text-red-800 dark:text-red-400">
@@ -105,7 +173,12 @@ export default function ForgotPasswordPage() {
                 disabled={loading || !email}
                 className="w-full"
               >
-                {loading ? 'Sending...' : 'Send reset email'}
+                {loading 
+                  ? 'Sending...' 
+                  : resetMethod === 'password' 
+                    ? 'Send password reset email' 
+                    : 'Send magic link'
+                }
               </Button>
             </div>
 
@@ -117,7 +190,8 @@ export default function ForgotPasswordPage() {
                 ← Back to sign in
               </Link>
             </div>
-          </form>
+            </form>
+          </div>
         )}
       </div>
     </div>
