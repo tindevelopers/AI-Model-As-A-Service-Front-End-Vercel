@@ -86,7 +86,7 @@ export function ErrorDebugPanel({ isOpen = false }: ErrorDebugPanelProps) {
       {/* Tabs */}
       <div className="flex border-b border-gray-200 dark:border-gray-700">
         {[
-          { id: 'environment', label: 'Environment', count: envChecks.filter(c => c.status !== 'valid').length },
+          { id: 'environment', label: 'Environment', count: envChecks.filter(c => (c as { status: string }).status !== 'valid').length },
           { id: 'errors', label: 'Errors', count: errors.length },
           { id: 'warnings', label: 'Warnings', count: warnings.length },
         ].map((tab) => (
@@ -108,29 +108,32 @@ export function ErrorDebugPanel({ isOpen = false }: ErrorDebugPanelProps) {
       <div className="p-3 max-h-64 overflow-y-auto">
         {activeTab === 'environment' && (
           <div className="space-y-2">
-            {envChecks.map((check, index) => (
-              <div
-                key={index}
-                className={`p-2 rounded text-sm ${
-                  check.status === 'valid'
-                    ? 'bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400'
-                    : check.status === 'missing'
-                    ? 'bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-400'
-                    : 'bg-yellow-50 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
-                }`}
-              >
-                <div className="font-medium">{check.name}</div>
-                <div className="text-xs opacity-75">{check.description}</div>
-                <div className="text-xs mt-1">
-                  Status: <span className="font-medium">{check.status}</span>
-                </div>
-                {check.value && (
-                  <div className="text-xs mt-1 font-mono">
-                    Value: {check.value.substring(0, 30)}...
+            {envChecks.map((check, index) => {
+              const typedCheck = check as { status: string; name: string; description: string; value?: string };
+              return (
+                <div
+                  key={index}
+                  className={`p-2 rounded text-sm ${
+                    typedCheck.status === 'valid'
+                      ? 'bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                      : typedCheck.status === 'missing'
+                      ? 'bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                      : 'bg-yellow-50 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
+                  }`}
+                >
+                  <div className="font-medium">{typedCheck.name}</div>
+                  <div className="text-xs opacity-75">{typedCheck.description}</div>
+                  <div className="text-xs mt-1">
+                    Status: <span className="font-medium">{typedCheck.status}</span>
                   </div>
-                )}
-              </div>
-            ))}
+                  {typedCheck.value && (
+                    <div className="text-xs mt-1 font-mono">
+                      Value: {typedCheck.value.substring(0, 30)}...
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
 
