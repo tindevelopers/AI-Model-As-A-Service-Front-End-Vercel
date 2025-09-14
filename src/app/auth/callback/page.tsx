@@ -9,7 +9,7 @@ export default async function AuthCallbackPage() {
   const host = hdrs.get('x-forwarded-host') || hdrs.get('host') || '127.0.0.1:3000'
   const proto = hdrs.get('x-forwarded-proto') || 'http'
   const computedOrigin = `${proto}://${host}`
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || computedOrigin
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || computedOrigin).trim()
 
   const requestUrl = `${baseUrl}${hdrs.get('x-invoke-path') || '/auth/callback'}${hdrs.get('x-invoke-query') || ''}`
   const supabase = await createServerClient()

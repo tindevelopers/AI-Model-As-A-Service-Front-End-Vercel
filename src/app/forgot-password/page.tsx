@@ -15,7 +15,7 @@ async function sendReset(formData: FormData) {
   const host = hdrs.get('x-forwarded-host') || hdrs.get('host') || '127.0.0.1:3000'
   const proto = hdrs.get('x-forwarded-proto') || 'http'
   const computedOrigin = `${proto}://${host}`
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || computedOrigin
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || computedOrigin).trim()
 
   if (!email) {
     redirect('/forgot-password?error=missing_email')
