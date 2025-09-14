@@ -14,20 +14,21 @@ async function sendReset(formData: FormData) {
   const hdrs = await headers()
   const host = hdrs.get('x-forwarded-host') || hdrs.get('host') || '127.0.0.1:3000'
   const proto = hdrs.get('x-forwarded-proto') || 'http'
-  const origin = `${proto}://${host}`
+  const computedOrigin = `${proto}://${host}`
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || computedOrigin
 
   if (!email) {
     redirect('/forgot-password?error=missing_email')
   }
 
   if (method === 'password') {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${origin}/reset-password` })
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${baseUrl}/reset-password` })
     if (error) redirect(`/forgot-password?error=${encodeURIComponent(error.message)}`)
     redirect('/forgot-password?sent=1&method=password')
   } else {
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${origin}/auth/callback` }
+      options: { emailRedirectTo: `${baseUrl}/auth/callback` }
     })
     if (error) redirect(`/forgot-password?error=${encodeURIComponent(error.message)}`)
     redirect('/forgot-password?sent=1&method=magic-link')

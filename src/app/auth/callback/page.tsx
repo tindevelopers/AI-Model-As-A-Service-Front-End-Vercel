@@ -1,67 +1,24 @@
-'use client'
+import { headers } from 'next/headers'
+import { redirect } from 'next/navigation'
+import { createServerClient } from '@/lib/supabase'
 
-import { useEffect, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+export const dynamic = 'force-dynamic'
 
-function AuthCallbackContent() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
+export default async function AuthCallbackPage() {
+  const hdrs = await headers()
+  const host = hdrs.get('x-forwarded-host') || hdrs.get('host') || '127.0.0.1:3000'
+  const proto = hdrs.get('x-forwarded-proto') || 'http'
+  const computedOrigin = `${proto}://${host}`
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || computedOrigin
 
-  useEffect(() => {
-    const handleAuthCallback = async () => {
-      try {
-        // Preferred: exchange code in URL (covers magic link and recovery flows)
-        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(window.location.href)
+  const requestUrl = `${baseUrl}${hdrs.get('x-invoke-path') || '/auth/callback'}${hdrs.get('x-invoke-query') || ''}`
+  const supabase = createServerClient()
+  const { error } = await supabase.auth.exchangeCodeForSession(requestUrl)
 
-        if (exchangeError) {
-          // Fallback: explicit tokens in URL
-          const accessToken = searchParams.get('access_token')
-          const refreshToken = searchParams.get('refresh_token')
-          if (accessToken && refreshToken) {
-            await supabase.auth.setSession({
-              access_token: accessToken,
-              refresh_token: refreshToken
-            })
-          }
-        }
+  if (error) {
+    redirect('/signin?error=auth_exchange_failed')
+  }
 
-        const { data } = await supabase.auth.getSession()
-        if (data.session) {
-          router.push('/')
-        } else {
-          router.push('/signin')
-        }
-      } catch {
-        router.push('/signin?error=unexpected_error')
-      }
-    }
-
-    handleAuthCallback()
-  }, [router, searchParams])
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">Completing sign in...</p>
-      </div>
-    </div>
-  )
-}
-
-export default function AuthCallbackPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">Loading...</p>
-        </div>
-      </div>
-    }>
-      <AuthCallbackContent />
-    </Suspense>
-  )
+  redirect('/')
 }
 
