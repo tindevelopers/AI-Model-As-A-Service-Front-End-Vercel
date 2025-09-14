@@ -1,4 +1,5 @@
 import { createServerClient as createSSRClient } from '@supabase/ssr'
+import type { CookieMethodsServer } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
@@ -14,23 +15,30 @@ type CookieSetRemoveOptions = Partial<{
   secure: boolean
 }>
 
-export const createServerClient = async () => {
-  const cookieStore = await cookies()
-  return createSSRClient(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll().map((c) => ({ name: c.name, value: c.value }))
-      },
-      set(name: string, value: string, options: CookieSetRemoveOptions) {
-        try {
-          cookieStore.set({ name, value, ...options })
-        } catch {}
-      },
-      remove(name: string, options: CookieSetRemoveOptions) {
-        try {
-          cookieStore.set({ name, value: '', ...options, maxAge: 0 })
-        } catch {}
-      },
+export const createServerClient = () => {
+  const cookieAdapter = {
+    getAll() {
+      const store = cookies()
+      // Map Next cookies to the shape expected by @supabase/ssr
+      return store.getAll().map((c) => ({ name: c.name, value: c.value }))
     },
-  })
+    setAll(cookiesToSet: { name: string; value: string; options?: CookieSetRemoveOptions }[]) {
+      const store = cookies()
+      cookiesToSet.forEach(({ name, value, options }) => {
+        try {
+          store.set({ name, value, ...(options || {}) })
+        } catch {}
+      })
+    },
+    deleteAll(cookiesToDelete: { name: string; options?: CookieSetRemoveOptions }[]) {
+      const store = cookies()
+      cookiesToDelete.forEach(({ name, options }) => {
+        try {
+          store.set({ name, value: '', ...(options || {}), maxAge: 0 })
+        } catch {}
+      })
+    },
+  } as unknown as CookieMethodsServer
+
+  return createSSRClient(supabaseUrl, supabaseAnonKey, { cookies: cookieAdapter })
 }
