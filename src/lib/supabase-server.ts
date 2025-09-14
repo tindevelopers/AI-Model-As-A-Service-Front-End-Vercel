@@ -1,4 +1,5 @@
 import { createServerClient as createSSRClient } from '@supabase/ssr'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import type { CookieMethodsServer } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
@@ -53,4 +54,9 @@ export const createServerClient = () => {
       detectSessionInUrl: true,
     },
   })
+}
+
+export const createAdminClient = () => {
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+  return createSupabaseClient(supabaseUrl, serviceKey)
 }
