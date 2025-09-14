@@ -44,5 +44,13 @@ export const createServerClient = () => {
     },
   } as unknown as CookieMethodsServer
 
-  return createSSRClient(supabaseUrl, supabaseAnonKey, { cookies: cookieAdapter })
+  return createSSRClient(supabaseUrl, supabaseAnonKey, {
+    cookies: cookieAdapter,
+    auth: {
+      flowType: 'implicit',
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+    },
+  })
 }
