@@ -147,59 +147,59 @@ function ForgotPasswordContent() {
             </div>
 
             <form className="space-y-6" onSubmit={handleSubmit}>
-            {error && (
-              <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-4">
-                <div className="text-sm text-red-800 dark:text-red-400">
-                  {error}
+              {error && (
+                <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-4">
+                  <div className="text-sm text-red-800 dark:text-red-400">
+                    {error}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {message && (
-              <div className="rounded-md bg-blue-50 dark:bg-blue-900/20 p-4">
-                <div className="text-sm text-blue-800 dark:text-blue-400">
-                  {message}
+              {message && (
+                <div className="rounded-md bg-blue-50 dark:bg-blue-900/20 p-4">
+                  <div className="text-sm text-blue-800 dark:text-blue-400">
+                    {message}
+                  </div>
                 </div>
+              )}
+
+              <div>
+                <Label htmlFor="email">Email address</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={loading}
+                  error={!!error}
+                />
               </div>
-            )}
 
-            <div>
-              <Label htmlFor="email">Email address</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="Enter your email"
-                defaultValue={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={loading}
-                error={!!error}
-              />
-            </div>
+              <div>
+                <Button
+                  type="submit"
+                  disabled={loading || !email}
+                  className="w-full"
+                >
+                  {loading 
+                    ? 'Sending...' 
+                    : resetMethod === 'password' 
+                      ? 'Send password reset email' 
+                      : 'Send magic link'
+                  }
+                </Button>
+              </div>
 
-            <div>
-              <Button
-                type="submit"
-                disabled={loading || !email}
-                className="w-full"
-              >
-                {loading 
-                  ? 'Sending...' 
-                  : resetMethod === 'password' 
-                    ? 'Send password reset email' 
-                    : 'Send magic link'
-                }
-              </Button>
-            </div>
-
-            <div className="text-center">
-              <Link
-                href="/signin"
-                className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-500"
-              >
-                ← Back to sign in
-              </Link>
-            </div>
+              <div className="text-center">
+                <Link
+                  href="/signin"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-500"
+                >
+                  ← Back to sign in
+                </Link>
+              </div>
             </form>
           </div>
         )}
