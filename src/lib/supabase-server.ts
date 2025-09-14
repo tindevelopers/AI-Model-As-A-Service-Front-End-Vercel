@@ -18,8 +18,8 @@ export const createServerClient = () => {
   const cookieStore = cookies()
   return createSSRClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
-      get(name: string) {
-        return cookieStore.get(name)?.value
+      getAll() {
+        return cookieStore.getAll().map((c) => ({ name: c.name, value: c.value }))
       },
       set(name: string, value: string, options: CookieSetRemoveOptions) {
         try {
