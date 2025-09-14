@@ -1,7 +1,15 @@
+import { errorLogger } from '@/utils/errorLogger'
+
 const GATEWAY_URL = process.env.NEXT_PUBLIC_GATEWAY_URL || 'https://ai-gateway-170185267560.us-central1.run.app'
 
 if (typeof window !== 'undefined' && GATEWAY_URL === 'https://placeholder.run.app') {
-  console.warn('Gateway URL not configured. API calls will not work.')
+  errorLogger.logWarning('Gateway URL not configured. API calls will not work.', {
+    component: 'gateway-api',
+    action: 'initialization',
+    additionalData: {
+      gatewayUrl: GATEWAY_URL,
+    }
+  });
 }
 export interface ApiKey {
   id: string
@@ -78,19 +86,54 @@ class GatewayApiClient {
       headers['Authorization'] = `Bearer ${apiKey}`
     }
 
+    const requestUrl = `${this.baseUrl}${endpoint}`;
+    const requestStartTime = Date.now();
+
     try {
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      const response = await fetch(requestUrl, {
         ...options,
         headers,
       })
 
       const data = await response.json()
+      const requestDuration = Date.now() - requestStartTime;
 
       if (!response.ok) {
+        const errorMessage = data.error || `HTTP ${response.status}: ${response.statusText}`;
+        
+        errorLogger.logError(`Gateway API request failed: ${errorMessage}`, {
+          component: 'gateway-api',
+          action: 'request',
+          additionalData: {
+            endpoint,
+            method: options.method || 'GET',
+            status: response.status,
+            statusText: response.statusText,
+            duration: requestDuration,
+            hasApiKey: !!apiKey,
+            url: requestUrl,
+          }
+        });
+
         return {
           success: false,
-          error: data.error || `HTTP ${response.status}: ${response.statusText}`
+          error: errorMessage
         }
+      }
+
+      // Log successful requests in development
+      if (process.env.NODE_ENV === 'development') {
+        errorLogger.logSuccess(`Gateway API request successful`, {
+          component: 'gateway-api',
+          action: 'request',
+          additionalData: {
+            endpoint,
+            method: options.method || 'GET',
+            status: response.status,
+            duration: requestDuration,
+            hasApiKey: !!apiKey,
+          }
+        });
       }
 
       return {
@@ -98,9 +141,25 @@ class GatewayApiClient {
         data
       }
     } catch (error) {
+      const requestDuration = Date.now() - requestStartTime;
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      
+      errorLogger.logError(`Gateway API request error: ${errorMessage}`, {
+        component: 'gateway-api',
+        action: 'request',
+        additionalData: {
+          endpoint,
+          method: options.method || 'GET',
+          duration: requestDuration,
+          hasApiKey: !!apiKey,
+          url: requestUrl,
+          errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+        }
+      });
+
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred'
+        error: errorMessage
       }
     }
   }

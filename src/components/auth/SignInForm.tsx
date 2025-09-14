@@ -8,6 +8,7 @@ import Link from "next/link";
 import React, { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import { useErrorLogger } from "@/hooks/useErrorLogger";
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -19,22 +20,68 @@ export default function SignInForm() {
   
   const { signIn } = useAuth();
   const router = useRouter();
+  const { logError, logSuccess, logWarning } = useErrorLogger({
+    componentName: 'SignInForm',
+    autoCheckEnvironment: false,
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
+    // Log sign-in attempt
+    logSuccess('Sign-in attempt initiated', {
+      action: 'signInAttempt',
+      additionalData: {
+        email: email,
+        hasPassword: !!password,
+        rememberMe: isChecked,
+      }
+    });
+
     try {
       const { error } = await signIn(email, password);
       if (error) {
         setError(error.message);
+        
+        // Log sign-in failure
+        logError(`Sign-in failed: ${error.message}`, {
+          action: 'signInFailure',
+          additionalData: {
+            email: email,
+            errorCode: error.name || 'unknown',
+            errorMessage: error.message,
+            rememberMe: isChecked,
+          }
+        });
       } else {
+        // Log successful sign-in
+        logSuccess('Sign-in successful', {
+          action: 'signInSuccess',
+          additionalData: {
+            email: email,
+            rememberMe: isChecked,
+          }
+        });
+        
         // Redirect to dashboard on successful signin
         router.push("/");
       }
-    } catch {
-      setError("An unexpected error occurred");
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
+      setError(errorMessage);
+      
+      // Log unexpected error
+      logError(`Unexpected sign-in error: ${errorMessage}`, {
+        action: 'signInUnexpectedError',
+        additionalData: {
+          email: email,
+          errorType: err instanceof Error ? err.constructor.name : 'Unknown',
+          errorMessage: errorMessage,
+          rememberMe: isChecked,
+        }
+      });
     } finally {
       setLoading(false);
     }
