@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import EmailHeader from "./EmailHeader";
 import EmailPagination from "./EmailPagination";
 import Checkbox from "../../form/input/Checkbox";
-import SimpleBar from "simplebar-react";
+ 
 
 interface Mail {
   subject: string;
@@ -124,7 +124,7 @@ export default function EmailContent() {
   return (
     <div className="rounded-2xl xl:col-span-9 w-full border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
       <EmailHeader isChecked={allChecked} onSelectAll={handleSelectAll} />
-      <SimpleBar className="max-h-[510px] 2xl:max-h-[630px]">
+      <div className="max-h-[510px] 2xl:max-h-[630px] overflow-auto">
         <div className="divide-y divide-gray-200 dark:divide-gray-800">
           {mailData.map((mail, index) => (
             <div
@@ -203,7 +203,7 @@ export default function EmailContent() {
             </div>
           ))}
         </div>
-      </SimpleBar>
+      </div>
       <EmailPagination />
     </div>
   );

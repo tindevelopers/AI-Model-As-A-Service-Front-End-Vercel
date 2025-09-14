@@ -2,7 +2,7 @@
 import LabelList from "./LabelList";
 import MailBox from "./MailBox";
 import FilterList from "./FilterList";
-import SimpleBar from "simplebar-react";
+ 
 
 export default function EmailSidebar() {
   return (
@@ -27,7 +27,7 @@ export default function EmailSidebar() {
           Compose
         </button>
       </div>
-      <SimpleBar className="custom-scrollbar max-h-[550px] 2xl:max-h-[670px]">
+      <div className="custom-scrollbar max-h-[550px] 2xl:max-h-[670px] overflow-auto">
         {/* <!--== Inbox Menu Start ==--> */}
         <nav className="space-y-5">
           {/* <!--== Mailbox Group Start ==--> */}
@@ -58,7 +58,7 @@ export default function EmailSidebar() {
           {/* //   <!--== Label Group End ==--> */}
         </nav>
         {/* // <!--== Inbox Menu End ==--> */}
-      </SimpleBar>
+      </div>
     </div>
   );
 }
