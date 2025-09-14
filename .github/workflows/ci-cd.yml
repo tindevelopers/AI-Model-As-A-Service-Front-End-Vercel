@@ -107,6 +107,14 @@ jobs:
         curl -sSf "${{ steps.deployment.outputs.url }}/forgot-password" >/dev/null
         curl -sSf "${{ steps.deployment.outputs.url }}/reset-password" >/dev/null
         curl -sSf "${{ steps.deployment.outputs.url }}/auth/callback" >/dev/null
+
+    - name: Point develop alias to latest deployment
+      if: github.ref == 'refs/heads/develop'
+      run: |
+        ALIAS_DOMAIN=${{ secrets.VERCEL_ALIAS_DEV }}
+        if [ -z "$ALIAS_DOMAIN" ]; then
+          echo "No VERCEL_ALIAS_DEV secret configured; skipping alias update"; exit 0; fi
+        vercel alias set "${{ steps.deployment.outputs.url }}" "$ALIAS_DOMAIN" --token=${{ secrets.VERCEL_TOKEN }}
     
     - name: Comment deployment URL on PR
       if: github.event_name == 'pull_request'
