@@ -11,53 +11,28 @@ function AuthCallbackContent() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Handle the auth callback from the URL
-        const { error } = await supabase.auth.getSession()
-        
-        if (error) {
-          console.error('Auth callback error:', error)
-          router.push('/signin?error=auth_callback_failed')
-          return
-        }
+        // Preferred: exchange code in URL (covers magic link and recovery flows)
+        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(window.location.href)
 
-        // Check if we have URL parameters for auth (magic link, etc.)
-        const accessToken = searchParams.get('access_token')
-        const refreshToken = searchParams.get('refresh_token')
-
-        if (accessToken && refreshToken) {
-          // Set the session with tokens from URL
-          const { error: sessionError } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken
-          })
-
-          if (sessionError) {
-            console.error('Session error:', sessionError)
-            router.push('/signin?error=session_failed')
-            return
+        if (exchangeError) {
+          // Fallback: explicit tokens in URL
+          const accessToken = searchParams.get('access_token')
+          const refreshToken = searchParams.get('refresh_token')
+          if (accessToken && refreshToken) {
+            await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken
+            })
           }
         }
 
-        // Get the updated session
-        const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
-        
-        if (sessionError) {
-          console.error('Session retrieval error:', sessionError)
-          router.push('/signin?error=session_retrieval_failed')
-          return
-        }
-
-        if (sessionData.session) {
-          // User is authenticated, redirect to dashboard
-          console.log('User authenticated successfully:', sessionData.session.user.email)
+        const { data } = await supabase.auth.getSession()
+        if (data.session) {
           router.push('/')
         } else {
-          // No session, redirect to sign in
-          console.log('No session found, redirecting to sign in')
           router.push('/signin')
         }
-      } catch (error) {
-        console.error('Unexpected error in auth callback:', error)
+      } catch {
         router.push('/signin?error=unexpected_error')
       }
     }
@@ -89,3 +64,4 @@ export default function AuthCallbackPage() {
     </Suspense>
   )
 }
+

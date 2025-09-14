@@ -19,20 +19,21 @@ function ResetPasswordForm() {
   const searchParams = useSearchParams()
 
   useEffect(() => {
-    // Check if we have the necessary tokens from the URL
-    const accessToken = searchParams.get('access_token')
-    const refreshToken = searchParams.get('refresh_token')
-    
-    if (accessToken && refreshToken) {
-      // Set the session with the tokens from the URL
-      supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken
-      })
-    } else {
-      // No tokens found, redirect to forgot password page
-      router.push('/forgot-password')
+    const ensureSession = async () => {
+      // Try code exchange first
+      const { error } = await supabase.auth.exchangeCodeForSession(window.location.href)
+      if (error) {
+        // Fallback to tokens in URL
+        const accessToken = searchParams.get('access_token')
+        const refreshToken = searchParams.get('refresh_token')
+        if (accessToken && refreshToken) {
+          await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+        } else {
+          router.push('/forgot-password')
+        }
+      }
     }
+    ensureSession()
   }, [searchParams, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
