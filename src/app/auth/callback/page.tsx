@@ -1,15 +1,17 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
 export default function AuthCallbackPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
+        // Handle the auth callback from the URL
         const { data, error } = await supabase.auth.getSession()
         
         if (error) {
@@ -18,11 +20,41 @@ export default function AuthCallbackPage() {
           return
         }
 
-        if (data.session) {
+        // Check if we have URL parameters for auth (magic link, etc.)
+        const accessToken = searchParams.get('access_token')
+        const refreshToken = searchParams.get('refresh_token')
+        const type = searchParams.get('type')
+
+        if (accessToken && refreshToken) {
+          // Set the session with tokens from URL
+          const { error: sessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
+          })
+
+          if (sessionError) {
+            console.error('Session error:', sessionError)
+            router.push('/signin?error=session_failed')
+            return
+          }
+        }
+
+        // Get the updated session
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+        
+        if (sessionError) {
+          console.error('Session retrieval error:', sessionError)
+          router.push('/signin?error=session_retrieval_failed')
+          return
+        }
+
+        if (sessionData.session) {
           // User is authenticated, redirect to dashboard
+          console.log('User authenticated successfully:', sessionData.session.user.email)
           router.push('/')
         } else {
           // No session, redirect to sign in
+          console.log('No session found, redirecting to sign in')
           router.push('/signin')
         }
       } catch (error) {
@@ -32,7 +64,7 @@ export default function AuthCallbackPage() {
     }
 
     handleAuthCallback()
-  }, [router])
+  }, [router, searchParams])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
