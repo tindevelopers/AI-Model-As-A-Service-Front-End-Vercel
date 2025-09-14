@@ -1,0 +1,15 @@
+name: Enforce staging as only source for main
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+jobs:
+  enforce:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if PR source is not staging
+        run: |
+          if [ "${{ github.head_ref }}" != "staging" ]; then
+            echo "Only PRs from 'staging' may be merged into 'main'."
+            exit 1
+          fi
