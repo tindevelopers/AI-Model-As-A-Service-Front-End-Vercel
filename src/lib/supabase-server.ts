@@ -15,15 +15,19 @@ type CookieSetRemoveOptions = Partial<{
   secure: boolean
 }>
 
+type NextCookiesWritable = {
+  getAll: () => { name: string; value: string }[]
+  set: (init: { name: string; value: string } & CookieSetRemoveOptions) => void
+}
+
 export const createServerClient = () => {
   const cookieAdapter = {
     getAll() {
-      const store = cookies()
-      // Map Next cookies to the shape expected by @supabase/ssr
+      const store = cookies() as unknown as NextCookiesWritable
       return store.getAll().map((c) => ({ name: c.name, value: c.value }))
     },
     setAll(cookiesToSet: { name: string; value: string; options?: CookieSetRemoveOptions }[]) {
-      const store = cookies()
+      const store = cookies() as unknown as NextCookiesWritable
       cookiesToSet.forEach(({ name, value, options }) => {
         try {
           store.set({ name, value, ...(options || {}) })
@@ -31,7 +35,7 @@ export const createServerClient = () => {
       })
     },
     deleteAll(cookiesToDelete: { name: string; options?: CookieSetRemoveOptions }[]) {
-      const store = cookies()
+      const store = cookies() as unknown as NextCookiesWritable
       cookiesToDelete.forEach(({ name, options }) => {
         try {
           store.set({ name, value: '', ...(options || {}), maxAge: 0 })
