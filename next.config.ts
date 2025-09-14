@@ -34,14 +34,7 @@ const nextConfig: NextConfig = {
   },
   
   webpack(config) {
-    // Ensure simplebar-core resolves correctly during Vercel build
-    if (!config.resolve) {
-      config.resolve = {} as any;
-    }
-    if (!config.resolve.alias) {
-      (config.resolve as any).alias = {};
-    }
-    (config.resolve as any).alias['simplebar-core'] = require.resolve('simplebar-core');
+    // Removed simplebar-core alias after dropping SimpleBar dependency
     
     // Enable persistent caching with proper configuration
     // Only enable filesystem cache in development to avoid CI/CD issues
