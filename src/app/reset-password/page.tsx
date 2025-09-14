@@ -30,6 +30,19 @@ export default async function ResetPasswordPage({ searchParams }: { searchParams
   const error = (sp?.error as string) || ''
   const success = sp?.success === '1'
 
+  // On initial GET, attempt to exchange the recovery code for a session on the server
+  const hdrs = await headers()
+  const host = hdrs.get('x-forwarded-host') || hdrs.get('host') || '127.0.0.1:3000'
+  const proto = hdrs.get('x-forwarded-proto') || 'http'
+  const computedOrigin = `${proto}://${host}`
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || computedOrigin
+  const path = hdrs.get('x-invoke-path') || '/reset-password'
+  const query = hdrs.get('x-invoke-query') || ''
+  const requestUrl = `${baseUrl}${path}${query}`
+
+  const supabase = createServerClient()
+  await supabase.auth.exchangeCodeForSession(requestUrl).catch(() => {})
+
   if (success) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
