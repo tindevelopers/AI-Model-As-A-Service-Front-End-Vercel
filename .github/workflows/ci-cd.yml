@@ -24,12 +24,21 @@ jobs:
     
     - name: Clean install dependencies
       run: npm ci
+
+    - name: Disable Next.js telemetry
+      run: npx next telemetry disable
     
     - name: Run ESLint
       run: npm run lint
     
-    - name: Build application
-      run: npm run build
+    - name: Build application (no cache)
+      env:
+        NEXT_FORCE_TURBOPACK: 0
+        NEXT_TELEMETRY_DISABLED: 1
+        NODE_OPTIONS: --max-old-space-size=4096
+      run: |
+        rm -rf .next node_modules/.cache || true
+        npm run build
 
     - name: Verify critical routes exist
       run: |
@@ -72,11 +81,14 @@ jobs:
     - name: Pull Vercel Environment Information
       run: vercel pull --yes --environment=${{ env.VERCEL_ENV }} --token=${{ secrets.VERCEL_TOKEN }}
     
-    - name: Build Project Artifacts
-      run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+    - name: Build Project Artifacts (no cache)
+      env:
+        NEXT_TELEMETRY_DISABLED: 1
+      run: |
+        vercel build --token=${{ secrets.VERCEL_TOKEN }} --force
     
     - name: Deploy Project Artifacts to Vercel
-      run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+      run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }} --force
       env:
         VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
         VERCEL_PROJECT_ID: ${{ env.VERCEL_PROJECT_ID }}

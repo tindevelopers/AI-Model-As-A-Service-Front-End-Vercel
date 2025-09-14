@@ -59,6 +59,9 @@ const nextConfig: NextConfig = {
     
     return config;
   },
+  // Disable static file caching hints to avoid stale deploys in Vercel edge cache
+  generateEtags: false,
+  httpAgentOptions: { keepAlive: false },
 };
 
 export default nextConfig;
