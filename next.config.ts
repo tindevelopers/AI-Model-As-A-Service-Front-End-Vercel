@@ -17,7 +17,7 @@ const nextConfig: NextConfig = {
   
   // Minimal experimental features to reduce build complexity
   experimental: {
-    optimizePackageImports: ['@supabase/supabase-js'],
+    // Disable optimizePackageImports to avoid resolution quirks on Vercel
   },
   
   // Basic image config
@@ -34,6 +34,15 @@ const nextConfig: NextConfig = {
   },
   
   webpack(config) {
+    // Ensure simplebar-core resolves correctly during Vercel build
+    if (!config.resolve) {
+      config.resolve = {} as any;
+    }
+    if (!config.resolve.alias) {
+      (config.resolve as any).alias = {};
+    }
+    (config.resolve as any).alias['simplebar-core'] = require.resolve('simplebar-core');
+    
     // Enable persistent caching with proper configuration
     // Only enable filesystem cache in development to avoid CI/CD issues
     if (process.env.NODE_ENV === 'development') {
