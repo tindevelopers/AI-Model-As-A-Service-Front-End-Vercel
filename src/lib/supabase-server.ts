@@ -4,6 +4,16 @@ import { cookies } from 'next/headers'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
 
+type CookieSetRemoveOptions = Partial<{
+  domain: string
+  expires: Date
+  httpOnly: boolean
+  maxAge: number
+  path: string
+  sameSite: 'lax' | 'strict' | 'none'
+  secure: boolean
+}>
+
 export const createServerClient = () => {
   const cookieStore = cookies()
   return createSSRClient(supabaseUrl, supabaseAnonKey, {
@@ -11,12 +21,12 @@ export const createServerClient = () => {
       get(name: string) {
         return cookieStore.get(name)?.value
       },
-      set(name: string, value: string, options: any) {
+      set(name: string, value: string, options: CookieSetRemoveOptions) {
         try {
           cookieStore.set({ name, value, ...options })
         } catch {}
       },
-      remove(name: string, options: any) {
+      remove(name: string, options: CookieSetRemoveOptions) {
         try {
           cookieStore.set({ name, value: '', ...options, maxAge: 0 })
         } catch {}
