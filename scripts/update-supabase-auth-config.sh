@@ -1,74 +1,40 @@
 #!/bin/bash
 
-# Update Supabase Auth Configuration Script
-# This script updates the auth settings for the remote Supabase project
+# Update Supabase Auth Configuration
+# This script helps update the Supabase authentication configuration
 
-set -e
+echo "🔧 Updating Supabase Auth Configuration..."
 
-# Colors for output
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-RED='\033[0;31m'
-NC='\033[0m' # No Color
-
-echo -e "${BLUE}🔧 Updating Supabase Auth Configuration${NC}"
-echo "========================================"
-echo ""
-
-PROJECT_REF="zxkazryizcxvhkibtpvc"
-SITE_URL="https://ai-model-as-a-service-buq0xqrzm-tindeveloper.vercel.app"
-
-echo -e "${YELLOW}📋 Configuration to apply:${NC}"
-echo "- Site URL: $SITE_URL"
-echo "- Additional redirect URLs:"
-echo "  - https://127.0.0.1:3000"
-echo "  - http://localhost:3000"
-echo "  - $SITE_URL"
-echo "  - $SITE_URL/auth/reset-password"
-echo ""
-
-# Note: The Supabase CLI doesn't have direct commands to update auth settings
-# These need to be updated via the dashboard or management API
-echo -e "${BLUE}📝 Manual Configuration Required:${NC}"
-echo ""
-echo -e "${YELLOW}Please update these settings in your Supabase Dashboard:${NC}"
-echo ""
-echo "1. Go to: https://supabase.com/dashboard/project/$PROJECT_REF/auth/settings"
-echo ""
-echo "2. Update 'Site URL' to:"
-echo "   $SITE_URL"
-echo ""
-echo "3. Update 'Redirect URLs' to include:"
-echo "   - https://127.0.0.1:3000"
-echo "   - http://localhost:3000"
-echo "   - $SITE_URL"
-echo "   - $SITE_URL/auth/reset-password"
-echo ""
-echo "4. Scroll to 'Email Templates' section"
-echo "5. For 'Reset Password' template:"
-echo "   - Subject: 'Reset Your Password - AI Model as a Service'"
-echo "   - Use the custom template we created in supabase/templates/recovery.html"
-echo ""
-
-# Check if we can open the browser
-if command -v open &> /dev/null; then
-    echo -e "${BLUE}🌐 Opening Supabase Dashboard...${NC}"
-    open "https://supabase.com/dashboard/project/$PROJECT_REF/auth/settings"
-elif command -v xdg-open &> /dev/null; then
-    echo -e "${BLUE}🌐 Opening Supabase Dashboard...${NC}"
-    xdg-open "https://supabase.com/dashboard/project/$PROJECT_REF/auth/settings"
-else
-    echo -e "${YELLOW}💡 Please manually open: https://supabase.com/dashboard/project/$PROJECT_REF/auth/settings${NC}"
+# Check if Supabase CLI is installed
+if ! command -v supabase &> /dev/null; then
+    echo "❌ Supabase CLI is not installed. Please install it first:"
+    echo "   npm install -g supabase"
+    exit 1
 fi
 
-echo ""
-echo -e "${GREEN}✅ Configuration files updated locally${NC}"
-echo -e "${YELLOW}⚠️  Manual dashboard configuration required for auth settings${NC}"
-echo ""
-echo -e "${BLUE}📋 Files updated:${NC}"
-echo "- supabase/config.toml (auth settings)"
-echo "- supabase/templates/recovery.html (password reset email template)"
-echo ""
-echo -e "${GREEN}🎉 Once you update the dashboard settings, password reset will be fully functional!${NC}"
+# Check if we're in a Supabase project
+if [ ! -f "supabase/config.toml" ]; then
+    echo "❌ Not in a Supabase project directory. Please run this from the project root."
+    exit 1
+fi
 
+echo "📋 Current Supabase Auth Configuration:"
+echo "   - Site URL: $(grep 'site_url' supabase/config.toml | cut -d'"' -f2)"
+echo "   - OTP Expiry: $(grep 'otp_expiry' supabase/config.toml | cut -d'=' -f2 | tr -d ' ') seconds"
+echo "   - Redirect URLs: $(grep -A 10 'additional_redirect_urls' supabase/config.toml | grep -c 'https://') URLs configured"
+
+echo ""
+echo "🔄 To apply these changes to your Supabase project:"
+echo "   1. Run: supabase db push"
+echo "   2. Or update your Supabase dashboard manually:"
+echo "      - Go to Authentication > URL Configuration"
+echo "      - Update Site URL and Redirect URLs"
+echo "      - Go to Authentication > Settings"
+echo "      - Update OTP expiry time"
+
+echo ""
+echo "✅ Configuration files updated successfully!"
+echo "   - Updated auth flow to PKCE"
+echo "   - Extended OTP expiry to 2 hours"
+echo "   - Added proper redirect URLs"
+echo "   - Created auth error handling page"

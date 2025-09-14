@@ -48,7 +48,7 @@ export const createServerClient = () => {
   return createSSRClient(supabaseUrl, supabaseAnonKey, {
     cookies: cookieAdapter,
     auth: {
-      flowType: 'implicit',
+      flowType: 'pkce',
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: true,

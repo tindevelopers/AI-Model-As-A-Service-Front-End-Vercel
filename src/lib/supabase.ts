@@ -12,6 +12,7 @@ if (typeof window !== 'undefined' && !isValidConfig) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
+    flowType: 'pkce',
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true

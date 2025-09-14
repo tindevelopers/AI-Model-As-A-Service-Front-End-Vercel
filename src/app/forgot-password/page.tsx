@@ -28,7 +28,10 @@ async function sendReset(formData: FormData) {
   } else {
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${baseUrl}/auth/callback` }
+      options: { 
+        emailRedirectTo: `${baseUrl}/auth/callback?next=/`,
+        shouldCreateUser: false
+      }
     })
     if (error) redirect(`/forgot-password?error=${encodeURIComponent(error.message)}`)
     redirect('/forgot-password?sent=1&method=magic-link')
