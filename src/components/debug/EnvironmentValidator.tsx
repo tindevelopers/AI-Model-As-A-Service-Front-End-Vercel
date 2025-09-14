@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useErrorLogger } from '@/hooks/useErrorLogger';
 
 export function EnvironmentValidator() {
@@ -11,7 +11,7 @@ export function EnvironmentValidator() {
 
   useEffect(() => {
     // Check environment on mount
-    const checks = logEnvironmentCheck();
+    logEnvironmentCheck();
     
     // Log specific warnings for missing configurations
     const missingSupabaseUrl = !process.env.NEXT_PUBLIC_SUPABASE_URL;

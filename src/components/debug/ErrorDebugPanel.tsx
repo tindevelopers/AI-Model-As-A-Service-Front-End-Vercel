@@ -5,10 +5,9 @@ import { useErrorLogger } from '@/hooks/useErrorLogger';
 
 interface ErrorDebugPanelProps {
   isOpen?: boolean;
-  onToggle?: () => void;
 }
 
-export function ErrorDebugPanel({ isOpen = false, onToggle }: ErrorDebugPanelProps) {
+export function ErrorDebugPanel({ isOpen = false }: ErrorDebugPanelProps) {
   const [isVisible, setIsVisible] = useState(isOpen);
   const [activeTab, setActiveTab] = useState<'errors' | 'warnings' | 'environment'>('environment');
   const { getStoredErrors, getStoredWarnings, checkEnvironment, clearStoredLogs } = useErrorLogger({
@@ -16,9 +15,9 @@ export function ErrorDebugPanel({ isOpen = false, onToggle }: ErrorDebugPanelPro
     autoCheckEnvironment: false,
   });
 
-  const [errors, setErrors] = useState<any[]>([]);
-  const [warnings, setWarnings] = useState<any[]>([]);
-  const [envChecks, setEnvChecks] = useState<any[]>([]);
+  const [errors, setErrors] = useState<unknown[]>([]);
+  const [warnings, setWarnings] = useState<unknown[]>([]);
+  const [envChecks, setEnvChecks] = useState<unknown[]>([]);
 
   useEffect(() => {
     if (isVisible) {
@@ -142,26 +141,26 @@ export function ErrorDebugPanel({ isOpen = false, onToggle }: ErrorDebugPanelPro
                 No errors logged
               </div>
             ) : (
-              errors.map((error, index) => (
+              errors.map((error: unknown, index) => (
                 <div
                   key={index}
                   className="p-2 bg-red-50 dark:bg-red-900/20 rounded text-sm"
                 >
                   <div className="font-medium text-red-800 dark:text-red-400">
-                    {error.message}
+                    {(error as { message?: string }).message || 'Unknown error'}
                   </div>
-                  {error.context?.component && (
+                  {(error as { context?: { component?: string } }).context?.component && (
                     <div className="text-xs text-red-600 dark:text-red-500">
-                      Component: {error.context.component}
+                      Component: {(error as { context?: { component?: string } }).context?.component}
                     </div>
                   )}
-                  {error.context?.action && (
+                  {(error as { context?: { action?: string } }).context?.action && (
                     <div className="text-xs text-red-600 dark:text-red-500">
-                      Action: {error.context.action}
+                      Action: {(error as { context?: { action?: string } }).context?.action}
                     </div>
                   )}
                   <div className="text-xs text-red-600 dark:text-red-500 mt-1">
-                    {new Date(error.context?.timestamp).toLocaleString()}
+                    {new Date((error as { context?: { timestamp?: string } }).context?.timestamp || Date.now()).toLocaleString()}
                   </div>
                 </div>
               ))
@@ -176,26 +175,26 @@ export function ErrorDebugPanel({ isOpen = false, onToggle }: ErrorDebugPanelPro
                 No warnings logged
               </div>
             ) : (
-              warnings.map((warning, index) => (
+              warnings.map((warning: unknown, index) => (
                 <div
                   key={index}
                   className="p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded text-sm"
                 >
                   <div className="font-medium text-yellow-800 dark:text-yellow-400">
-                    {warning.message}
+                    {(warning as { message?: string }).message || 'Unknown warning'}
                   </div>
-                  {warning.context?.component && (
+                  {(warning as { context?: { component?: string } }).context?.component && (
                     <div className="text-xs text-yellow-600 dark:text-yellow-500">
-                      Component: {warning.context.component}
+                      Component: {(warning as { context?: { component?: string } }).context?.component}
                     </div>
                   )}
-                  {warning.context?.action && (
+                  {(warning as { context?: { action?: string } }).context?.action && (
                     <div className="text-xs text-yellow-600 dark:text-yellow-500">
-                      Action: {warning.context.action}
+                      Action: {(warning as { context?: { action?: string } }).context?.action}
                     </div>
                   )}
                   <div className="text-xs text-yellow-600 dark:text-yellow-500 mt-1">
-                    {new Date(warning.context?.timestamp).toLocaleString()}
+                    {new Date((warning as { context?: { timestamp?: string } }).context?.timestamp || Date.now()).toLocaleString()}
                   </div>
                 </div>
               ))

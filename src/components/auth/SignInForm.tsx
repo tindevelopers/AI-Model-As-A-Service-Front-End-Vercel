@@ -20,7 +20,7 @@ export default function SignInForm() {
   
   const { signIn } = useAuth();
   const router = useRouter();
-  const { logError, logSuccess, logWarning } = useErrorLogger({
+  const { logError, logSuccess } = useErrorLogger({
     componentName: 'SignInForm',
     autoCheckEnvironment: false,
   });

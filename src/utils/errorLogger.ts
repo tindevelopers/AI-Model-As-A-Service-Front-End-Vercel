@@ -10,7 +10,7 @@ export interface ErrorContext {
   timestamp?: string;
   userAgent?: string;
   url?: string;
-  additionalData?: Record<string, any>;
+  additionalData?: Record<string, unknown>;
 }
 
 export interface EnvironmentCheck {
@@ -245,7 +245,7 @@ class ErrorLogger {
   /**
    * Persist errors to localStorage in development
    */
-  private persistError(errorData: any): void {
+  private persistError(errorData: unknown): void {
     try {
       const existingErrors = JSON.parse(localStorage.getItem('errorLogs') || '[]');
       existingErrors.push(errorData);
@@ -260,7 +260,7 @@ class ErrorLogger {
   /**
    * Persist warnings to localStorage in development
    */
-  private persistWarning(warningData: any): void {
+  private persistWarning(warningData: unknown): void {
     try {
       const existingWarnings = JSON.parse(localStorage.getItem('warningLogs') || '[]');
       existingWarnings.push(warningData);
@@ -275,7 +275,7 @@ class ErrorLogger {
   /**
    * Send errors to external logging service in production
    */
-  private sendToLoggingService(errorData: any): void {
+  private sendToLoggingService(errorData: unknown): void {
     // In production, you would send to services like Sentry, LogRocket, etc.
     // For now, we'll just log to console
     console.error('Production Error (would send to logging service):', errorData);
@@ -284,7 +284,7 @@ class ErrorLogger {
   /**
    * Get stored error logs from localStorage
    */
-  getStoredErrors(): any[] {
+  getStoredErrors(): unknown[] {
     if (!this.isClient) return [];
     try {
       return JSON.parse(localStorage.getItem('errorLogs') || '[]');
@@ -296,7 +296,7 @@ class ErrorLogger {
   /**
    * Get stored warning logs from localStorage
    */
-  getStoredWarnings(): any[] {
+  getStoredWarnings(): unknown[] {
     if (!this.isClient) return [];
     try {
       return JSON.parse(localStorage.getItem('warningLogs') || '[]');
