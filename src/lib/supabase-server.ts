@@ -14,8 +14,8 @@ type CookieSetRemoveOptions = Partial<{
   secure: boolean
 }>
 
-export const createServerClient = () => {
-  const cookieStore = cookies()
+export const createServerClient = async () => {
+  const cookieStore = await cookies()
   return createSSRClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {

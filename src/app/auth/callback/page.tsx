@@ -12,7 +12,7 @@ export default async function AuthCallbackPage() {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || computedOrigin
 
   const requestUrl = `${baseUrl}${hdrs.get('x-invoke-path') || '/auth/callback'}${hdrs.get('x-invoke-query') || ''}`
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   const { error } = await supabase.auth.exchangeCodeForSession(requestUrl)
 
   if (error) {

@@ -12,7 +12,7 @@ async function updatePassword(formData: FormData) {
   if (!password || password.length < 6) redirect('/reset-password?error=weak_password')
   if (password !== confirm) redirect('/reset-password?error=mismatch')
 
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   const hdrs = await headers()
   const host = hdrs.get('x-forwarded-host') || hdrs.get('host') || '127.0.0.1:3000'
   const proto = hdrs.get('x-forwarded-proto') || 'http'
@@ -40,7 +40,7 @@ export default async function ResetPasswordPage({ searchParams }: { searchParams
   const query = hdrs.get('x-invoke-query') || ''
   const requestUrl = `${baseUrl}${path}${query}`
 
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   await supabase.auth.exchangeCodeForSession(requestUrl).catch(() => {})
 
   if (success) {
