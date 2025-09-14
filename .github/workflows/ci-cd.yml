@@ -1,4 +1,4 @@
-name: AI Gateway CI/CD Pipeline
+name: AI Model Frontend CI/CD Pipeline
 
 on:
   push:
@@ -7,61 +7,89 @@ on:
     branches: [ main, staging ]
 
 env:
-  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '18'
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ['3.11', '3.12']
     
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
     
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+    - name: Set up Node.js ${{ env.NODE_VERSION }}
+      uses: actions/setup-node@v4
       with:
-        python-version: ${{ matrix.python-version }}
-    
-    - name: Cache pip dependencies
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('requirements-simple.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
     
     - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements-simple.txt
-        pip install pytest pytest-cov pytest-asyncio httpx
+      run: npm ci
     
-    - name: Lint with flake8
-      run: |
-        pip install flake8
-        # Stop the build if there are Python syntax errors or undefined names
-        flake8 src --count --select=E9,F63,F7,F82 --show-source --statistics
-        # Exit-zero treats all errors as warnings
-        flake8 src --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: Run ESLint
+      run: npm run lint
     
-    - name: Run tests with pytest
-      env:
-        SECRET_KEY: test-secret-key-for-ci
-        DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/test_db
-        REDIS_URL: redis://localhost:6379/1
-        OPENAI_API_KEY: test-key
-        CACHE_ENABLED: false
-      run: |
-        pytest tests/ -v --cov=src --cov-report=xml --cov-report=html
+    - name: Build application
+      run: npm run build
     
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
       with:
-        file: ./coverage.xml
-        fail_ci_if_error: false
+        name: build-files
+        path: .next/
 
-  # Note: Vercel deployment should be configured for the frontend project (ai-model-service-frontend)
-  # This is the Python FastAPI backend - deploy to your preferred backend hosting (Railway, Render, etc.)
+  deploy-to-vercel:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/develop')
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set environment variables
+      run: |
+        if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+          echo "VERCEL_ENV=production" >> $GITHUB_ENV
+          echo "VERCEL_PROJECT_ID=${{ secrets.VERCEL_PROJECT_ID_PROD }}" >> $GITHUB_ENV
+        elif [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
+          echo "VERCEL_ENV=preview" >> $GITHUB_ENV
+          echo "VERCEL_PROJECT_ID=${{ secrets.VERCEL_PROJECT_ID_STAGING }}" >> $GITHUB_ENV
+        elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
+          echo "VERCEL_ENV=preview" >> $GITHUB_ENV
+          echo "VERCEL_PROJECT_ID=${{ secrets.VERCEL_PROJECT_ID_DEV }}" >> $GITHUB_ENV
+        fi
+    
+    - name: Install Vercel CLI
+      run: npm install --global vercel@latest
+    
+    - name: Pull Vercel Environment Information
+      run: vercel pull --yes --environment=${{ env.VERCEL_ENV }} --token=${{ secrets.VERCEL_TOKEN }}
+    
+    - name: Build Project Artifacts
+      run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+    
+    - name: Deploy Project Artifacts to Vercel
+      run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+      env:
+        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        VERCEL_PROJECT_ID: ${{ env.VERCEL_PROJECT_ID }}
+    
+    - name: Get deployment URL
+      id: deployment
+      run: |
+        DEPLOYMENT_URL=$(vercel ls --token=${{ secrets.VERCEL_TOKEN }} | grep "${{ github.sha }}" | head -1 | awk '{print $2}')
+        echo "url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+        echo "🚀 ${{ env.VERCEL_ENV }} environment deployed: $DEPLOYMENT_URL"
+    
+    - name: Comment deployment URL on PR
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `🚀 **${{ env.VERCEL_ENV }} deployment ready!**\n\n🔗 **Preview URL:** ${{ steps.deployment.outputs.url }}\n\n📝 **Commit:** ${{ github.sha }}`
+          })

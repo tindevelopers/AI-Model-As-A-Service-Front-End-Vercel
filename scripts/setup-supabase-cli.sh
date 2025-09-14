@@ -1,0 +1,254 @@
+#!/bin/bash
+
+# Supabase CLI Setup Script for AI Model as a Service
+# This script automates the entire Supabase setup using the CLI
+
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+NC='\033[0m' # No Color
+
+echo -e "${BLUE}🚀 AI Model Service - Supabase CLI Setup${NC}"
+echo "=============================================="
+echo ""
+
+# Check if Supabase CLI is installed
+if ! command -v supabase &> /dev/null; then
+    echo -e "${RED}❌ Supabase CLI is not installed.${NC}"
+    echo "Please install it with:"
+    echo "  macOS: brew install supabase/tap/supabase"
+    echo "  Other: https://supabase.com/docs/guides/cli"
+    exit 1
+fi
+
+echo -e "${GREEN}✅ Supabase CLI found: $(supabase --version)${NC}"
+echo ""
+
+# Check if already logged in
+if ! supabase projects list &> /dev/null; then
+    echo -e "${YELLOW}🔐 Please login to Supabase...${NC}"
+    supabase login
+    echo ""
+fi
+
+echo -e "${GREEN}✅ Logged in to Supabase${NC}"
+echo ""
+
+# Check if supabase is already initialized
+if [ ! -f "supabase/config.toml" ]; then
+    echo -e "${BLUE}📁 Initializing Supabase in project...${NC}"
+    supabase init
+    echo ""
+else
+    echo -e "${GREEN}✅ Supabase already initialized${NC}"
+    echo ""
+fi
+
+# Ask user about project setup
+echo -e "${YELLOW}🎯 Project Setup Options:${NC}"
+echo "1. Link to existing Supabase project"
+echo "2. Create new Supabase project"
+echo ""
+read -p "Choose option (1 or 2): " PROJECT_OPTION
+
+if [ "$PROJECT_OPTION" = "1" ]; then
+    # Link to existing project
+    echo ""
+    echo -e "${BLUE}📋 Linking to existing project...${NC}"
+    echo "You can find your project reference ID in:"
+    echo "Supabase Dashboard → Settings → General → Reference ID"
+    echo ""
+    read -p "Enter your project reference ID: " PROJECT_REF
+    
+    if [ -z "$PROJECT_REF" ]; then
+        echo -e "${RED}❌ Project reference ID is required${NC}"
+        exit 1
+    fi
+    
+    echo "Linking to project: $PROJECT_REF"
+    supabase link --project-ref "$PROJECT_REF"
+    
+elif [ "$PROJECT_OPTION" = "2" ]; then
+    # Create new project
+    echo ""
+    echo -e "${BLUE}🆕 Creating new Supabase project...${NC}"
+    
+    # Get organization ID
+    echo "Available organizations:"
+    supabase orgs list
+    echo ""
+    read -p "Enter your organization ID: " ORG_ID
+    
+    if [ -z "$ORG_ID" ]; then
+        echo -e "${RED}❌ Organization ID is required${NC}"
+        exit 1
+    fi
+    
+    # Create project
+    echo "Creating project 'AI Model Service'..."
+    PROJECT_REF=$(supabase projects create "AI Model Service" --org-id "$ORG_ID" --interactive=false | grep -o 'Reference ID: [a-z0-9]*' | cut -d' ' -f3)
+    
+    if [ -z "$PROJECT_REF" ]; then
+        echo -e "${RED}❌ Failed to create project${NC}"
+        exit 1
+    fi
+    
+    echo -e "${GREEN}✅ Created project with reference ID: $PROJECT_REF${NC}"
+    
+    # Link to the new project
+    echo "Linking to new project..."
+    supabase link --project-ref "$PROJECT_REF"
+    
+else
+    echo -e "${RED}❌ Invalid option. Please choose 1 or 2.${NC}"
+    exit 1
+fi
+
+echo ""
+echo -e "${GREEN}✅ Project linked successfully${NC}"
+echo ""
+
+# Apply database migrations
+echo -e "${BLUE}📊 Applying database migrations...${NC}"
+echo "This will create all tables, policies, and functions..."
+echo ""
+
+# Check if migrations exist
+if [ ! -d "supabase/migrations" ] || [ -z "$(ls -A supabase/migrations)" ]; then
+    echo -e "${RED}❌ No migrations found in supabase/migrations/${NC}"
+    echo "Please ensure migration files are present."
+    exit 1
+fi
+
+echo "Found migrations:"
+ls -la supabase/migrations/
+echo ""
+
+read -p "Apply these migrations to your database? (y/N): " APPLY_MIGRATIONS
+
+if [ "$APPLY_MIGRATIONS" = "y" ] || [ "$APPLY_MIGRATIONS" = "Y" ]; then
+    echo "Pushing migrations to remote database..."
+    supabase db push
+    echo -e "${GREEN}✅ Migrations applied successfully${NC}"
+else
+    echo -e "${YELLOW}⚠️  Skipping migrations. You can apply them later with: supabase db push${NC}"
+fi
+
+echo ""
+
+# Generate TypeScript types
+echo -e "${BLUE}🔧 Generating TypeScript types...${NC}"
+mkdir -p src/types
+supabase gen types typescript --linked > src/types/supabase.ts
+echo -e "${GREEN}✅ TypeScript types generated in src/types/supabase.ts${NC}"
+echo ""
+
+# Get environment variables
+echo -e "${BLUE}🔑 Extracting environment variables...${NC}"
+echo ""
+
+# Get the status and extract variables
+STATUS_OUTPUT=$(supabase status --linked)
+echo "$STATUS_OUTPUT"
+echo ""
+
+# Extract specific values
+API_URL=$(echo "$STATUS_OUTPUT" | grep "API URL" | awk '{print $3}')
+ANON_KEY=$(echo "$STATUS_OUTPUT" | grep "anon key" | awk '{print $3}')
+SERVICE_ROLE_KEY=$(echo "$STATUS_OUTPUT" | grep "service_role key" | awk '{print $3}')
+
+# Create .env.local file
+echo -e "${BLUE}📝 Creating .env.local file...${NC}"
+cat > .env.local << EOF
+# AI Model as a Service - Environment Variables
+# Generated by Supabase CLI on $(date)
+
+# ================================
+# SUPABASE CONFIGURATION
+# ================================
+NEXT_PUBLIC_SUPABASE_URL=$API_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY
+SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY
+
+# ================================
+# GATEWAY CONFIGURATION (Update these)
+# ================================
+NEXT_PUBLIC_GATEWAY_URL=https://your-gateway-service.run.app
+GATEWAY_ADMIN_API_KEY=sk-admin-your-admin-key-here
+
+# ================================
+# OPTIONAL CONFIGURATION
+# ================================
+NODE_ENV=development
+EOF
+
+echo -e "${GREEN}✅ Environment variables saved to .env.local${NC}"
+echo ""
+
+# Configure Vercel environment variables
+echo -e "${YELLOW}🚀 Configure Vercel Environment Variables?${NC}"
+read -p "Do you want to configure Vercel environment variables now? (y/N): " CONFIGURE_VERCEL
+
+if [ "$CONFIGURE_VERCEL" = "y" ] || [ "$CONFIGURE_VERCEL" = "Y" ]; then
+    echo ""
+    echo -e "${BLUE}🔧 Configuring Vercel environment variables...${NC}"
+    
+    # Check if Vercel CLI is available
+    if ! command -v vercel &> /dev/null; then
+        echo -e "${RED}❌ Vercel CLI not found. Please install it first:${NC}"
+        echo "npm install -g vercel"
+        exit 1
+    fi
+    
+    # Set Supabase environment variables in Vercel
+    echo "Setting NEXT_PUBLIC_SUPABASE_URL..."
+    echo "$API_URL" | vercel env add NEXT_PUBLIC_SUPABASE_URL production
+    echo "$API_URL" | vercel env add NEXT_PUBLIC_SUPABASE_URL preview
+    
+    echo "Setting NEXT_PUBLIC_SUPABASE_ANON_KEY..."
+    echo "$ANON_KEY" | vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY production
+    echo "$ANON_KEY" | vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY preview
+    
+    echo "Setting SUPABASE_SERVICE_ROLE_KEY..."
+    echo "$SERVICE_ROLE_KEY" | vercel env add SUPABASE_SERVICE_ROLE_KEY production
+    echo "$SERVICE_ROLE_KEY" | vercel env add SUPABASE_SERVICE_ROLE_KEY preview
+    
+    echo -e "${GREEN}✅ Vercel environment variables configured${NC}"
+fi
+
+echo ""
+echo -e "${PURPLE}🎉 Supabase CLI Setup Complete!${NC}"
+echo "=================================="
+echo ""
+echo -e "${GREEN}✅ Database schema applied${NC}"
+echo -e "${GREEN}✅ TypeScript types generated${NC}"
+echo -e "${GREEN}✅ Environment variables configured${NC}"
+echo ""
+echo -e "${BLUE}📋 Next Steps:${NC}"
+echo "1. Create your super admin user:"
+echo "   - Go to Supabase Dashboard → Authentication → Users"
+echo "   - Add a user with your email"
+echo "   - Run: UPDATE public.user_profiles SET role = 'superadmin' WHERE email = 'your-email@example.com';"
+echo ""
+echo "2. Configure your AI Gateway URL in .env.local"
+echo ""
+echo "3. Test your setup:"
+echo "   npm run dev"
+echo ""
+echo "4. Deploy to production:"
+echo "   git add . && git commit -m 'Add Supabase configuration' && git push"
+echo ""
+echo -e "${YELLOW}📁 Files created/updated:${NC}"
+echo "- supabase/config.toml"
+echo "- src/types/supabase.ts"
+echo "- .env.local"
+echo ""
+echo -e "${BLUE}🔗 Your Supabase Dashboard:${NC}"
+echo "https://supabase.com/dashboard/project/$PROJECT_REF"
+echo ""
+echo -e "${GREEN}🚀 Happy coding!${NC}"

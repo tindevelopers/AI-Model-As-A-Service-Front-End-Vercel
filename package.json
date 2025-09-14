@@ -1,0 +1,53 @@
+{
+  "name": "tailadmin-next-typescript-pro",
+  "version": "2.2.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev ",
+    "build": "next build ",
+    "start": "next start",
+    "lint": "next lint",
+    "test:build": "./scripts/test-build.sh",
+    "setup:secrets": "./scripts/setup-all-secrets.sh",
+    "clean": "rm -rf .next node_modules/.cache"
+  },
+  "dependencies": {
+    "@fullcalendar/core": "^6.1.19",
+    "@fullcalendar/daygrid": "^6.1.19",
+    "@fullcalendar/interaction": "^6.1.19",
+    "@fullcalendar/react": "^6.1.19",
+    "@fullcalendar/timegrid": "^6.1.19",
+    "@popperjs/core": "^2.11.8",
+    "@react-jvectormap/core": "^1.0.4",
+    "@react-jvectormap/world": "^1.1.2",
+    "@supabase/supabase-js": "^2.57.4",
+    "@tailwindcss/forms": "^0.5.9",
+    "apexcharts": "^5.3.5",
+    "autoprefixer": "^10.4.20",
+    "clsx": "^2.1.1",
+    "flatpickr": "^4.6.13",
+    "next": "^15.4.3",
+    "prismjs": "^1.30.0",
+    "react": "^19.0.0",
+    "react-apexcharts": "^1.7.0",
+    "react-dnd": "^16.0.1",
+    "react-dnd-html5-backend": "^16.0.1",
+    "react-dom": "^19.0.0",
+    "react-dropzone": "^14.3.8",
+    "simplebar-react": "^3.3.2",
+    "swiper": "^12.0.1",
+    "tailwind-merge": "^2.6.0",
+    "tailwindcss": "^3.4.0"
+  },
+  "devDependencies": {
+    "@svgr/webpack": "^8.1.0",
+    "@types/node": "^20",
+    "@types/prismjs": "^1.26.5",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.1.3",
+    "postcss": "^8",
+    "typescript": "^5"
+  }
+}
