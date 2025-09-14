@@ -69,6 +69,40 @@ function ForgotPasswordContent() {
     }
   }
 
+  const handleQuickAction = async (method: 'password' | 'magic-link') => {
+    if (!email) return
+    setResetMethod(method)
+    setLoading(true)
+    setError('')
+    setMessage('')
+    try {
+      if (method === 'password') {
+        const result = await resetPassword(email)
+        if (result.error) {
+          setError(result.error.message)
+        } else {
+          setMessage('Password reset email sent! Check your inbox and click the link to reset your password.')
+          setEmailSent(true)
+        }
+      } else {
+        const { error } = await supabase.auth.signInWithOtp({
+          email,
+          options: { emailRedirectTo: `${window.location.origin}/auth/callback` }
+        })
+        if (error) {
+          setError(error.message)
+        } else {
+          setMessage('Magic link sent! Check your inbox and click the link to sign in.')
+          setEmailSent(true)
+        }
+      }
+    } catch {
+      setError('An unexpected error occurred')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
@@ -163,7 +197,7 @@ function ForgotPasswordContent() {
                 </div>
               )}
 
-              <div>
+              <div onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void handleQuickAction(resetMethod) } }}>
                 <Label htmlFor="email">Email address</Label>
                 <Input
                   id="email"
@@ -177,18 +211,12 @@ function ForgotPasswordContent() {
                 />
               </div>
 
-              <div>
-                <Button
-                  type="submit"
-                  disabled={loading || !email}
-                  className="w-full"
-                >
-                  {loading 
-                    ? 'Sending...' 
-                    : resetMethod === 'password' 
-                      ? 'Send password reset email' 
-                      : 'Send magic link'
-                  }
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Button type="button" disabled={loading || !email} className="w-full" onClick={() => handleQuickAction('password')}>
+                  {loading && resetMethod === 'password' ? 'Sending...' : 'Send password reset email'}
+                </Button>
+                <Button type="button" disabled={loading || !email} className="w-full" onClick={() => handleQuickAction('magic-link')}>
+                  {loading && resetMethod === 'magic-link' ? 'Sending...' : 'Send magic link'}
                 </Button>
               </div>
 

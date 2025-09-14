@@ -30,6 +30,13 @@ jobs:
     
     - name: Build application
       run: npm run build
+
+    - name: Verify critical routes exist
+      run: |
+        set -e
+        grep -R "/forgot-password" .next/ || (echo "forgot-password route missing" && exit 1)
+        grep -R "/reset-password" .next/ || (echo "reset-password route missing" && exit 1)
+        grep -R "/auth/callback" .next/ || (echo "auth/callback route missing" && exit 1)
     
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
@@ -80,6 +87,14 @@ jobs:
         DEPLOYMENT_URL=$(vercel ls --token=${{ secrets.VERCEL_TOKEN }} | grep "${{ github.sha }}" | head -1 | awk '{print $2}')
         echo "url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
         echo "🚀 ${{ env.VERCEL_ENV }} environment deployed: $DEPLOYMENT_URL"
+
+    - name: Validate critical routes on deployment
+      run: |
+        set -e
+        echo "Checking ${{ steps.deployment.outputs.url }}"
+        curl -sSf "${{ steps.deployment.outputs.url }}/forgot-password" >/dev/null
+        curl -sSf "${{ steps.deployment.outputs.url }}/reset-password" >/dev/null
+        curl -sSf "${{ steps.deployment.outputs.url }}/auth/callback" >/dev/null
     
     - name: Comment deployment URL on PR
       if: github.event_name == 'pull_request'
