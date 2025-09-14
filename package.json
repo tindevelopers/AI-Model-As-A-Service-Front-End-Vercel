@@ -9,7 +9,10 @@
     "lint": "next lint",
     "test:build": "./scripts/test-build.sh",
     "setup:secrets": "./scripts/setup-all-secrets.sh",
-    "clean": "rm -rf .next node_modules/.cache"
+    "clean": "rm -rf .next node_modules/.cache",
+    "env:pull:preview": "vercel env pull --environment=preview .env.local",
+    "env:pull:prod": "vercel env pull --environment=production .env.production",
+    "env:check": "node scripts/env-check.mjs"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.19",
@@ -38,7 +41,8 @@
     "swiper": "^12.0.1",
     "tailwind-merge": "^2.6.0",
     "tailwindcss": "^3.4.0",
-    "postcss": "^8"
+    "postcss": "^8",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@svgr/webpack": "^8.1.0",
