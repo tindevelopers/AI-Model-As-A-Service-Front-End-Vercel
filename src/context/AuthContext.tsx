@@ -27,6 +27,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  const [recoveryAttempted, setRecoveryAttempted] = useState(false)
 
   useEffect(() => {
     // Get initial session
@@ -38,15 +39,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       sessionDebugger.logSessionState(session, session?.user, 'INITIAL_SESSION')
       
       // If no session but we have the auth-session-established cookie, try to recover
-      if (!session) {
+      if (!session && !recoveryAttempted) {
         const authSessionEstablished = document.cookie.includes('auth-session-established=true')
         console.log('🔍 Session recovery check:', { 
           hasSession: !!session, 
           hasAuthCookie: authSessionEstablished,
-          allCookies: document.cookie 
+          allCookies: document.cookie,
+          recoveryAttempted
         })
         
         if (authSessionEstablished) {
+          setRecoveryAttempted(true) // Prevent multiple recovery attempts
           console.log('🔄 Auth session cookie found, attempting session recovery...')
           
           // Try multiple recovery methods
@@ -134,9 +137,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               }
             }
             
-            // Method 4: Force a page reload as last resort
-            console.log('🔄 Forcing page reload to restore session...')
-            window.location.reload()
+            // Method 4: Clear the auth session cookie and stop trying
+            console.log('❌ Session recovery failed - clearing auth session cookie')
+            document.cookie = 'auth-session-established=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
             return
             
           } catch (error) {
@@ -189,6 +192,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(prevSession => {
           // Only update if the session actually changed
           if (prevSession?.access_token !== session?.access_token) {
+            // Reset recovery flag when we get a valid session
+            if (session && recoveryAttempted) {
+              setRecoveryAttempted(false)
+            }
             return session
           }
           return prevSession
@@ -210,7 +217,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     )
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, [recoveryAttempted])
 
   const signUp = async (email: string, password: string, userData?: UserMetadata) => {
     const { error } = await supabase.auth.signUp({
