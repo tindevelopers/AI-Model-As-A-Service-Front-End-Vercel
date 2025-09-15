@@ -30,6 +30,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get initial session
     const getInitialSession = async () => {
       const { data: { session } } = await supabase.auth.getSession()
+      console.log('Initial session check:', { hasSession: !!session, userId: session?.user?.id })
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
@@ -40,6 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state change:', { event, hasSession: !!session, userId: session?.user?.id })
         setSession(session)
         setUser(session?.user ?? null)
         setLoading(false)

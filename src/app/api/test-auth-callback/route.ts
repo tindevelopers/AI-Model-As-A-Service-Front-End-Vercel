@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
       }, { status: 400 })
     }
 
-    const supabase = createServerClient()
+    const supabase = await createServerClient()
     const { error, data } = await supabase.auth.exchangeCodeForSession(code)
     
     console.log('Test exchange code result:', { 

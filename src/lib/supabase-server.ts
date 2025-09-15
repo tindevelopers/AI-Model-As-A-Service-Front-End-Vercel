@@ -21,26 +21,44 @@ type NextCookiesWritable = {
   set: (init: { name: string; value: string } & CookieSetRemoveOptions) => void
 }
 
-export const createServerClient = () => {
+export const createServerClient = async () => {
+  const cookieStore = await cookies()
   const cookieAdapter = {
     getAll() {
-      const store = cookies() as unknown as NextCookiesWritable
-      return store.getAll().map((c) => ({ name: c.name, value: c.value }))
+      return cookieStore.getAll().map((c) => ({ name: c.name, value: c.value }))
     },
     setAll(cookiesToSet: { name: string; value: string; options?: CookieSetRemoveOptions }[]) {
-      const store = cookies() as unknown as NextCookiesWritable
       cookiesToSet.forEach(({ name, value, options }) => {
         try {
-          store.set({ name, value, ...(options || {}) })
-        } catch {}
+          cookieStore.set({ 
+            name, 
+            value, 
+            ...(options || {}),
+            // Ensure cookies are set with proper security settings
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/'
+          })
+        } catch (error) {
+          console.error('Failed to set cookie:', name, error)
+        }
       })
     },
     deleteAll(cookiesToDelete: { name: string; options?: CookieSetRemoveOptions }[]) {
-      const store = cookies() as unknown as NextCookiesWritable
       cookiesToDelete.forEach(({ name, options }) => {
         try {
-          store.set({ name, value: '', ...(options || {}), maxAge: 0 })
-        } catch {}
+          cookieStore.set({ 
+            name, 
+            value: '', 
+            ...(options || {}), 
+            maxAge: 0,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/'
+          })
+        } catch (error) {
+          console.error('Failed to delete cookie:', name, error)
+        }
       })
     },
   } as unknown as CookieMethodsServer

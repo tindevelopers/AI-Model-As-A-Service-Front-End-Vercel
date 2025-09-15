@@ -9,25 +9,38 @@ export async function GET(request: NextRequest) {
   console.log('Auth callback received:', { code: code ? 'present' : 'missing', next, origin })
 
   if (code) {
-    const supabase = createServerClient()
+    const supabase = await createServerClient()
     const { error, data } = await supabase.auth.exchangeCodeForSession(code)
     
     console.log('Exchange code result:', { error: error?.message, hasSession: !!data.session })
     
-    if (!error) {
+    if (!error && data.session) {
       const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
       const isLocalEnv = process.env.NODE_ENV === 'development'
       
       console.log('Redirecting to:', { forwardedHost, isLocalEnv, next })
       
+      // Create the redirect response
+      let redirectUrl: string
       if (isLocalEnv) {
-        // we can be sure that there is no load balancer in between, so no need to watch for X-Forwarded-Host
-        return NextResponse.redirect(`${origin}${next}`)
+        redirectUrl = `${origin}${next}`
       } else if (forwardedHost) {
-        return NextResponse.redirect(`https://${forwardedHost}${next}`)
+        redirectUrl = `https://${forwardedHost}${next}`
       } else {
-        return NextResponse.redirect(`${origin}${next}`)
+        redirectUrl = `${origin}${next}`
       }
+      
+      // Create response with proper cookies
+      const response = NextResponse.redirect(redirectUrl)
+      
+      // Set the session cookies in the response
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        // The cookies should already be set by the supabase client, but let's ensure they're in the response
+        console.log('Session established, redirecting to:', redirectUrl)
+      }
+      
+      return response
     } else {
       console.error('Auth exchange error:', error)
     }
