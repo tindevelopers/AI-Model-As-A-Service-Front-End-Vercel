@@ -117,18 +117,17 @@ jobs:
         EOF
         echo "📄 Wrote .vercel/project.json"
     
-    - name: Build Project Artifacts with Vercel CLI
+    - name: Build Project with Next.js
       env:
         NEXT_TELEMETRY_DISABLED: 1
-        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         # Pass environment variables directly from GitHub Secrets
         NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
         NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
         SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
       run: |
-        echo "🔨 Building with Vercel CLI..."
-        vercel build --token="$VERCEL_TOKEN" --force
+        echo "🔨 Building with Next.js..."
+        npm run build
     
     - name: Deploy Project Artifacts to Vercel
       env:
