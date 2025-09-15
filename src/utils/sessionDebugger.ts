@@ -20,6 +20,19 @@ export interface CookieInfo {
   expires?: string;
 }
 
+export interface SessionData {
+  id?: string;
+  expires_at?: number | string;
+  access_token?: string;
+  refresh_token?: string;
+}
+
+export interface UserData {
+  id?: string;
+  email?: string;
+  created_at?: string;
+}
+
 class SessionDebugger {
   private logs: SessionDebugInfo[] = [];
   private maxLogs = 100;
@@ -81,22 +94,25 @@ class SessionDebugger {
     console.log(`[SessionDebug] ${event}:`, debugInfo);
   }
 
-  logSessionState(session: any, user: any, event: string) {
+  logSessionState(session: unknown, user: unknown, event: string) {
+    const sessionData = session as Record<string, unknown> | null;
+    const userData = user as Record<string, unknown> | null;
+    
     const debugInfo: SessionDebugInfo = {
       timestamp: new Date().toISOString(),
       event,
-      sessionId: session?.id || 'none',
-      userId: user?.id || 'none',
+      sessionId: sessionData?.id as string || 'none',
+      userId: userData?.id as string || 'none',
       hasSession: !!session,
       hasUser: !!user,
       cookies: this.getAllCookies(),
       authState: session ? 'authenticated' : 'unauthenticated',
       additionalData: {
-        sessionExpiresAt: session?.expires_at,
-        userEmail: user?.email,
-        userCreatedAt: user?.created_at,
-        sessionAccessToken: session?.access_token ? 'present' : 'missing',
-        sessionRefreshToken: session?.refresh_token ? 'present' : 'missing'
+        sessionExpiresAt: sessionData?.expires_at,
+        userEmail: userData?.email as string,
+        userCreatedAt: userData?.created_at as string,
+        sessionAccessToken: sessionData?.access_token ? 'present' : 'missing',
+        sessionRefreshToken: sessionData?.refresh_token ? 'present' : 'missing'
       }
     };
 
@@ -203,6 +219,3 @@ class SessionDebugger {
 
 // Create singleton instance
 export const sessionDebugger = new SessionDebugger();
-
-// Export types for use in components
-export type { SessionDebugInfo, CookieInfo };

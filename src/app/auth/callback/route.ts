@@ -32,7 +32,6 @@ export async function GET(request: NextRequest) {
     console.log('🔄 Exchange code result:', { 
       error: error?.message, 
       hasSession: !!data.session,
-      sessionId: data.session?.id,
       userId: data.session?.user?.id,
       expiresAt: data.session?.expires_at,
       accessToken: data.session?.access_token ? 'present' : 'missing',
