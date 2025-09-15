@@ -38,17 +38,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Log initial session state
       sessionDebugger.logSessionState(session, session?.user, 'INITIAL_SESSION')
       
-      // If no session but we have the auth-session-established cookie, try to recover
+      // If no session but we have Supabase auth token cookies, try to recover
       if (!session && !recoveryAttempted) {
         const authSessionEstablished = document.cookie.includes('auth-session-established=true')
+        const hasSupabaseAuthToken = document.cookie.includes('sb-') && document.cookie.includes('auth-token')
+        
         console.log('🔍 Session recovery check:', { 
           hasSession: !!session, 
           hasAuthCookie: authSessionEstablished,
+          hasSupabaseAuthToken,
           allCookies: document.cookie,
           recoveryAttempted
         })
         
-        if (authSessionEstablished) {
+        if (authSessionEstablished || hasSupabaseAuthToken) {
           setRecoveryAttempted(true) // Prevent multiple recovery attempts
           console.log('🔄 Auth session cookie found, attempting session recovery...')
           
@@ -119,7 +122,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   hasAccessToken: !!tokenData.access_token,
                   hasRefreshToken: !!tokenData.refresh_token,
                   expiresAt: tokenData.expires_at,
-                  userId: tokenData.user?.id
+                  userId: tokenData.user?.id,
+                  userEmail: tokenData.user?.email,
+                  tokenType: tokenData.token_type
                 });
                 
                 if (tokenData.access_token && tokenData.refresh_token) {
@@ -151,9 +156,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               }
             }
             
-            // Method 4: Clear the auth session cookie and stop trying
-            console.log('❌ Session recovery failed - clearing auth session cookie')
+            // Method 4: Clear invalid cookies and stop trying
+            console.log('❌ Session recovery failed - clearing invalid cookies')
             document.cookie = 'auth-session-established=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+            // Also clear the Supabase auth token cookie if it's invalid
+            const authTokenCookie = Object.keys(cookies).find(key => 
+              key.includes('supabase') && key.includes('auth-token')
+            );
+            if (authTokenCookie) {
+              document.cookie = `${authTokenCookie}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`
+            }
             return
             
           } catch (error) {
