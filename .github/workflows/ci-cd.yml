@@ -79,50 +79,42 @@ jobs:
       run: npm install --global vercel@latest
     
     - name: Pull Vercel Environment Information
+      env:
+        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        VERCEL_PROJECT_ID: ${{ env.VERCEL_PROJECT_ID }}
+        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       run: |
-        echo "🔧 Pulling Vercel environment for ${{ env.VERCEL_ENV }}..."
-        echo "Project ID: ${{ env.VERCEL_PROJECT_ID }}"
-        
-        # Check if Vercel token is available
-        if [ -z "${{ secrets.VERCEL_TOKEN }}" ]; then
-          echo "❌ VERCEL_TOKEN secret is not set"
-          exit 1
+        echo "🔧 Pulling Vercel environment for $VERCEL_ENV..."
+        echo "Org: $VERCEL_ORG_ID | Project: $VERCEL_PROJECT_ID"
+        if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+          echo "❌ Missing Vercel configuration (token/org/project)" && exit 1
         fi
-        
-        # Check if project ID is available
-        if [ -z "${{ env.VERCEL_PROJECT_ID }}" ]; then
-          echo "❌ VERCEL_PROJECT_ID is not set for this branch"
-          exit 1
-        fi
-        
-        # Pull environment information with better error handling
-        vercel pull --yes --environment="${{ env.VERCEL_ENV }}" --token="${{ secrets.VERCEL_TOKEN }}" || {
-          echo "❌ Failed to pull Vercel environment"
-          echo "This might be due to:"
-          echo "1. Invalid VERCEL_TOKEN"
-          echo "2. Incorrect VERCEL_PROJECT_ID"
-          echo "3. Project not linked to Vercel"
-          exit 1
-        }
-        
-        echo "✅ Successfully pulled Vercel environment"
+        vercel pull --yes \
+          --environment="$VERCEL_ENV" \
+          --org="$VERCEL_ORG_ID" \
+          --project="$VERCEL_PROJECT_ID" \
+          --token="$VERCEL_TOKEN"
     
     - name: Build Project Artifacts (no cache)
       env:
         NEXT_TELEMETRY_DISABLED: 1
+        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       run: |
-        vercel build --token="${{ secrets.VERCEL_TOKEN }}" --force
+        vercel build --token="$VERCEL_TOKEN" --force
     
     - name: Deploy Project Artifacts to Vercel
-      run: vercel deploy --prebuilt --token="${{ secrets.VERCEL_TOKEN }}" --force
       env:
         VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
         VERCEL_PROJECT_ID: ${{ env.VERCEL_PROJECT_ID }}
+        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      run: vercel deploy --prebuilt --token="$VERCEL_TOKEN" --force
     
     - name: Get deployment URL
       id: deployment
+      env:
+        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       run: |
-        DEPLOYMENT_URL=$(vercel ls --token="${{ secrets.VERCEL_TOKEN }}" | grep "${{ github.sha }}" | head -1 | awk '{print $2}')
+        DEPLOYMENT_URL=$(vercel ls --token="$VERCEL_TOKEN" | grep "${{ github.sha }}" | head -1 | awk '{print $2}')
         echo "url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
         echo "🚀 ${{ env.VERCEL_ENV }} environment deployed: $DEPLOYMENT_URL"
 
@@ -136,11 +128,14 @@ jobs:
 
     - name: Point develop alias to latest deployment
       if: github.ref == 'refs/heads/develop'
+      env:
+        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        VERCEL_ALIAS_DEV: ${{ secrets.VERCEL_ALIAS_DEV }}
       run: |
-        ALIAS_DOMAIN="${{ secrets.VERCEL_ALIAS_DEV }}"
+        ALIAS_DOMAIN="$VERCEL_ALIAS_DEV"
         if [ -z "$ALIAS_DOMAIN" ]; then
           echo "No VERCEL_ALIAS_DEV secret configured; skipping alias update"; exit 0; fi
-        vercel alias set "${{ steps.deployment.outputs.url }}" "$ALIAS_DOMAIN" --token="${{ secrets.VERCEL_TOKEN }}"
+        vercel alias set "${{ steps.deployment.outputs.url }}" "$ALIAS_DOMAIN" --token="$VERCEL_TOKEN"
     
     - name: Comment deployment URL on PR
       if: github.event_name == 'pull_request'
