@@ -2,10 +2,17 @@
 
 import { useState } from 'react';
 
+type TestResult = {
+  error?: string;
+  message?: string;
+  improvements?: string[];
+  details?: Record<string, unknown> | string | null;
+} | null;
+
 export default function TestAuthFixPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<{ error?: string; message?: string; improvements?: string[]; details?: unknown } | null>(null);
+  const [result, setResult] = useState<TestResult>(null);
 
   const testAuthFix = async () => {
     if (!email) return;
@@ -25,7 +32,7 @@ export default function TestAuthFixPage() {
       const data = await response.json();
       setResult(data);
     } catch (error) {
-      setResult({ error: 'Failed to send test magic link', details: error });
+      setResult({ error: 'Failed to send test magic link', details: (error as Error)?.message ?? 'Unknown error' });
     } finally {
       setLoading(false);
     }
@@ -84,11 +91,13 @@ export default function TestAuthFixPage() {
                 <div>
                   <p className="font-medium">Error:</p>
                   <p>{result.error}</p>
-                  {result.details && (
+                  {Boolean(result.details) && (
                     <details className="mt-2">
                       <summary className="cursor-pointer">Details</summary>
                       <pre className="mt-1 text-xs overflow-x-auto">
-                        {JSON.stringify(result.details, null, 2)}
+                        {typeof result.details === 'string' 
+                          ? result.details 
+                          : JSON.stringify(result.details, null, 2)}
                       </pre>
                     </details>
                   )}
