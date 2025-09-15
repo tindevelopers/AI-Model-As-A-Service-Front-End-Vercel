@@ -58,6 +58,21 @@ create_project() {
     
     print_status "Creating Supabase project: $project_name"
     
+    # Check if we're on free plan and already have 2 projects
+    if [ "$environment" != "development" ]; then
+        local existing_projects=$(supabase projects list --output json 2>/dev/null | jq '. | length' 2>/dev/null || echo "0")
+        if [ "$existing_projects" -ge 2 ]; then
+            print_warning "You already have $existing_projects projects. Free plan allows only 2 projects."
+            print_warning "Consider upgrading to Pro plan ($25/month) for unlimited projects."
+            read -p "Continue anyway? (y/N): " -n 1 -r
+            echo
+            if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+                print_error "Project creation cancelled"
+                return 1
+            fi
+        fi
+    fi
+    
     # Create the project
     local project_output
     project_output=$(supabase projects create "$project_name" --region "$region" --output json 2>&1)
@@ -118,19 +133,17 @@ main() {
     # Remove existing files
     rm -f .env.projects .env.credentials
     
-    # Create projects
-    print_status "Creating development project..."
-    if create_project "ai-maas-dev" "development"; then
-        get_project_credentials "$(grep SUPABASE_PROJECT_ID_DEVELOPMENT .env.projects | cut -d'=' -f2)" "development"
+    # Create projects (Free plan allows only 2 cloud projects)
+    print_status "Setting up economical development structure..."
+    print_warning "Free plan allows only 2 cloud projects. Using local development for primary development."
+    
+    print_status "Creating staging project (Cloud Project #1)..."
+    if create_project "ai-maas-staging" "staging"; then
+        get_project_credentials "$(grep SUPABASE_PROJECT_ID_STAGING .env.projects | cut -d'=' -f2)" "staging"
     fi
     
-    print_status "Creating preview project..."
-    if create_project "ai-maas-preview" "preview"; then
-        get_project_credentials "$(grep SUPABASE_PROJECT_ID_PREVIEW .env.projects | cut -d'=' -f2)" "preview"
-    fi
-    
-    print_status "Creating production project..."
-    if create_project "ai-maas-prod" "production"; then
+    print_status "Creating production project (Cloud Project #2)..."
+    if create_project "ai-maas-production" "production"; then
         get_project_credentials "$(grep SUPABASE_PROJECT_ID_PRODUCTION .env.projects | cut -d'=' -f2)" "production"
     fi
     
