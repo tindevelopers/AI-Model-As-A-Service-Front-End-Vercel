@@ -101,11 +101,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (authTokenCookie) {
               console.log('🔑 Found auth token cookie:', authTokenCookie);
               try {
-                const tokenData = JSON.parse(decodeURIComponent(cookies[authTokenCookie]));
+                let tokenData;
+                const cookieValue = cookies[authTokenCookie];
+                
+                // Handle base64-encoded cookies (new format)
+                if (cookieValue.startsWith('base64-')) {
+                  console.log('🔑 Detected base64-encoded cookie, decoding...');
+                  const base64Data = cookieValue.replace('base64-', '');
+                  const decodedData = atob(base64Data);
+                  tokenData = JSON.parse(decodedData);
+                } else {
+                  // Handle URL-encoded cookies (old format)
+                  tokenData = JSON.parse(decodeURIComponent(cookieValue));
+                }
+                
                 console.log('🔑 Token data:', { 
                   hasAccessToken: !!tokenData.access_token,
                   hasRefreshToken: !!tokenData.refresh_token,
-                  expiresAt: tokenData.expires_at
+                  expiresAt: tokenData.expires_at,
+                  userId: tokenData.user?.id
                 });
                 
                 if (tokenData.access_token && tokenData.refresh_token) {
