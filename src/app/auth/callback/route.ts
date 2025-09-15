@@ -33,12 +33,8 @@ export async function GET(request: NextRequest) {
       // Create response with proper cookies
       const response = NextResponse.redirect(redirectUrl)
       
-      // Set the session cookies in the response
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) {
-        // The cookies should already be set by the supabase client, but let's ensure they're in the response
-        console.log('Session established, redirecting to:', redirectUrl)
-      }
+      // The session should already be established and cookies set by the supabase client
+      console.log('Session established, redirecting to:', redirectUrl)
       
       return response
     } else {

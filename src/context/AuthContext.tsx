@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session, AuthError } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
+import { errorLogger } from '@/utils/errorLogger'
 
 interface UserMetadata {
   full_name?: string
@@ -42,6 +43,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state change:', { event, hasSession: !!session, userId: session?.user?.id })
+        
+        // Log auth events for debugging
+        if (event === 'SIGNED_IN') {
+          errorLogger.logSuccess('User signed in successfully', {
+            component: 'auth-context',
+            action: 'signIn',
+            userId: session?.user?.id,
+            additionalData: {
+              email: session?.user?.email,
+              provider: session?.user?.app_metadata?.provider,
+            }
+          });
+        } else if (event === 'SIGNED_OUT') {
+          errorLogger.logSuccess('User signed out', {
+            component: 'auth-context',
+            action: 'signOut',
+          });
+        } else if (event === 'TOKEN_REFRESHED') {
+          errorLogger.logSuccess('Auth token refreshed', {
+            component: 'auth-context',
+            action: 'tokenRefresh',
+            userId: session?.user?.id,
+          });
+        }
+        
         setSession(session)
         setUser(session?.user ?? null)
         setLoading(false)

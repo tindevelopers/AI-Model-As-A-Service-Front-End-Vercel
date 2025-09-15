@@ -29,30 +29,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   }
 })
 
-// Add global error handling for Supabase
-supabase.auth.onAuthStateChange((event, session) => {
-  if (event === 'SIGNED_IN') {
-    errorLogger.logSuccess('User signed in successfully', {
-      component: 'supabase-auth',
-      action: 'signIn',
-      userId: session?.user?.id,
-      additionalData: {
-        email: session?.user?.email,
-        provider: session?.user?.app_metadata?.provider,
-      }
-    });
-  } else if (event === 'SIGNED_OUT') {
-    errorLogger.logSuccess('User signed out', {
-      component: 'supabase-auth',
-      action: 'signOut',
-    });
-  } else if (event === 'TOKEN_REFRESHED') {
-    errorLogger.logSuccess('Auth token refreshed', {
-      component: 'supabase-auth',
-      action: 'tokenRefresh',
-      userId: session?.user?.id,
-    });
-  }
-});
+// Note: Auth state change handling is done in AuthContext to avoid conflicts
 
 // Note: server-side clients live in supabase-server.ts
