@@ -56,6 +56,8 @@ import CallIcon from "./call-icon.svg";
 import BoxMoving from "./box-tapped.svg";
 import BoxTapped from "./box-icon.svg";
 import TruckDelivery from "./truck-delivery.svg";
+import BugIcon from "./bug.svg";
+import XIcon from "./x.svg";
 
 export {
   BoxTapped,
@@ -116,4 +118,9 @@ export {
   ChevronUpIcon,
   ChatIcon,
   MoreDotIcon,
+  BugIcon,
+  XIcon,
 };
+
+// Export TrashIcon as an alias for TrashBinIcon
+export { TrashBinIcon as TrashIcon };
