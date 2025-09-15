@@ -6,3 +6,4 @@ Test deployment trigger at 2025-01-14T15:30:00Z - README update with deployment 
 Redeploy trigger at 2025-09-15T08:30:12Z - Service role key configuration and dependency updates
 Critical auth session fixes at 2025-09-15T08:47:37Z
 Auth route redirect fixes at 2025-09-15T08:54:48Z
+Magic link debugging deployment at "2025-09-15T09:24:17Z"
