@@ -417,7 +417,7 @@ export class IntelligentRouter {
     return (responseTimeScore + availabilityScore) / 2
   }
 
-  private calculatePreferenceScore(service: ServiceDefinition, request: UnifiedRequest): Promise<number> {
+  private calculatePreferenceScore(service: ServiceDefinition, request: UnifiedRequest): number {
     let score = 0.5
     
     // Check user preferences
