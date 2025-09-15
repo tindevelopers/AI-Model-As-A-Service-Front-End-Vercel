@@ -129,13 +129,7 @@ class ErrorLogger {
         status: this.validateSupabaseKey(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
         description: 'Supabase anonymous key for client-side operations',
       },
-      {
-        name: 'SUPABASE_SERVICE_ROLE_KEY',
-        value: process.env.SUPABASE_SERVICE_ROLE_KEY,
-        required: true,
-        status: this.validateSupabaseKey(process.env.SUPABASE_SERVICE_ROLE_KEY),
-        description: 'Supabase service role key for server-side operations',
-      },
+      // Note: SUPABASE_SERVICE_ROLE_KEY is only available server-side, not checked on client
       {
         name: 'NEXT_PUBLIC_GATEWAY_URL',
         value: process.env.NEXT_PUBLIC_GATEWAY_URL,
