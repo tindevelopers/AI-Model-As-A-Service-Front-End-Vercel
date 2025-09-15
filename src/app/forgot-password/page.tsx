@@ -16,6 +16,15 @@ async function sendReset(formData: FormData) {
   const proto = hdrs.get('x-forwarded-proto') || 'http'
   const computedOrigin = `${proto}://${host}`
   const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || computedOrigin).trim()
+  
+  console.log('Forgot password - URL computation:', { 
+    host, 
+    proto, 
+    computedOrigin, 
+    baseUrl, 
+    method,
+    emailRedirectTo: `${baseUrl}/auth/callback?next=/`
+  })
 
   if (!email) {
     redirect('/forgot-password?error=missing_email')
@@ -33,6 +42,13 @@ async function sendReset(formData: FormData) {
         shouldCreateUser: false
       }
     })
+    
+    console.log('Magic link generation result:', { 
+      error: error?.message, 
+      emailRedirectTo: `${baseUrl}/auth/callback?next=/`,
+      email: email.substring(0, 3) + '***' // Log partial email for debugging
+    })
+    
     if (error) redirect(`/forgot-password?error=${encodeURIComponent(error.message)}`)
     redirect('/forgot-password?sent=1&method=magic-link')
   }
