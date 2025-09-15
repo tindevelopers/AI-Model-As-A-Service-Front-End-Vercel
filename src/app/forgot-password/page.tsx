@@ -9,7 +9,7 @@ async function sendReset(formData: FormData) {
   'use server'
   const email = String(formData.get('email') || '')
   const method = (String(formData.get('method') || 'password') === 'magic-link') ? 'magic-link' : 'password'
-  const supabase = await createServerClient()
+  const supabase = createServerClient()
 
   const hdrs = await headers()
   const host = hdrs.get('x-forwarded-host') || hdrs.get('host') || '127.0.0.1:3000'
