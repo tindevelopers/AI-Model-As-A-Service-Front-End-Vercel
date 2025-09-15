@@ -42,16 +42,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!session && !recoveryAttempted) {
         const authSessionEstablished = document.cookie.includes('auth-session-established=true')
         const hasSupabaseAuthToken = document.cookie.includes('sb-') && document.cookie.includes('auth-token')
+        const hasSupabaseCookies = document.cookie.includes('supabase')
         
         console.log('🔍 Session recovery check:', { 
           hasSession: !!session, 
           hasAuthCookie: authSessionEstablished,
           hasSupabaseAuthToken,
+          hasSupabaseCookies,
           recoveryAttempted,
-          shouldAttemptRecovery: authSessionEstablished || hasSupabaseAuthToken
+          shouldAttemptRecovery: authSessionEstablished || hasSupabaseAuthToken || hasSupabaseCookies
         })
         
-        if (authSessionEstablished || hasSupabaseAuthToken) {
+        if (authSessionEstablished || hasSupabaseAuthToken || hasSupabaseCookies) {
           setRecoveryAttempted(true) // Prevent multiple recovery attempts
           console.log('🔄 Auth session cookie found, attempting session recovery...')
           console.log('🔄 Recovery attempt started at:', new Date().toISOString())
@@ -101,6 +103,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const authTokenCookie = Object.keys(cookies).find(key => 
               key.includes('supabase') && key.includes('auth-token')
             );
+            
+            // Also check for the new format cookies we set in the callback
+            const accessToken = cookies['supabase-auth-token'];
+            const refreshToken = cookies['supabase-refresh-token'];
+            
+            console.log('🍪 Token extraction:', {
+              hasAuthTokenCookie: !!authTokenCookie,
+              hasAccessToken: !!accessToken,
+              hasRefreshToken: !!refreshToken,
+              authTokenCookieName: authTokenCookie
+            });
+            
+            // Try the new format first (direct token cookies)
+            if (accessToken && refreshToken) {
+              console.log('🔄 Attempting session recovery with direct token cookies...');
+              try {
+                const { data: { session: directSession }, error: directError } = await supabase.auth.setSession({
+                  access_token: accessToken,
+                  refresh_token: refreshToken
+                });
+                
+                console.log('🔄 Direct token recovery result:', { 
+                  hasSession: !!directSession, 
+                  error: directError?.message 
+                });
+                
+                if (directSession) {
+                  console.log('✅ Session recovered via direct tokens:', { hasSession: !!directSession, userId: directSession?.user?.id });
+                  sessionDebugger.logSessionState(directSession, directSession?.user, 'SESSION_RECOVERED_DIRECT');
+                  setSession(directSession);
+                  setUser(directSession?.user ?? null);
+                  setLoading(false);
+                  return;
+                }
+              } catch (error) {
+                console.error('❌ Direct token recovery error:', error);
+              }
+            }
             
             if (authTokenCookie) {
               console.log('🔑 Found auth token cookie:', authTokenCookie);

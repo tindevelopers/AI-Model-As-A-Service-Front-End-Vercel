@@ -82,9 +82,10 @@ export async function GET(request: NextRequest) {
         
         // Set each cookie in the response with more robust settings
         allCookies.forEach(cookie => {
-          if (cookie.name.includes('supabase') || cookie.name.includes('auth')) {
+          // Check if this is a Supabase auth cookie
+          if (cookie.name.includes('supabase') || cookie.name.includes('auth') || cookie.name.includes('sb-')) {
             // Make auth token cookies accessible to client-side for session recovery
-            const isAuthToken = cookie.name.includes('auth-token')
+            const isAuthToken = cookie.name.includes('auth-token') || cookie.name.includes('access-token') || cookie.name.includes('refresh-token')
             response.cookies.set(cookie.name, cookie.value, {
               httpOnly: !isAuthToken, // Allow client-side access to auth tokens
               secure: process.env.NODE_ENV === 'production',
@@ -108,8 +109,25 @@ export async function GET(request: NextRequest) {
           refresh_token: session.refresh_token
         })
         
-        // Also set a client-side session indicator
+        // Set additional client-side session indicators
         response.cookies.set('auth-session-established', 'true', {
+          httpOnly: false, // Allow client-side access
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          path: '/',
+          maxAge: 60 * 60 * 24 * 7 // 7 days
+        })
+        
+        // Set session data for client-side recovery
+        response.cookies.set('supabase-auth-token', session.access_token, {
+          httpOnly: false, // Allow client-side access
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          path: '/',
+          maxAge: 60 * 60 * 24 * 7 // 7 days
+        })
+        
+        response.cookies.set('supabase-refresh-token', session.refresh_token, {
           httpOnly: false, // Allow client-side access
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'lax',

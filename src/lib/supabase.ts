@@ -30,7 +30,11 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     storage: typeof window !== 'undefined' ? window.localStorage : undefined,
     storageKey: 'supabase.auth.token',
     // Ensure cookies are properly handled
-    debug: process.env.NODE_ENV === 'development'
+    debug: process.env.NODE_ENV === 'development',
+    // Enable PKCE flow with proper settings
+    pkceCodeVerifier: typeof window !== 'undefined' ? localStorage.getItem('pkce-code-verifier') : undefined,
+    // Ensure session recovery works properly
+    skipBrowserSessionCheck: false
   }
 })
 

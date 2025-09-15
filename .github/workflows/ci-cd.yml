@@ -79,7 +79,33 @@ jobs:
       run: npm install --global vercel@latest
     
     - name: Pull Vercel Environment Information
-      run: vercel pull --yes --environment=${{ env.VERCEL_ENV }} --token=${{ secrets.VERCEL_TOKEN }}
+      run: |
+        echo "🔧 Pulling Vercel environment for ${{ env.VERCEL_ENV }}..."
+        echo "Project ID: ${{ env.VERCEL_PROJECT_ID }}"
+        
+        # Check if Vercel token is available
+        if [ -z "${{ secrets.VERCEL_TOKEN }}" ]; then
+          echo "❌ VERCEL_TOKEN secret is not set"
+          exit 1
+        fi
+        
+        # Check if project ID is available
+        if [ -z "${{ env.VERCEL_PROJECT_ID }}" ]; then
+          echo "❌ VERCEL_PROJECT_ID is not set for this branch"
+          exit 1
+        fi
+        
+        # Pull environment information with better error handling
+        vercel pull --yes --environment=${{ env.VERCEL_ENV }} --token=${{ secrets.VERCEL_TOKEN }} || {
+          echo "❌ Failed to pull Vercel environment"
+          echo "This might be due to:"
+          echo "1. Invalid VERCEL_TOKEN"
+          echo "2. Incorrect VERCEL_PROJECT_ID"
+          echo "3. Project not linked to Vercel"
+          exit 1
+        }
+        
+        echo "✅ Successfully pulled Vercel environment"
     
     - name: Build Project Artifacts (no cache)
       env:
