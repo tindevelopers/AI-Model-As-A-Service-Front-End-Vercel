@@ -193,9 +193,22 @@ class SessionDebugger {
 
     // Check for missing session cookies
     const supabaseCookies = recentLogs[0]?.cookies;
-    if (supabaseCookies) {
-      const hasAuthToken = Object.keys(supabaseCookies).some(key => key.includes('auth-token'));
+    if (supabaseCookies && Object.keys(supabaseCookies).length > 0) {
+      // Check if cookies object has auth token keys
+      const hasAuthToken = Object.keys(supabaseCookies).some(key => 
+        key.includes('auth-token') || key.includes('supabase')
+      );
       if (!hasAuthToken) {
+        issues.push('Missing Supabase auth token cookies');
+      }
+    } else {
+      // Check current cookies directly from document
+      const currentCookies = this.getAllCookies();
+      const hasCurrentAuthToken = Object.keys(currentCookies).some(key => 
+        key.includes('auth-token') || key.includes('supabase')
+      );
+      
+      if (!hasCurrentAuthToken) {
         issues.push('Missing Supabase auth token cookies');
       }
     }
