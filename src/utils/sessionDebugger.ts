@@ -81,22 +81,22 @@ class SessionDebugger {
     console.log(`[SessionDebug] ${event}:`, debugInfo);
   }
 
-  logSessionState(session: unknown, user: unknown, event: string) {
+  logSessionState(session: any, user: any, event: string) {
     const debugInfo: SessionDebugInfo = {
       timestamp: new Date().toISOString(),
       event,
-      sessionId: (session as { id?: string })?.id || 'none',
-      userId: (user as { id?: string })?.id || 'none',
+      sessionId: session?.id || 'none',
+      userId: user?.id || 'none',
       hasSession: !!session,
       hasUser: !!user,
       cookies: this.getAllCookies(),
       authState: session ? 'authenticated' : 'unauthenticated',
       additionalData: {
-        sessionExpiresAt: (session as { expires_at?: string })?.expires_at,
-        userEmail: (user as { email?: string })?.email,
-        userCreatedAt: (user as { created_at?: string })?.created_at,
-        sessionAccessToken: (session as { access_token?: string })?.access_token ? 'present' : 'missing',
-        sessionRefreshToken: (session as { refresh_token?: string })?.refresh_token ? 'present' : 'missing'
+        sessionExpiresAt: session?.expires_at,
+        userEmail: user?.email,
+        userCreatedAt: user?.created_at,
+        sessionAccessToken: session?.access_token ? 'present' : 'missing',
+        sessionRefreshToken: session?.refresh_token ? 'present' : 'missing'
       }
     };
 
@@ -169,7 +169,7 @@ class SessionDebugger {
     const signOutEvents = recentLogs.filter(log => log.event.includes('SIGNED_OUT'));
     
     if (signInEvents.length > 0 && signOutEvents.length > 0) {
-      const timeDiff = new Date(signInEvents[0].timestamp).getTime() - new Date(signOutEvents[0].timestamp).getTime();                                                                                                  
+      const timeDiff = new Date(signInEvents[0].timestamp).getTime() - new Date(signOutEvents[0].timestamp).getTime();
       if (Math.abs(timeDiff) < 5000) { // Less than 5 seconds
         issues.push('Rapid sign-in/sign-out cycle detected (possible session conflict)');
       }
@@ -203,3 +203,6 @@ class SessionDebugger {
 
 // Create singleton instance
 export const sessionDebugger = new SessionDebugger();
+
+// Export types for use in components
+export type { SessionDebugInfo, CookieInfo };

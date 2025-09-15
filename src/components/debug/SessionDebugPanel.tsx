@@ -56,9 +56,9 @@ export function SessionDebugPanel() {
       </button>
 
       {isOpen && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">                                                                                    
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-700">                                                                                                         
+          <div className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Session Debug</h3>
             <div className="flex items-center space-x-2">
               <button
@@ -188,7 +188,7 @@ export function SessionDebugPanel() {
                   </div>
                 ) : (
                   issues.map((issue, index) => (
-                    <div key={index} className="bg-red-50 dark:bg-red-900/20 p-2 rounded text-sm text-red-800 dark:text-red-400">                                                                                       
+                    <div key={index} className="bg-red-50 dark:bg-red-900/20 p-2 rounded text-sm text-red-800 dark:text-red-400">
                       ⚠️ {issue}
                     </div>
                   ))
