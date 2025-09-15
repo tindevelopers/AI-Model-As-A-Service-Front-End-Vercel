@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session, AuthError } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import { errorLogger } from '@/utils/errorLogger'
+import { sessionDebugger } from '@/utils/sessionDebugger'
 
 interface UserMetadata {
   full_name?: string
@@ -32,6 +33,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const getInitialSession = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       console.log('Initial session check:', { hasSession: !!session, userId: session?.user?.id })
+      
+      // Log initial session state
+      sessionDebugger.logSessionState(session, session?.user, 'INITIAL_SESSION')
+      
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
@@ -43,6 +48,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state change:', { event, hasSession: !!session, userId: session?.user?.id })
+        
+        // Log detailed session state for debugging
+        sessionDebugger.logSessionState(session, session?.user, event)
         
         // Log auth events for debugging
         if (event === 'SIGNED_IN') {
