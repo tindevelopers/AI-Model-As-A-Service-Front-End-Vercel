@@ -16,10 +16,6 @@ type CookieSetRemoveOptions = Partial<{
   secure: boolean
 }>
 
-type NextCookiesWritable = {
-  getAll: () => { name: string; value: string }[]
-  set: (init: { name: string; value: string } & CookieSetRemoveOptions) => void
-}
 
 export const createServerClient = async () => {
   const cookieStore = await cookies()
