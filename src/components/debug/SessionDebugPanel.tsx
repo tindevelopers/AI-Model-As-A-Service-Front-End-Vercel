@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from 'react';
 import { sessionDebugger, SessionDebugInfo } from '@/utils/sessionDebugger';
 import { XIcon, BugIcon, DownloadIcon, TrashIcon } from '@/icons';
