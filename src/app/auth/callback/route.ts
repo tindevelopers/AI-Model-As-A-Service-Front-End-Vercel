@@ -66,8 +66,8 @@ export async function GET(request: NextRequest) {
       // Create response with proper cookies
       const response = NextResponse.redirect(redirectUrl)
       
-      // Ensure session cookies are properly set in the response
-      const { data: { session } } = await supabase.auth.getSession()
+      // Use the session from the exchange result
+      const session = data.session
       if (session) {
         console.log('✅ Session established, redirecting to:', redirectUrl)
         
@@ -95,8 +95,15 @@ export async function GET(request: NextRequest) {
               // Ensure cookies persist
               maxAge: 60 * 60 * 24 * 7 // 7 days
             })
-            console.log('🍪 Set cookie in response:', cookie.name)
+            console.log('🍪 Set cookie in response:', cookie.name, 'length:', cookie.value?.length)
           }
+        })
+        
+        // Also ensure the session is properly set in the Supabase client
+        // This is crucial for client-side session detection
+        await supabase.auth.setSession({
+          access_token: session.access_token,
+          refresh_token: session.refresh_token
         })
         
         // Also set a client-side session indicator

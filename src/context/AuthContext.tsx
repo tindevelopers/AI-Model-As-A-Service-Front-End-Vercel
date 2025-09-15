@@ -37,6 +37,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Log initial session state
       sessionDebugger.logSessionState(session, session?.user, 'INITIAL_SESSION')
       
+      // If no session but we have the auth-session-established cookie, try to recover
+      if (!session) {
+        const authSessionEstablished = document.cookie.includes('auth-session-established=true')
+        if (authSessionEstablished) {
+          console.log('🔄 Auth session cookie found, attempting session recovery...')
+          // Try to refresh the session
+          const { data: { session: refreshedSession } } = await supabase.auth.refreshSession()
+          if (refreshedSession) {
+            console.log('✅ Session recovered:', { hasSession: !!refreshedSession, userId: refreshedSession?.user?.id })
+            sessionDebugger.logSessionState(refreshedSession, refreshedSession?.user, 'SESSION_RECOVERED')
+            setSession(refreshedSession)
+            setUser(refreshedSession?.user ?? null)
+            setLoading(false)
+            return
+          }
+        }
+      }
+      
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
