@@ -89,7 +89,6 @@ jobs:
         if [ -z "$VERCEL_TOKEN" ]; then echo "❌ VERCEL_TOKEN missing" && exit 1; fi
         if [ -z "$VERCEL_ORG_ID" ]; then echo "❌ VERCEL_ORG_ID missing" && exit 1; fi
         if [ -z "$VERCEL_PROJECT_ID" ]; then echo "❌ VERCEL_PROJECT_ID missing for branch" && exit 1; fi
-        # Optional team scope
         if [ -n "$VERCEL_TEAM_SLUG" ]; then echo "VERCEL_SCOPE=$VERCEL_TEAM_SLUG" >> $GITHUB_ENV; fi
 
     - name: Verify Vercel authentication (non-fatal)
@@ -102,6 +101,18 @@ jobs:
           vercel whoami --token="$VERCEL_TOKEN" --scope="$VERCEL_SCOPE" || echo "⚠️ whoami failed under scope; continuing"
         else
           vercel whoami --token="$VERCEL_TOKEN" || echo "⚠️ whoami failed; continuing"
+        fi
+
+    - name: List projects in scope (diagnostic)
+      env:
+        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        VERCEL_SCOPE: ${{ env.VERCEL_SCOPE }}
+      run: |
+        echo "📋 Listing projects (scope: ${VERCEL_SCOPE:-<none>})"
+        if [ -n "$VERCEL_SCOPE" ]; then
+          vercel projects ls --token="$VERCEL_TOKEN" --scope="$VERCEL_SCOPE" || echo "⚠️ could not list projects"
+        else
+          vercel projects ls --token="$VERCEL_TOKEN" || echo "⚠️ could not list projects"
         fi
 
     - name: Create Vercel project config (.vercel/project.json)
@@ -122,36 +133,34 @@ jobs:
       env:
         VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         VERCEL_SCOPE: ${{ env.VERCEL_SCOPE }}
+        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        VERCEL_PROJECT_ID: ${{ env.VERCEL_PROJECT_ID }}
       run: |
-        echo "🔧 Pulling Vercel environment for ${{ env.VERCEL_ENV }} (scope: ${VERCEL_SCOPE:-<none>})..."
-        if [ -n "$VERCEL_SCOPE" ]; then
-          vercel pull --yes --environment="${{ env.VERCEL_ENV }}" --token="$VERCEL_TOKEN" --scope="$VERCEL_SCOPE" || { echo "❌ vercel pull failed"; exit 1; }
-        else
-          vercel pull --yes --environment="${{ env.VERCEL_ENV }}" --token="$VERCEL_TOKEN" || { echo "❌ vercel pull failed"; exit 1; }
-        fi
+        echo "🔧 Pulling Vercel env for ${{ env.VERCEL_ENV }} (scope: ${VERCEL_SCOPE:-<none>})..."
+        EXTRA_SCOPE_ARGS=""; if [ -n "$VERCEL_SCOPE" ]; then EXTRA_SCOPE_ARGS="--scope=\"$VERCEL_SCOPE\""; fi
+        vercel pull --yes --environment="${{ env.VERCEL_ENV }}" --token="$VERCEL_TOKEN" \
+          --org="$VERCEL_ORG_ID" --project="$VERCEL_PROJECT_ID" $EXTRA_SCOPE_ARGS || { echo "❌ vercel pull failed"; exit 1; }
     
     - name: Build Project Artifacts (no cache)
       env:
         NEXT_TELEMETRY_DISABLED: 1
         VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         VERCEL_SCOPE: ${{ env.VERCEL_SCOPE }}
+        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        VERCEL_PROJECT_ID: ${{ env.VERCEL_PROJECT_ID }}
       run: |
-        if [ -n "$VERCEL_SCOPE" ]; then
-          vercel build --token="$VERCEL_TOKEN" --scope="$VERCEL_SCOPE" --force
-        else
-          vercel build --token="$VERCEL_TOKEN" --force
-        fi
+        EXTRA_SCOPE_ARGS=""; if [ -n "$VERCEL_SCOPE" ]; then EXTRA_SCOPE_ARGS="--scope=\"$VERCEL_SCOPE\""; fi
+        vercel build --token="$VERCEL_TOKEN" --org="$VERCEL_ORG_ID" --project="$VERCEL_PROJECT_ID" $EXTRA_SCOPE_ARGS --force
     
     - name: Deploy Project Artifacts to Vercel
       env:
         VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         VERCEL_SCOPE: ${{ env.VERCEL_SCOPE }}
+        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        VERCEL_PROJECT_ID: ${{ env.VERCEL_PROJECT_ID }}
       run: |
-        if [ -n "$VERCEL_SCOPE" ]; then
-          vercel deploy --prebuilt --token="$VERCEL_TOKEN" --scope="$VERCEL_SCOPE" --force
-        else
-          vercel deploy --prebuilt --token="$VERCEL_TOKEN" --force
-        fi
+        EXTRA_SCOPE_ARGS=""; if [ -n "$VERCEL_SCOPE" ]; then EXTRA_SCOPE_ARGS="--scope=\"$VERCEL_SCOPE\""; fi
+        vercel deploy --prebuilt --token="$VERCEL_TOKEN" --org="$VERCEL_ORG_ID" --project="$VERCEL_PROJECT_ID" $EXTRA_SCOPE_ARGS --force
     
     - name: Get deployment URL
       id: deployment
