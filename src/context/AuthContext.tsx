@@ -40,17 +40,103 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // If no session but we have the auth-session-established cookie, try to recover
       if (!session) {
         const authSessionEstablished = document.cookie.includes('auth-session-established=true')
+        console.log('🔍 Session recovery check:', { 
+          hasSession: !!session, 
+          hasAuthCookie: authSessionEstablished,
+          allCookies: document.cookie 
+        })
+        
         if (authSessionEstablished) {
           console.log('🔄 Auth session cookie found, attempting session recovery...')
-          // Try to refresh the session
-          const { data: { session: refreshedSession } } = await supabase.auth.refreshSession()
-          if (refreshedSession) {
-            console.log('✅ Session recovered:', { hasSession: !!refreshedSession, userId: refreshedSession?.user?.id })
-            sessionDebugger.logSessionState(refreshedSession, refreshedSession?.user, 'SESSION_RECOVERED')
-            setSession(refreshedSession)
-            setUser(refreshedSession?.user ?? null)
-            setLoading(false)
-            return
+          
+          // Try multiple recovery methods
+          try {
+            // Method 1: Try to refresh the session
+            const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession()
+            console.log('🔄 Refresh session result:', { 
+              hasSession: !!refreshedSession, 
+              error: refreshError?.message 
+            })
+            
+            if (refreshedSession) {
+              console.log('✅ Session recovered via refresh:', { hasSession: !!refreshedSession, userId: refreshedSession?.user?.id })
+              sessionDebugger.logSessionState(refreshedSession, refreshedSession?.user, 'SESSION_RECOVERED')
+              setSession(refreshedSession)
+              setUser(refreshedSession?.user ?? null)
+              setLoading(false)
+              return
+            }
+            
+            // Method 2: Try to get session again (in case it was just delayed)
+            const { data: { session: retrySession } } = await supabase.auth.getSession()
+            console.log('🔄 Retry get session result:', { hasSession: !!retrySession })
+            
+            if (retrySession) {
+              console.log('✅ Session recovered via retry:', { hasSession: !!retrySession, userId: retrySession?.user?.id })
+              sessionDebugger.logSessionState(retrySession, retrySession?.user, 'SESSION_RECOVERED_RETRY')
+              setSession(retrySession)
+              setUser(retrySession?.user ?? null)
+              setLoading(false)
+              return
+            }
+            
+            // Method 3: Try to manually extract session from cookies
+            console.log('🔄 Attempting manual session extraction from cookies...')
+            const cookies = document.cookie.split(';').reduce((acc, cookie) => {
+              const [name, value] = cookie.trim().split('=');
+              acc[name] = value;
+              return acc;
+            }, {} as Record<string, string>);
+            
+            console.log('🍪 Available cookies:', Object.keys(cookies));
+            
+            // Look for Supabase auth token cookies
+            const authTokenCookie = Object.keys(cookies).find(key => 
+              key.includes('supabase') && key.includes('auth-token')
+            );
+            
+            if (authTokenCookie) {
+              console.log('🔑 Found auth token cookie:', authTokenCookie);
+              try {
+                const tokenData = JSON.parse(decodeURIComponent(cookies[authTokenCookie]));
+                console.log('🔑 Token data:', { 
+                  hasAccessToken: !!tokenData.access_token,
+                  hasRefreshToken: !!tokenData.refresh_token,
+                  expiresAt: tokenData.expires_at
+                });
+                
+                if (tokenData.access_token && tokenData.refresh_token) {
+                  // Try to set the session manually
+                  const { data: { session: manualSession }, error: manualError } = await supabase.auth.setSession({
+                    access_token: tokenData.access_token,
+                    refresh_token: tokenData.refresh_token
+                  });
+                  
+                  console.log('🔄 Manual session set result:', { 
+                    hasSession: !!manualSession, 
+                    error: manualError?.message 
+                  });
+                  
+                  if (manualSession) {
+                    console.log('✅ Session recovered via manual extraction:', { 
+                      hasSession: !!manualSession, 
+                      userId: manualSession?.user?.id 
+                    });
+                    sessionDebugger.logSessionState(manualSession, manualSession?.user, 'SESSION_RECOVERED_MANUAL')
+                    setSession(manualSession)
+                    setUser(manualSession?.user ?? null)
+                    setLoading(false)
+                    return
+                  }
+                }
+              } catch (parseError) {
+                console.error('❌ Failed to parse auth token cookie:', parseError);
+              }
+            }
+            
+            console.log('❌ Session recovery failed - no valid session found')
+          } catch (error) {
+            console.error('❌ Session recovery error:', error)
           }
         }
       }
