@@ -1,0 +1,134 @@
+'use client'
+
+import { createContext, useContext, useEffect, useState } from 'react'
+import { User, Session, AuthError } from '@supabase/supabase-js'
+import { supabase } from '@/lib/supabase'
+import { errorLogger } from '@/utils/errorLogger'
+
+interface UserMetadata {
+  full_name?: string
+  [key: string]: unknown
+}
+
+interface AuthContextType {
+  user: User | null
+  session: Session | null
+  loading: boolean
+  signUp: (email: string, password: string, userData?: UserMetadata) => Promise<{ error: AuthError | null }>
+  signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>
+  signOut: () => Promise<{ error: AuthError | null }>
+  resetPassword: (email: string) => Promise<{ error: AuthError | null }>
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined)
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null)
+  const [session, setSession] = useState<Session | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    // Get initial session
+    const getInitialSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      console.log('Initial session check:', { hasSession: !!session, userId: session?.user?.id })
+      setSession(session)
+      setUser(session?.user ?? null)
+      setLoading(false)
+    }
+
+    getInitialSession()
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state change:', { event, hasSession: !!session, userId: session?.user?.id })
+        
+        // Log auth events for debugging
+        if (event === 'SIGNED_IN') {
+          errorLogger.logSuccess('User signed in successfully', {
+            component: 'auth-context',
+            action: 'signIn',
+            userId: session?.user?.id,
+            additionalData: {
+              email: session?.user?.email,
+              provider: session?.user?.app_metadata?.provider,
+            }
+          });
+        } else if (event === 'SIGNED_OUT') {
+          errorLogger.logSuccess('User signed out', {
+            component: 'auth-context',
+            action: 'signOut',
+          });
+        } else if (event === 'TOKEN_REFRESHED') {
+          errorLogger.logSuccess('Auth token refreshed', {
+            component: 'auth-context',
+            action: 'tokenRefresh',
+            userId: session?.user?.id,
+          });
+        }
+        
+        setSession(session)
+        setUser(session?.user ?? null)
+        setLoading(false)
+      }
+    )
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const signUp = async (email: string, password: string, userData?: UserMetadata) => {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: userData
+      }
+    })
+    return { error }
+  }
+
+  const signIn = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    })
+    return { error }
+  }
+
+  const signOut = async () => {
+    const { error } = await supabase.auth.signOut()
+    return { error }
+  }
+
+  const resetPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`
+    })
+    return { error }
+  }
+
+  const value = {
+    user,
+    session,
+    loading,
+    signUp,
+    signIn,
+    signOut,
+    resetPassword
+  }
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  )
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext)
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider')
+  }
+  return context
+}

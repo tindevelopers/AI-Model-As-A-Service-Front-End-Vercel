@@ -1,31 +1,8 @@
-FROM python:3.11-slim
-
-# Set working directory
-WORKDIR /app
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    gcc \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy requirements first for better caching
-COPY requirements-simple.txt .
-RUN pip install --no-cache-dir -r requirements-simple.txt
-
-# Copy application code
-COPY . .
-
-# Create non-root user
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
-USER appuser
-
-# Expose port (Cloud Run uses PORT env var, defaults to 8080)
-EXPOSE 8080
-
-# Health check (use PORT env var or default to 8080)
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:${PORT:-8080}/health || exit 1
-
-# Run the application (use PORT env var or default to 8080)
-CMD python -m uvicorn src.main:app --host 0.0.0.0 --port ${PORT:-8080}
+# This Dockerfile is no longer needed for Vercel deployment
+# 
+# The deployment has been migrated from Google Cloud Run to Vercel
+# Vercel handles the build and deployment process automatically
+# without requiring Docker containers.
+#
+# If you need to deploy to a containerized environment in the future,
+# you can restore this file from the git history.

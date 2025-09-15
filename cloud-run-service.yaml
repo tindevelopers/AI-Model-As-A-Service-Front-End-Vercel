@@ -1,0 +1,7 @@
+# This Cloud Run service configuration is no longer needed for Vercel deployment
+# 
+# The deployment has been migrated from Google Cloud Run to Vercel
+# Vercel handles service configuration automatically
+#
+# If you need to deploy to Google Cloud Run in the future,
+# you can restore this file from the git history.
