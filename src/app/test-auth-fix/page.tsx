@@ -5,7 +5,7 @@ import { useState } from 'react';
 export default function TestAuthFixPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<{ error?: string; message?: string; improvements?: string[]; details?: unknown } | null>(null);
 
   const testAuthFix = async () => {
     if (!email) return;
