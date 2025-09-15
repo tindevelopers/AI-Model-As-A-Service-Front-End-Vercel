@@ -32,7 +32,8 @@ export async function GET(request: NextRequest) {
     console.log('🔄 Exchange code result:', { 
       error: error?.message, 
       hasSession: !!data.session,
-      userId: data.session?.user?.id,
+      hasUser: !!data.user,
+      userId: data.session?.user?.id || data.user?.id,
       expiresAt: data.session?.expires_at,
       accessToken: data.session?.access_token ? 'present' : 'missing',
       refreshToken: data.session?.refresh_token ? 'present' : 'missing'
@@ -46,7 +47,7 @@ export async function GET(request: NextRequest) {
       valueLength: c.value?.length || 0
     })))
     
-    if (!error && data.session) {
+    if (!error && (data.session || data.user)) {
       const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
       const isLocalEnv = process.env.NODE_ENV === 'development'
       

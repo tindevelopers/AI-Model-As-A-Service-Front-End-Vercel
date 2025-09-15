@@ -128,12 +128,16 @@ class SessionDebugger {
     if (typeof document === 'undefined') return {};
     
     const cookies: Record<string, string> = {};
-    document.cookie.split(';').forEach(cookie => {
-      const [name, value] = cookie.trim().split('=');
-      if (name && value) {
-        cookies[name] = decodeURIComponent(value);
-      }
-    });
+    try {
+      document.cookie.split(';').forEach(cookie => {
+        const [name, value] = cookie.trim().split('=');
+        if (name && value) {
+          cookies[name] = decodeURIComponent(value);
+        }
+      });
+    } catch (error) {
+      console.warn('Failed to read cookies:', error);
+    }
     return cookies;
   }
 
