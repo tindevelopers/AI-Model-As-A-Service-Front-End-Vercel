@@ -131,11 +131,11 @@ export interface RequestHistory {
   cost: number
 }
 
-export interface UnifiedResponse {
+export interface UnifiedResponse<T = unknown> {
   success: boolean
-  data?: any
+  data?: T
   metadata: ResponseMetadata
-  alternatives?: AlternativeResponse[]
+  alternatives?: AlternativeResponse<T>[]
   error?: ErrorInfo
 }
 
@@ -150,10 +150,10 @@ export interface ResponseMetadata {
   timestamp: string
 }
 
-export interface AlternativeResponse {
+export interface AlternativeResponse<T = unknown> {
   service: string
   model: string
-  data: any
+  data: T
   confidence: number
   cost: number
 }
@@ -161,7 +161,7 @@ export interface AlternativeResponse {
 export interface ErrorInfo {
   code: string
   message: string
-  details?: any
+  details?: unknown
 }
 
 export interface Intent {
@@ -215,6 +215,10 @@ export class ServiceRegistry {
       qualityScore: service.capabilities.quality.overall,
       lastUpdated: new Date().toISOString()
     })
+  }
+
+  listServices(): ServiceDefinition[] {
+    return Array.from(this.services.values())
   }
 
   getService(id: string): ServiceDefinition | undefined {
@@ -279,7 +283,7 @@ export class IntelligentRouter {
       }
       
       // 3. Select best service
-      const selectedService = await this.selectService(compatibleServices, request, intent)
+      const selectedService = await this.selectService(compatibleServices, request)
       
       // 4. Load balance endpoint selection
       const endpoint = await this.loadBalancer.selectEndpoint(selectedService)
@@ -371,7 +375,7 @@ export class IntelligentRouter {
     })
   }
 
-  private async selectService(services: ServiceDefinition[], request: UnifiedRequest, intent: Intent): Promise<ServiceDefinition> {
+  private async selectService(services: ServiceDefinition[], request: UnifiedRequest): Promise<ServiceDefinition> {
     if (services.length === 1) return services[0]
     
     // Score services based on multiple criteria
@@ -436,7 +440,7 @@ export class IntelligentRouter {
     return Math.ceil(request.prompt.length / 4)
   }
 
-  private async executeRequest(endpoint: ServiceEndpoint, request: UnifiedRequest): Promise<any> {
+  private async executeRequest(endpoint: ServiceEndpoint, request: UnifiedRequest): Promise<unknown> {
     const response = await fetch(endpoint.url, {
       method: 'POST',
       headers: {
@@ -458,11 +462,11 @@ export class IntelligentRouter {
   }
 
   private formatResponse(
-    response: any, 
+    response: unknown, 
     service: ServiceDefinition, 
     responseTime: number, 
     request: UnifiedRequest
-  ): UnifiedResponse {
+  ): UnifiedResponse<unknown> {
     const estimatedTokens = this.estimateTokenUsage(request)
     const estimatedCost = estimatedTokens * service.cost.inputTokens + estimatedTokens * service.cost.outputTokens
     
@@ -482,7 +486,7 @@ export class IntelligentRouter {
     }
   }
 
-  private createErrorResponse(code: string, message: string): UnifiedResponse {
+  private createErrorResponse(code: string, message: string): UnifiedResponse<unknown> {
     return {
       success: false,
       error: { code, message },
@@ -524,6 +528,9 @@ export class LoadBalancer {
   }
 
   private isEndpointHealthy(serviceId: string, endpoint: ServiceEndpoint): boolean {
+    // Reference params to satisfy no-unused-vars while keeping signature
+    void serviceId
+    void endpoint
     // Simple health check - in production, implement proper health checking
     return true
   }
@@ -557,7 +564,7 @@ export class PerformanceMonitor {
   async trackRequest(
     serviceId: string, 
     request: UnifiedRequest, 
-    response: any, 
+    response: unknown, 
     responseTime: number
   ): Promise<void> {
     const currentMetrics = this.serviceRegistry.getMetrics(serviceId)

@@ -6,12 +6,10 @@ import { sharedServiceRegistry, ServiceDefinition } from '@/lib/ai-router'
 export async function GET() {
   try {
     // Note: For simplicity, not restricting to admin-only here. In production, check user role.
-    const services = (sharedServiceRegistry as any).services
-      ? Array.from((sharedServiceRegistry as any).services.values())
-      : []
+    const services: ServiceDefinition[] = sharedServiceRegistry.listServices()
 
     return NextResponse.json({ success: true, services })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ success: false, error: 'Failed to fetch services' }, { status: 500 })
   }
 }
@@ -24,7 +22,7 @@ export async function POST(request: NextRequest) {
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const body = await request.json()
-    const service: ServiceDefinition = body
+    const service: ServiceDefinition = body as ServiceDefinition
 
     if (!service?.id || !service?.name || !service?.type || !service?.endpoints?.length) {
       return NextResponse.json({ error: 'Invalid service payload' }, { status: 400 })
@@ -33,7 +31,7 @@ export async function POST(request: NextRequest) {
     sharedServiceRegistry.register(service)
 
     return NextResponse.json({ success: true })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ success: false, error: 'Failed to register service' }, { status: 500 })
   }
 }
