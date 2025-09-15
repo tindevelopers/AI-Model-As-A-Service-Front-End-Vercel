@@ -161,11 +161,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.log('❌ Session recovery failed - clearing invalid cookies')
             document.cookie = 'auth-session-established=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
             // Also clear the Supabase auth token cookie if it's invalid
-            const authTokenCookie = Object.keys(cookies).find(key => 
+            const invalidAuthTokenCookie = Object.keys(cookies).find(key => 
               key.includes('supabase') && key.includes('auth-token')
             );
-            if (authTokenCookie) {
-              document.cookie = `${authTokenCookie}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`
+            if (invalidAuthTokenCookie) {
+              document.cookie = `${invalidAuthTokenCookie}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`
             }
             return
             
