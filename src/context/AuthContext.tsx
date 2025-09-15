@@ -47,13 +47,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           hasSession: !!session, 
           hasAuthCookie: authSessionEstablished,
           hasSupabaseAuthToken,
-          allCookies: document.cookie,
-          recoveryAttempted
+          recoveryAttempted,
+          shouldAttemptRecovery: authSessionEstablished || hasSupabaseAuthToken
         })
         
         if (authSessionEstablished || hasSupabaseAuthToken) {
           setRecoveryAttempted(true) // Prevent multiple recovery attempts
           console.log('🔄 Auth session cookie found, attempting session recovery...')
+          console.log('🔄 Recovery attempt started at:', new Date().toISOString())
           
           // Try multiple recovery methods
           try {
@@ -171,7 +172,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           } catch (error) {
             console.error('❌ Session recovery error:', error)
           }
+        } else {
+          console.log('❌ Session recovery skipped - no auth cookies found')
         }
+      } else {
+        console.log('❌ Session recovery skipped - conditions not met:', {
+          hasSession: !!session,
+          recoveryAttempted
+        })
       }
       
       setSession(session)
