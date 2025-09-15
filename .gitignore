@@ -64,3 +64,17 @@ logs/
 
 # Supabase
 .supabase/.env.local
+
+# Environment files with sensitive data
+.env.projects
+.env.credentials
+.env.development
+.env.preview
+.env.production
+
+# Service account keys
+service-account*.json
+*-service-account.json
+
+# Deployment configurations with secrets
+vercel.*.json
