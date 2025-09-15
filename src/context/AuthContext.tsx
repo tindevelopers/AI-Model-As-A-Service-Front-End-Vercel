@@ -76,9 +76,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           });
         }
         
-        setSession(session)
-        setUser(session?.user ?? null)
-        setLoading(false)
+        // Only update state if this is a meaningful change
+        // Avoid rapid state changes that might cause session loss
+        setSession(prevSession => {
+          // Only update if the session actually changed
+          if (prevSession?.access_token !== session?.access_token) {
+            return session
+          }
+          return prevSession
+        })
+        
+        setUser(prevUser => {
+          // Only update if the user actually changed
+          if (prevUser?.id !== session?.user?.id) {
+            return session?.user ?? null
+          }
+          return prevUser
+        })
+        
+        // Only set loading to false on initial load or after sign in/out
+        if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+          setLoading(false)
+        }
       }
     )
 

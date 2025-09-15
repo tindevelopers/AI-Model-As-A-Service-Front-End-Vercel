@@ -79,17 +79,32 @@ export async function GET(request: NextRequest) {
           valueLength: c.value?.length || 0
         })))
         
-        // Set each cookie in the response
+        // Set each cookie in the response with more robust settings
         allCookies.forEach(cookie => {
           if (cookie.name.includes('supabase') || cookie.name.includes('auth')) {
             response.cookies.set(cookie.name, cookie.value, {
               httpOnly: true,
               secure: process.env.NODE_ENV === 'production',
               sameSite: 'lax',
-              path: '/'
+              path: '/',
+              // Add domain for production
+              ...(process.env.NODE_ENV === 'production' && {
+                domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN || undefined
+              }),
+              // Ensure cookies persist
+              maxAge: 60 * 60 * 24 * 7 // 7 days
             })
             console.log('🍪 Set cookie in response:', cookie.name)
           }
+        })
+        
+        // Also set a client-side session indicator
+        response.cookies.set('auth-session-established', 'true', {
+          httpOnly: false, // Allow client-side access
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          path: '/',
+          maxAge: 60 * 60 * 24 * 7 // 7 days
         })
       }
       

@@ -25,7 +25,12 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     flowType: 'pkce',
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true
+    detectSessionInUrl: true,
+    // Add more robust session persistence settings
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    storageKey: 'supabase.auth.token',
+    // Ensure cookies are properly handled
+    debug: process.env.NODE_ENV === 'development'
   }
 })
 
