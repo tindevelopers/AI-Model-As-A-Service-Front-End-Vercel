@@ -20,10 +20,10 @@ type CookieSetRemoveOptions = Partial<{
 export const createServerClient = async () => {
   const cookieStore = await cookies()
   const cookieAdapter = {
-    getAll() {
+    async getAll() {
       return cookieStore.getAll().map((c) => ({ name: c.name, value: c.value }))
     },
-    setAll(cookiesToSet: { name: string; value: string; options?: CookieSetRemoveOptions }[]) {
+    async setAll(cookiesToSet: { name: string; value: string; options?: CookieSetRemoveOptions }[]) {
       cookiesToSet.forEach(({ name, value, options }) => {
         try {
           cookieStore.set({ 
@@ -40,7 +40,7 @@ export const createServerClient = async () => {
         }
       })
     },
-    deleteAll(cookiesToDelete: { name: string; options?: CookieSetRemoveOptions }[]) {
+    async deleteAll(cookiesToDelete: { name: string; options?: CookieSetRemoveOptions }[]) {
       cookiesToDelete.forEach(({ name, options }) => {
         try {
           cookieStore.set({ 
