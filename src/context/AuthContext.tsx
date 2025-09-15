@@ -51,7 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           
           // Try multiple recovery methods
           try {
-            // Method 1: Try to refresh the session
+            // Method 1: Try to refresh the session (this should work with httpOnly cookies)
             const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession()
             console.log('🔄 Refresh session result:', { 
               hasSession: !!refreshedSession, 
@@ -80,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               return
             }
             
-            // Method 3: Try to manually extract session from cookies
+            // Method 3: Try to manually extract session from cookies (now that auth tokens are accessible)
             console.log('🔄 Attempting manual session extraction from cookies...')
             const cookies = document.cookie.split(';').reduce((acc, cookie) => {
               const [name, value] = cookie.trim().split('=');
@@ -134,7 +134,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               }
             }
             
-            console.log('❌ Session recovery failed - no valid session found')
+            // Method 4: Force a page reload as last resort
+            console.log('🔄 Forcing page reload to restore session...')
+            window.location.reload()
+            return
+            
           } catch (error) {
             console.error('❌ Session recovery error:', error)
           }

@@ -83,8 +83,10 @@ export async function GET(request: NextRequest) {
         // Set each cookie in the response with more robust settings
         allCookies.forEach(cookie => {
           if (cookie.name.includes('supabase') || cookie.name.includes('auth')) {
+            // Make auth token cookies accessible to client-side for session recovery
+            const isAuthToken = cookie.name.includes('auth-token')
             response.cookies.set(cookie.name, cookie.value, {
-              httpOnly: true,
+              httpOnly: !isAuthToken, // Allow client-side access to auth tokens
               secure: process.env.NODE_ENV === 'production',
               sameSite: 'lax',
               path: '/',
@@ -95,7 +97,7 @@ export async function GET(request: NextRequest) {
               // Ensure cookies persist
               maxAge: 60 * 60 * 24 * 7 // 7 days
             })
-            console.log('🍪 Set cookie in response:', cookie.name, 'length:', cookie.value?.length)
+            console.log('🍪 Set cookie in response:', cookie.name, 'length:', cookie.value?.length, 'httpOnly:', isAuthToken ? 'false' : 'true')
           }
         })
         
