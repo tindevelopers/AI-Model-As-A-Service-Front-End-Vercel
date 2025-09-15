@@ -77,6 +77,27 @@ jobs:
     
     - name: Install Vercel CLI
       run: npm install --global vercel@latest
+
+    - name: Validate Vercel secrets
+      env:
+        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        VERCEL_PROJECT_ID: ${{ env.VERCEL_PROJECT_ID }}
+        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      run: |
+        echo "Org: $VERCEL_ORG_ID | Project: $VERCEL_PROJECT_ID | Env: ${{ env.VERCEL_ENV }}"
+        if [ -z "$VERCEL_TOKEN" ]; then echo "❌ VERCEL_TOKEN missing" && exit 1; fi
+        if [ -z "$VERCEL_ORG_ID" ]; then echo "❌ VERCEL_ORG_ID missing" && exit 1; fi
+        if [ -z "$VERCEL_PROJECT_ID" ]; then echo "❌ VERCEL_PROJECT_ID missing for branch" && exit 1; fi
+
+    - name: Link Vercel project (non-interactive)
+      env:
+        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        VERCEL_PROJECT_ID: ${{ env.VERCEL_PROJECT_ID }}
+        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      run: |
+        # This uses env vars to write .vercel/project.json
+        vercel link --yes --token="$VERCEL_TOKEN"
+        echo "🔗 Vercel project linked"
     
     - name: Pull Vercel Environment Information
       env:
@@ -84,16 +105,9 @@ jobs:
         VERCEL_PROJECT_ID: ${{ env.VERCEL_PROJECT_ID }}
         VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       run: |
-        echo "🔧 Pulling Vercel environment for $VERCEL_ENV..."
-        echo "Org: $VERCEL_ORG_ID | Project: $VERCEL_PROJECT_ID"
-        if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
-          echo "❌ Missing Vercel configuration (token/org/project)" && exit 1
-        fi
-        vercel pull --yes \
-          --environment="$VERCEL_ENV" \
-          --org="$VERCEL_ORG_ID" \
-          --project="$VERCEL_PROJECT_ID" \
-          --token="$VERCEL_TOKEN"
+        echo "🔧 Pulling Vercel environment for ${{ env.VERCEL_ENV }}..."
+        vercel pull --yes --environment="${{ env.VERCEL_ENV }}" --token="$VERCEL_TOKEN" || {
+          echo "❌ vercel pull failed. Check VERCEL_TOKEN/ORG/PROJECT secrets and project access"; exit 1; }
     
     - name: Build Project Artifacts (no cache)
       env:
