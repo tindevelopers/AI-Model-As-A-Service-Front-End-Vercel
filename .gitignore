@@ -63,4 +63,4 @@ logs/
 *.backup
 
 # Supabase
-.supabase/
+.supabase/.env.local
