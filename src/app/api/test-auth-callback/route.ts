@@ -1,64 +1,57 @@
 import { createServerClient } from '@/lib/supabase-server'
 import { NextRequest, NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams, origin } = new URL(request.url)
-    const code = searchParams.get('code')
-    const next = searchParams.get('next') ?? '/'
-
-    console.log('Test auth callback received:', { 
-      code: code ? 'present' : 'missing', 
-      next, 
-      origin,
-      searchParams: Object.fromEntries(searchParams.entries())
-    })
-
-    if (!code) {
-      return NextResponse.json({ 
-        error: 'No code parameter found',
-        details: { next, origin, searchParams: Object.fromEntries(searchParams.entries()) }
-      }, { status: 400 })
-    }
-
     const supabase = await createServerClient()
-    const { error, data } = await supabase.auth.exchangeCodeForSession(code)
+    const cookieStore = await cookies()
     
-    console.log('Test exchange code result:', { 
-      error: error?.message, 
-      hasSession: !!data.session,
-      hasUser: !!data.user,
-      sessionId: data.session?.access_token?.substring(0, 20) + '...'
-    })
+    // Get current session
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
     
-    if (error) {
-      return NextResponse.json({ 
-        error: error.message,
-        details: {
-          code: code.substring(0, 20) + '...',
-          next,
-          origin
-        }
-      }, { status: 400 })
-    }
-
-    return NextResponse.json({ 
-      success: true,
-      message: 'Code exchanged successfully',
-      details: {
-        hasSession: !!data.session,
-        hasUser: !!data.user,
-        userId: data.user?.id,
-        email: data.user?.email,
-        next,
-        origin
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    
+    // Get all cookies
+    const allCookies = cookieStore.getAll()
+    
+    const debugInfo = {
+      timestamp: new Date().toISOString(),
+      session: {
+        exists: !!session,
+        userId: session?.user?.id,
+        expiresAt: session?.expires_at,
+        accessToken: session?.access_token ? 'present' : 'missing',
+        refreshToken: session?.refresh_token ? 'present' : 'missing',
+        error: sessionError?.message
+      },
+      user: {
+        exists: !!user,
+        id: user?.id,
+        email: user?.email,
+        error: userError?.message
+      },
+      cookies: allCookies.map(c => ({
+        name: c.name,
+        hasValue: !!c.value,
+        valueLength: c.value?.length || 0,
+        isSupabase: c.name.includes('supabase') || c.name.includes('auth')
+      })),
+      environment: {
+        nodeEnv: process.env.NODE_ENV,
+        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'set' : 'missing',
+        supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'set' : 'missing'
       }
-    })
-
+    }
+    
+    console.log('🔍 Auth Debug Info:', debugInfo)
+    
+    return NextResponse.json(debugInfo)
   } catch (error) {
-    console.error('Test auth callback error:', error)
+    console.error('❌ Auth debug error:', error)
     return NextResponse.json({ 
-      error: 'Internal server error',
+      error: 'Failed to get auth debug info',
       details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })
   }
