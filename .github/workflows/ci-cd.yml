@@ -83,11 +83,23 @@ jobs:
         VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
         VERCEL_PROJECT_ID: ${{ env.VERCEL_PROJECT_ID }}
         VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        VERCEL_TEAM_SLUG: ${{ secrets.VERCEL_TEAM_SLUG }}
       run: |
         echo "Org: $VERCEL_ORG_ID | Project: $VERCEL_PROJECT_ID | Env: ${{ env.VERCEL_ENV }}"
         if [ -z "$VERCEL_TOKEN" ]; then echo "❌ VERCEL_TOKEN missing" && exit 1; fi
         if [ -z "$VERCEL_ORG_ID" ]; then echo "❌ VERCEL_ORG_ID missing" && exit 1; fi
         if [ -z "$VERCEL_PROJECT_ID" ]; then echo "❌ VERCEL_PROJECT_ID missing for branch" && exit 1; fi
+        # Prefer team slug if provided; fall back to org id
+        SCOPE="$VERCEL_TEAM_SLUG"; if [ -z "$SCOPE" ]; then SCOPE="$VERCEL_ORG_ID"; fi
+        echo "VERCEL_SCOPE=$SCOPE" >> $GITHUB_ENV
+
+    - name: Verify Vercel authentication and scope
+      env:
+        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        VERCEL_SCOPE: ${{ env.VERCEL_SCOPE }}
+      run: |
+        echo "🔐 Checking Vercel auth for scope: $VERCEL_SCOPE"
+        vercel whoami --token="$VERCEL_TOKEN" --scope="$VERCEL_SCOPE" || { echo "❌ Vercel auth/scope failed"; exit 1; }
 
     - name: Create Vercel project config (.vercel/project.json)
       env:
@@ -105,34 +117,34 @@ jobs:
     
     - name: Pull Vercel Environment Information
       env:
-        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-        VERCEL_PROJECT_ID: ${{ env.VERCEL_PROJECT_ID }}
         VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        VERCEL_SCOPE: ${{ env.VERCEL_SCOPE }}
       run: |
-        echo "🔧 Pulling Vercel environment for ${{ env.VERCEL_ENV }}..."
-        vercel pull --yes --environment="${{ env.VERCEL_ENV }}" --token="$VERCEL_TOKEN" || {
-          echo "❌ vercel pull failed. Check VERCEL_TOKEN/ORG/PROJECT secrets and project access"; exit 1; }
+        echo "🔧 Pulling Vercel environment for ${{ env.VERCEL_ENV }} (scope: $VERCEL_SCOPE)..."
+        vercel pull --yes --environment="${{ env.VERCEL_ENV }}" --token="$VERCEL_TOKEN" --scope="$VERCEL_SCOPE" || {
+          echo "❌ vercel pull failed. Ensure token has access to project in this scope"; exit 1; }
     
     - name: Build Project Artifacts (no cache)
       env:
         NEXT_TELEMETRY_DISABLED: 1
         VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        VERCEL_SCOPE: ${{ env.VERCEL_SCOPE }}
       run: |
-        vercel build --token="$VERCEL_TOKEN" --force
+        vercel build --token="$VERCEL_TOKEN" --scope="$VERCEL_SCOPE" --force
     
     - name: Deploy Project Artifacts to Vercel
       env:
-        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-        VERCEL_PROJECT_ID: ${{ env.VERCEL_PROJECT_ID }}
         VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      run: vercel deploy --prebuilt --token="$VERCEL_TOKEN" --force
+        VERCEL_SCOPE: ${{ env.VERCEL_SCOPE }}
+      run: vercel deploy --prebuilt --token="$VERCEL_TOKEN" --scope="$VERCEL_SCOPE" --force
     
     - name: Get deployment URL
       id: deployment
       env:
         VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        VERCEL_SCOPE: ${{ env.VERCEL_SCOPE }}
       run: |
-        DEPLOYMENT_URL=$(vercel ls --token="$VERCEL_TOKEN" | grep "${{ github.sha }}" | head -1 | awk '{print $2}')
+        DEPLOYMENT_URL=$(vercel ls --token="$VERCEL_TOKEN" --scope="$VERCEL_SCOPE" | grep "${{ github.sha }}" | head -1 | awk '{print $2}')
         echo "url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
         echo "🚀 ${{ env.VERCEL_ENV }} environment deployed: $DEPLOYMENT_URL"
 
@@ -149,11 +161,12 @@ jobs:
       env:
         VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         VERCEL_ALIAS_DEV: ${{ secrets.VERCEL_ALIAS_DEV }}
+        VERCEL_SCOPE: ${{ env.VERCEL_SCOPE }}
       run: |
         ALIAS_DOMAIN="$VERCEL_ALIAS_DEV"
         if [ -z "$ALIAS_DOMAIN" ]; then
           echo "No VERCEL_ALIAS_DEV secret configured; skipping alias update"; exit 0; fi
-        vercel alias set "${{ steps.deployment.outputs.url }}" "$ALIAS_DOMAIN" --token="$VERCEL_TOKEN"
+        vercel alias set "${{ steps.deployment.outputs.url }}" "$ALIAS_DOMAIN" --token="$VERCEL_TOKEN" --scope="$VERCEL_SCOPE"
     
     - name: Comment deployment URL on PR
       if: github.event_name == 'pull_request'
