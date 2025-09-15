@@ -89,15 +89,19 @@ jobs:
         if [ -z "$VERCEL_ORG_ID" ]; then echo "❌ VERCEL_ORG_ID missing" && exit 1; fi
         if [ -z "$VERCEL_PROJECT_ID" ]; then echo "❌ VERCEL_PROJECT_ID missing for branch" && exit 1; fi
 
-    - name: Link Vercel project (non-interactive)
+    - name: Create Vercel project config (.vercel/project.json)
       env:
         VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
         VERCEL_PROJECT_ID: ${{ env.VERCEL_PROJECT_ID }}
-        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       run: |
-        # This uses env vars to write .vercel/project.json
-        vercel link --yes --token="$VERCEL_TOKEN"
-        echo "🔗 Vercel project linked"
+        mkdir -p .vercel
+        cat > .vercel/project.json <<EOF
+        {
+          "orgId": "${VERCEL_ORG_ID}",
+          "projectId": "${VERCEL_PROJECT_ID}"
+        }
+        EOF
+        echo "📄 Wrote .vercel/project.json"
     
     - name: Pull Vercel Environment Information
       env:
