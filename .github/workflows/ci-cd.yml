@@ -103,18 +103,6 @@ jobs:
           vercel whoami --token="$VERCEL_TOKEN" || echo "⚠️ whoami failed; continuing"
         fi
 
-    - name: List projects in scope (diagnostic)
-      env:
-        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        VERCEL_SCOPE: ${{ env.VERCEL_SCOPE }}
-      run: |
-        echo "📋 Listing projects (scope: ${VERCEL_SCOPE:-<none>})"
-        if [ -n "$VERCEL_SCOPE" ]; then
-          vercel projects ls --token="$VERCEL_TOKEN" --scope="$VERCEL_SCOPE" || echo "⚠️ could not list projects"
-        else
-          vercel projects ls --token="$VERCEL_TOKEN" || echo "⚠️ could not list projects"
-        fi
-
     - name: Create Vercel project config (.vercel/project.json)
       env:
         VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -129,25 +117,18 @@ jobs:
         EOF
         echo "📄 Wrote .vercel/project.json"
     
-    - name: Pull Vercel Environment Information
-      env:
-        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        VERCEL_SCOPE: ${{ env.VERCEL_SCOPE }}
-        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-        VERCEL_PROJECT_ID: ${{ env.VERCEL_PROJECT_ID }}
-      run: |
-        echo "🔧 Pulling Vercel env for ${{ env.VERCEL_ENV }} (scope: ${VERCEL_SCOPE:-<none>})..."
-        EXTRA_SCOPE_ARGS=""; if [ -n "$VERCEL_SCOPE" ]; then EXTRA_SCOPE_ARGS="--scope=\"$VERCEL_SCOPE\""; fi
-        vercel pull --yes --environment="${{ env.VERCEL_ENV }}" --token="$VERCEL_TOKEN" \
-          --org="$VERCEL_ORG_ID" --project="$VERCEL_PROJECT_ID" $EXTRA_SCOPE_ARGS || { echo "❌ vercel pull failed"; exit 1; }
-    
-    - name: Build Project Artifacts (no cache)
+    - name: Build Project Artifacts with Vercel CLI
       env:
         NEXT_TELEMETRY_DISABLED: 1
         VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         VERCEL_SCOPE: ${{ env.VERCEL_SCOPE }}
         VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
         VERCEL_PROJECT_ID: ${{ env.VERCEL_PROJECT_ID }}
+        # Pass environment variables directly from GitHub Secrets
+        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
       run: |
         EXTRA_SCOPE_ARGS=""; if [ -n "$VERCEL_SCOPE" ]; then EXTRA_SCOPE_ARGS="--scope=\"$VERCEL_SCOPE\""; fi
         vercel build --token="$VERCEL_TOKEN" --org="$VERCEL_ORG_ID" --project="$VERCEL_PROJECT_ID" $EXTRA_SCOPE_ARGS --force
