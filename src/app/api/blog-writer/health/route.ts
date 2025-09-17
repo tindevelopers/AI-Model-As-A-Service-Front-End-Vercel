@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { blogWriterApi } from '@/lib/services/blog-writer-api'
 import { errorLogger } from '@/utils/errorLogger'
 import { AuthMiddleware, createAuthErrorResponse } from '@/lib/auth-middleware'
