@@ -88,8 +88,6 @@ export async function GET(request: NextRequest) {
       return createAuthErrorResponse(authResult.error!, authResult.statusCode!)
     }
 
-    const user = authResult.user!
-
     // Get available options
     const options = await blogWriterApi.getAvailableOptions()
 

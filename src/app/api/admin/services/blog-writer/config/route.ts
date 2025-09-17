@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { blogWriterApi } from '@/lib/services/blog-writer-api'
 import { errorLogger } from '@/utils/errorLogger'
 
-export async function GET(_request: NextRequest) {
+export async function GET() {
   try {
     // Authenticate user (admin only)
     const supabase = await createServerClient()

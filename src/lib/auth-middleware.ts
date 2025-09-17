@@ -23,7 +23,7 @@ export class AuthMiddleware {
   /**
    * Authenticate user via Supabase session
    */
-  static async authenticateUser(request: NextRequest): Promise<AuthResult> {
+  static async authenticateUser(_request: NextRequest): Promise<AuthResult> {
     try {
       const supabase = await createServerClient()
       const { data: { user }, error: authError } = await supabase.auth.getUser()

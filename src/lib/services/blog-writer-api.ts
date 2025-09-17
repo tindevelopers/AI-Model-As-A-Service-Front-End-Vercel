@@ -227,7 +227,8 @@ export class BlogWriterApiClient {
    * Get current configuration (without sensitive data)
    */
   getConfig(): Omit<BlogWriterConfig, 'apiKey'> {
-    const { apiKey: _apiKey, ...safeConfig } = this.config
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { apiKey, ...safeConfig } = this.config
     return safeConfig
   }
 }
