@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { Card, CardDescription, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button/Button'
-import { Badge } from '@/components/ui/badge/Badge'
+import Button from '@/components/ui/button/Button'
+import Badge from '@/components/ui/badge/Badge'
 import { CheckCircle, XCircle, RefreshCw, Settings, Activity } from 'lucide-react'
 
 interface BlogWriterHealthStatus {
