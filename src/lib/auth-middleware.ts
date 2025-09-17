@@ -236,7 +236,7 @@ export class AuthMiddleware {
     }
 
     // Fall back to user session authentication
-    return await this.authenticateUser(request)
+    return await this.authenticateUser()
   }
 
   /**
