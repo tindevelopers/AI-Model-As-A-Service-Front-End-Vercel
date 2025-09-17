@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react'
 import { Card, CardDescription, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Alert } from '@/components/ui/alert'
-import { Loader2, CheckCircle, XCircle, RefreshCw, Settings, Activity } from 'lucide-react'
+import { CheckCircle, XCircle, RefreshCw, Settings, Activity } from 'lucide-react'
 import { errorLogger } from '@/utils/errorLogger'
 
 interface BlogWriterHealthStatus {
@@ -30,28 +29,13 @@ interface BlogWriterConfig {
 
 export default function BlogWriterServiceManager() {
   const [healthStatus, setHealthStatus] = useState<BlogWriterHealthStatus | null>(null)
-  const [options, setOptions] = useState<BlogWriterOptions | null>(null)
   const [config, setConfig] = useState<BlogWriterConfig | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [testRequest, setTestRequest] = useState({
-    topic: '',
-    tone: 'professional',
-    length: 'medium',
-    target_audience: '',
-    include_outline: true
-  })
-  const [testResult, setTestResult] = useState<{
-    title: string
-    content: string
-    word_count: number
-    outline?: string[]
-  } | null>(null)
 
   // Load initial data
   useEffect(() => {
     loadHealthStatus()
-    loadOptions()
     loadConfig()
   }, [])
 
@@ -74,18 +58,6 @@ export default function BlogWriterServiceManager() {
     }
   }
 
-  const loadOptions = async () => {
-    try {
-      const response = await fetch('/api/blog-writer/generate')
-      const data = await response.json()
-      
-      if (data.success) {
-        setOptions(data.data)
-      }
-    } catch (err) {
-      console.error('Failed to load options:', err)
-    }
-  }
 
   const loadConfig = async () => {
     try {
@@ -100,45 +72,6 @@ export default function BlogWriterServiceManager() {
     }
   }
 
-  const testBlogGeneration = async () => {
-    if (!testRequest.topic.trim()) {
-      setError('Please enter a topic for testing')
-      return
-    }
-
-    try {
-      setLoading(true)
-      setError(null)
-      
-      const response = await fetch('/api/blog-writer/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(testRequest)
-      })
-      
-      const data = await response.json()
-      
-      if (data.success) {
-        setTestResult(data.data)
-        errorLogger.logSuccess('Blog generation test successful', {
-          component: 'blog-writer-service-manager',
-          action: 'testGeneration',
-          additionalData: {
-            topic: testRequest.topic,
-            wordCount: data.data.word_count
-          }
-        })
-      } else {
-        setError(data.error || 'Test generation failed')
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Test generation failed')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -260,39 +193,6 @@ export default function BlogWriterServiceManager() {
             </div>
           )}
 
-          {testResult && (
-            <div className="p-4 border border-green-200 bg-green-50 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                <span className="text-sm font-medium text-green-700">
-                  Blog post generated successfully! Word count: {testResult.word_count}
-                </span>
-              </div>
-              
-              <div className="space-y-2">
-                <h4 className="font-medium text-sm">Generated Title</h4>
-                <p className="text-sm">{testResult.title}</p>
-              </div>
-              
-              <div className="space-y-2">
-                <h4 className="font-medium text-sm">Content Preview</h4>
-                <div className="p-2 bg-white border rounded text-sm max-h-32 overflow-y-auto">
-                  {testResult.content.substring(0, 500)}...
-                </div>
-              </div>
-
-              {testResult.outline && (
-                <div className="space-y-2">
-                  <h4 className="font-medium text-sm">Outline</h4>
-                  <ul className="list-disc list-inside space-y-1 text-sm">
-                    {testResult.outline.map((item: string, index: number) => (
-                      <li key={index}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </Card>
     </div>
