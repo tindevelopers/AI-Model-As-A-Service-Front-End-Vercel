@@ -1,17 +1,24 @@
-import { createServerClient } from '@/lib/supabase-server'
 import { NextRequest, NextResponse } from 'next/server'
 import { blogWriterApi, BlogWriterRequest } from '@/lib/services/blog-writer-api'
 import { errorLogger } from '@/utils/errorLogger'
+import { AuthMiddleware, createAuthErrorResponse, createAuthSuccessResponse } from '@/lib/auth-middleware'
+import { applyRateLimit, rateLimiters } from '@/lib/rate-limiter'
 
 export async function POST(request: NextRequest) {
   try {
-    // Authenticate user
-    const supabase = await createServerClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    // Apply rate limiting
+    const rateLimitResult = await applyRateLimit(request, rateLimiters.blogGeneration)
+    if (!rateLimitResult.allowed) {
+      return rateLimitResult.response!
     }
+
+    // Authenticate user (flexible: API key or user session)
+    const authResult = await AuthMiddleware.authenticateFlexible(request)
+    if (!authResult.success) {
+      return createAuthErrorResponse(authResult.error!, authResult.statusCode!)
+    }
+
+    const user = authResult.user!
 
     // Parse request body
     const body = await request.json()
@@ -49,10 +56,7 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    return NextResponse.json({
-      success: true,
-      data: response
-    })
+    return createAuthSuccessResponse(response, user)
 
   } catch (error) {
     errorLogger.logError('Blog generation failed', {
@@ -72,13 +76,19 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    // Authenticate user
-    const supabase = await createServerClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    // Apply rate limiting
+    const rateLimitResult = await applyRateLimit(request, rateLimiters.api)
+    if (!rateLimitResult.allowed) {
+      return rateLimitResult.response!
     }
+
+    // Authenticate user (flexible: API key or user session)
+    const authResult = await AuthMiddleware.authenticateFlexible(request)
+    if (!authResult.success) {
+      return createAuthErrorResponse(authResult.error!, authResult.statusCode!)
+    }
+
+    const user = authResult.user!
 
     // Get available options
     const options = await blogWriterApi.getAvailableOptions()

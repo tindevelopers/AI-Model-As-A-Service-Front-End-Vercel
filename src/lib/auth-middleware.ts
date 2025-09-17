@@ -80,9 +80,9 @@ export class AuthMiddleware {
   /**
    * Authenticate user via API key
    */
-  static async authenticateApiKey(request: NextRequest): Promise<AuthResult> {
+  static async authenticateApiKey(_request: NextRequest): Promise<AuthResult> {
     try {
-      const authHeader = request.headers.get('authorization')
+      const authHeader = _request.headers.get('authorization')
       
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return {
@@ -113,8 +113,8 @@ export class AuthMiddleware {
           action: 'authenticateApiKey',
           additionalData: {
             keyPrefix: apiKey.substring(0, 8) + '...',
-            userAgent: request.headers.get('user-agent'),
-            ip: request.headers.get('x-forwarded-for') || 'unknown'
+            userAgent: _request.headers.get('user-agent'),
+            ip: _request.headers.get('x-forwarded-for') || 'unknown'
           }
         })
 
@@ -255,7 +255,7 @@ export class AuthMiddleware {
     // In production, this should check against your database
     try {
       // Mock validation - replace with actual database query
-      const supabase = await createServerClient()
+      // const supabase = await createServerClient()
       
       // TODO: Replace with actual API key validation query
       // const { data, error } = await supabase
@@ -331,7 +331,7 @@ export function createAuthErrorResponse(error: string, statusCode: number = 401)
 /**
  * Helper function to create success response with user context
  */
-export function createAuthSuccessResponse(data: any, user: AuthenticatedUser): NextResponse {
+export function createAuthSuccessResponse(data: unknown, user: AuthenticatedUser): NextResponse {
   return NextResponse.json({
     success: true,
     data,

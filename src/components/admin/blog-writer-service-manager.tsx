@@ -45,7 +45,12 @@ export default function BlogWriterServiceManager() {
     target_audience: '',
     include_outline: true
   })
-  const [testResult, setTestResult] = useState<any>(null)
+  const [testResult, setTestResult] = useState<{
+    title: string
+    content: string
+    word_count: number
+    outline?: string[]
+  } | null>(null)
 
   // Load initial data
   useEffect(() => {

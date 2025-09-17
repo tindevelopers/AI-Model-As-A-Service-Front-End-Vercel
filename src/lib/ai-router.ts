@@ -1,5 +1,4 @@
 import { errorLogger } from '@/utils/errorLogger'
-import { blogWriterApi, BlogWriterRequest, BlogWriterResponse } from './services/blog-writer-api'
 
 // Core interfaces for the AI Router system
 export interface ServiceDefinition {

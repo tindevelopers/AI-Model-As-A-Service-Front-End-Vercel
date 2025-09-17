@@ -162,7 +162,7 @@ export class BlogWriterApiClient {
   private async makeRequest(
     endpoint: string, 
     options: RequestInit = {}
-  ): Promise<any> {
+  ): Promise<unknown> {
     const url = `${this.config.baseUrl}${endpoint}`
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -227,7 +227,7 @@ export class BlogWriterApiClient {
    * Get current configuration (without sensitive data)
    */
   getConfig(): Omit<BlogWriterConfig, 'apiKey'> {
-    const { apiKey, ...safeConfig } = this.config
+    const { apiKey: _apiKey, ...safeConfig } = this.config
     return safeConfig
   }
 }
