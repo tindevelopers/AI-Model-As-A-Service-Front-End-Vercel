@@ -1,4 +1,5 @@
 import { errorLogger } from '@/utils/errorLogger'
+import { blogWriterApi, BlogWriterRequest, BlogWriterResponse } from './services/blog-writer-api'
 
 // Core interfaces for the AI Router system
 export interface ServiceDefinition {
@@ -589,6 +590,61 @@ export class PerformanceMonitor {
     return Math.ceil(request.prompt.length / 4)
   }
 }
+
+// Blog Writer Service Definition
+const blogWriterService: ServiceDefinition = {
+  id: 'blog-writer-api',
+  name: 'AI Blog Writer API',
+  type: 'blog-writing',
+  capabilities: {
+    supportedFormats: ['text', 'markdown', 'html'],
+    maxTokens: 4000,
+    supportedLanguages: ['en', 'es', 'fr', 'de', 'it', 'pt', 'ru', 'zh', 'ja', 'ko'],
+    specialFeatures: ['seo-optimization', 'outline-generation', 'keyword-integration', 'tone-adaptation'],
+    quality: {
+      relevance: 0.9,
+      coherence: 0.85,
+      creativity: 0.8,
+      accuracy: 0.9,
+      overall: 0.86
+    }
+  },
+  endpoints: [{
+    url: process.env.NEXT_PUBLIC_BLOG_WRITER_API_URL || 'https://api-ai-blog-writer-613248238610.us-central1.run.app',
+    authentication: {
+      type: 'api-key',
+      key: process.env.BLOG_WRITER_API_KEY
+    },
+    rateLimits: {
+      requestsPerMinute: 60,
+      tokensPerMinute: 100000
+    },
+    healthCheck: {
+      endpoint: '/health',
+      interval: 30000
+    }
+  }],
+  cost: {
+    inputTokens: 0.001,
+    outputTokens: 0.002,
+    baseCost: 0.01,
+    currency: 'USD'
+  },
+  limits: {
+    maxTokens: 4000,
+    maxRequestsPerMinute: 60,
+    supportedLanguages: ['en', 'es', 'fr', 'de', 'it', 'pt', 'ru', 'zh', 'ja', 'ko']
+  },
+  metadata: {
+    provider: 'AI Blog Writer Service',
+    version: '1.0.0',
+    description: 'Specialized AI service for generating high-quality blog posts with SEO optimization',
+    specialFeatures: ['seo-optimization', 'outline-generation', 'keyword-integration', 'tone-adaptation']
+  }
+}
+
+// Register the blog writer service
+sharedServiceRegistry.register(blogWriterService)
 
 // Export singleton instance using shared registry
 export const aiRouter = new IntelligentRouter(sharedServiceRegistry)
