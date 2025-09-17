@@ -160,7 +160,7 @@ export class AuthMiddleware {
   /**
    * Check if user has admin role
    */
-  static async requireAdmin(request: NextRequest): Promise<AuthResult> {
+  static async requireAdmin(_request: NextRequest): Promise<AuthResult> {
     const authResult = await this.authenticateUser()
     
     if (!authResult.success) {
