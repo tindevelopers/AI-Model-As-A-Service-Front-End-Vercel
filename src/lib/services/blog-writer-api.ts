@@ -36,6 +36,13 @@ export interface BlogWriterResponse {
   }
 }
 
+export interface BlogWriterOptions {
+  tones: string[]
+  lengths: string[]
+  languages: string[]
+  styles: string[]
+}
+
 export interface BlogWriterError {
   error: string
   message: string
