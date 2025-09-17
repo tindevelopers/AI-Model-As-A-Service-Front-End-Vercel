@@ -5,20 +5,12 @@ import { Card, CardDescription, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { CheckCircle, XCircle, RefreshCw, Settings, Activity } from 'lucide-react'
-import { errorLogger } from '@/utils/errorLogger'
 
 interface BlogWriterHealthStatus {
   service: string
   status: 'healthy' | 'unhealthy'
   timestamp: string
   error?: string
-}
-
-interface BlogWriterOptions {
-  tones: string[]
-  lengths: string[]
-  languages: string[]
-  styles: string[]
 }
 
 interface BlogWriterConfig {
