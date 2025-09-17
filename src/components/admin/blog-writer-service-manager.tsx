@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Card, CardDescription, CardTitle } from '@/components/ui/card'
 import Button from '@/components/ui/button/Button'
 import Badge from '@/components/ui/badge/Badge'
-import { CheckCircle, XCircle, RefreshCw, Settings, Activity } from 'lucide-react'
+// Using simple text/icons instead of lucide-react
 
 interface BlogWriterHealthStatus {
   service: string
@@ -68,11 +68,11 @@ export default function BlogWriterServiceManager() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'healthy':
-        return <CheckCircle className="h-5 w-5 text-green-500" />
+        return <span className="text-green-500">✓</span>
       case 'unhealthy':
-        return <XCircle className="h-5 w-5 text-red-500" />
+        return <span className="text-red-500">✗</span>
       default:
-        return <Activity className="h-5 w-5 text-yellow-500" />
+        return <span className="text-yellow-500">⚠</span>
     }
   }
 
@@ -95,7 +95,7 @@ export default function BlogWriterServiceManager() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5" />
+                <span>⚙️</span>
                 Blog Writer Service
               </CardTitle>
               <CardDescription>
@@ -108,7 +108,7 @@ export default function BlogWriterServiceManager() {
               onClick={loadHealthStatus}
               disabled={loading}
             >
-              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              <span className="mr-2">{loading ? '⟳' : '↻'}</span>
               Refresh
             </Button>
           </div>
@@ -179,7 +179,7 @@ export default function BlogWriterServiceManager() {
           {error && (
             <div className="p-4 border border-red-200 bg-red-50 rounded-lg">
               <div className="flex items-center gap-2">
-                <XCircle className="h-4 w-4 text-red-500" />
+                <span className="text-red-500">✗</span>
                 <span className="text-sm text-red-700">{error}</span>
               </div>
             </div>
