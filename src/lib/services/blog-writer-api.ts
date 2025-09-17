@@ -73,6 +73,7 @@ export class BlogWriterApiClient {
       
       // Add processing time to response metadata
       if (response && typeof response === 'object' && 'metadata' in response) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (response as any).metadata.processing_time = processingTime
       }
 
