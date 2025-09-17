@@ -4,11 +4,7 @@ import { useState, useEffect } from 'react'
 import { Card, CardDescription, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Alert } from '@/components/ui/alert'
 import { Loader2, CheckCircle, XCircle, RefreshCw, Settings, Activity } from 'lucide-react'
 import { errorLogger } from '@/utils/errorLogger'
 
@@ -236,114 +232,61 @@ export default function BlogWriterServiceManager() {
           </CardDescription>
         </div>
         <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="topic">Topic *</Label>
-              <Input
-                id="topic"
-                placeholder="Enter blog topic..."
-                value={testRequest.topic}
-                onChange={(e) => setTestRequest({ ...testRequest, topic: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="tone">Tone</Label>
-              <Select
-                value={testRequest.tone}
-                onValueChange={(value) => setTestRequest({ ...testRequest, tone: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {options?.tones.map((tone) => (
-                    <SelectItem key={tone} value={tone}>
-                      {tone.charAt(0).toUpperCase() + tone.slice(1)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="length">Length</Label>
-              <Select
-                value={testRequest.length}
-                onValueChange={(value) => setTestRequest({ ...testRequest, length: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {options?.lengths.map((length) => (
-                    <SelectItem key={length} value={length}>
-                      {length.charAt(0).toUpperCase() + length.slice(1)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="audience">Target Audience</Label>
-              <Input
-                id="audience"
-                placeholder="e.g., developers, marketers..."
-                value={testRequest.target_audience}
-                onChange={(e) => setTestRequest({ ...testRequest, target_audience: e.target.value })}
-              />
-            </div>
+          <div className="p-4 border rounded-lg">
+            <h3 className="font-medium mb-2">Service Status</h3>
+            <p className="text-sm text-gray-600">
+              The Blog Writer API service is integrated and ready to use.
+            </p>
+            <p className="text-sm text-gray-600 mt-2">
+              Use the API endpoints to generate blog posts with proper authentication.
+            </p>
           </div>
 
-          <Button
-            onClick={testBlogGeneration}
-            disabled={loading || !testRequest.topic.trim()}
-            className="w-full"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              'Test Blog Generation'
-            )}
-          </Button>
+          <div className="p-4 border rounded-lg">
+            <h3 className="font-medium mb-2">Available Endpoints</h3>
+            <ul className="text-sm space-y-1">
+              <li>• <code>POST /api/blog-writer/generate</code> - Generate blog posts</li>
+              <li>• <code>GET /api/blog-writer/health</code> - Check service health</li>
+              <li>• <code>GET /api/blog-writer/generate</code> - Get available options</li>
+            </ul>
+          </div>
 
           {error && (
-            <Alert variant="destructive">
-              <XCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
+            <div className="p-4 border border-red-200 bg-red-50 rounded-lg">
+              <div className="flex items-center gap-2">
+                <XCircle className="h-4 w-4 text-red-500" />
+                <span className="text-sm text-red-700">{error}</span>
+              </div>
+            </div>
           )}
 
           {testResult && (
-            <div className="space-y-4">
-              <Alert>
-                <CheckCircle className="h-4 w-4" />
-                <AlertDescription>
+            <div className="p-4 border border-green-200 bg-green-50 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span className="text-sm font-medium text-green-700">
                   Blog post generated successfully! Word count: {testResult.word_count}
-                </AlertDescription>
-              </Alert>
-              
-              <div className="space-y-2">
-                <Label>Generated Title</Label>
-                <p className="font-medium">{testResult.title}</p>
+                </span>
               </div>
               
               <div className="space-y-2">
-                <Label>Content Preview</Label>
-                <Textarea
-                  value={testResult.content.substring(0, 500) + '...'}
-                  readOnly
-                  className="min-h-[100px]"
-                />
+                <h4 className="font-medium text-sm">Generated Title</h4>
+                <p className="text-sm">{testResult.title}</p>
+              </div>
+              
+              <div className="space-y-2">
+                <h4 className="font-medium text-sm">Content Preview</h4>
+                <div className="p-2 bg-white border rounded text-sm max-h-32 overflow-y-auto">
+                  {testResult.content.substring(0, 500)}...
+                </div>
               </div>
 
               {testResult.outline && (
                 <div className="space-y-2">
-                  <Label>Outline</Label>
-                  <ul className="list-disc list-inside space-y-1">
+                  <h4 className="font-medium text-sm">Outline</h4>
+                  <ul className="list-disc list-inside space-y-1 text-sm">
                     {testResult.outline.map((item: string, index: number) => (
-                      <li key={index} className="text-sm">{item}</li>
+                      <li key={index}>{item}</li>
                     ))}
                   </ul>
                 </div>
