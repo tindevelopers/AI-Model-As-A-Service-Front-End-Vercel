@@ -122,7 +122,7 @@ export class BlogWriterApiClient {
         method: 'GET'
       })
 
-      return response
+      return response as BlogWriterOptions
     } catch (error) {
       errorLogger.logError('Failed to get available options', {
         component: 'blog-writer-api',
