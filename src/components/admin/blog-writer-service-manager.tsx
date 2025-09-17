@@ -79,11 +79,11 @@ export default function BlogWriterServiceManager() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'healthy':
-        return <Badge variant="default" className="bg-green-500">Healthy</Badge>
+        return <Badge variant="solid" color="success">Healthy</Badge>
       case 'unhealthy':
-        return <Badge variant="destructive">Unhealthy</Badge>
+        return <Badge variant="solid" color="error">Unhealthy</Badge>
       default:
-        return <Badge variant="secondary">Unknown</Badge>
+        return <Badge variant="light" color="warning">Unknown</Badge>
     }
   }
 
