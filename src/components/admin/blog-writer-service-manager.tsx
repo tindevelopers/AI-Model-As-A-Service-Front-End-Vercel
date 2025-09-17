@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardDescription, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -170,7 +170,7 @@ export default function BlogWriterServiceManager() {
     <div className="space-y-6">
       {/* Service Status */}
       <Card>
-        <CardHeader>
+        <div className="mb-4">
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
@@ -191,8 +191,8 @@ export default function BlogWriterServiceManager() {
               Refresh
             </Button>
           </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
+        </div>
+        <div className="space-y-4">
           {healthStatus && (
             <div className="flex items-center justify-between p-4 border rounded-lg">
               <div className="flex items-center gap-3">
@@ -224,18 +224,18 @@ export default function BlogWriterServiceManager() {
               </div>
             </div>
           )}
-        </CardContent>
+        </div>
       </Card>
 
       {/* Test Generation */}
       <Card>
-        <CardHeader>
+        <div className="mb-4">
           <CardTitle>Test Blog Generation</CardTitle>
           <CardDescription>
             Test the blog writer service with sample data
           </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+        </div>
+        <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="topic">Topic *</Label>
@@ -350,7 +350,7 @@ export default function BlogWriterServiceManager() {
               )}
             </div>
           )}
-        </CardContent>
+        </div>
       </Card>
     </div>
   )
