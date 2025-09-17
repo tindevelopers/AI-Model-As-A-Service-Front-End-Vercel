@@ -160,6 +160,7 @@ export class AuthMiddleware {
   /**
    * Check if user has admin role
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   static async requireAdmin(_request: NextRequest): Promise<AuthResult> {
     const authResult = await this.authenticateUser()
     
