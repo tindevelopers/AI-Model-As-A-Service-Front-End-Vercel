@@ -23,7 +23,7 @@ export class AuthMiddleware {
   /**
    * Authenticate user via Supabase session
    */
-  static async authenticateUser(_request: NextRequest): Promise<AuthResult> {
+  static async authenticateUser(): Promise<AuthResult> {
     try {
       const supabase = await createServerClient()
       const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -161,7 +161,7 @@ export class AuthMiddleware {
    * Check if user has admin role
    */
   static async requireAdmin(request: NextRequest): Promise<AuthResult> {
-    const authResult = await this.authenticateUser(request)
+    const authResult = await this.authenticateUser()
     
     if (!authResult.success) {
       return authResult
@@ -194,7 +194,7 @@ export class AuthMiddleware {
    * Check if user has specific permission
    */
   static async requirePermission(request: NextRequest, permission: string): Promise<AuthResult> {
-    const authResult = await this.authenticateUser(request)
+    const authResult = await this.authenticateUser()
     
     if (!authResult.success) {
       return authResult
