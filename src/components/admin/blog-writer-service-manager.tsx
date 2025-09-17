@@ -94,10 +94,10 @@ export default function BlogWriterServiceManager() {
         <div className="mb-4">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 <span>⚙️</span>
-                Blog Writer Service
-              </CardTitle>
+                <CardTitle>Blog Writer Service</CardTitle>
+              </div>
               <CardDescription>
                 Manage and monitor the AI Blog Writer API service
               </CardDescription>
