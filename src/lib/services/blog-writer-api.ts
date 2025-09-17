@@ -82,9 +82,11 @@ export class BlogWriterApiClient {
         action: 'generateBlogPost',
         additionalData: {
           topic: request.topic,
-          wordCount: response.word_count,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          wordCount: (response as any).word_count,
           processingTime,
-          hasOutline: !!response.outline
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          hasOutline: !!(response as any).outline
         }
       })
 
