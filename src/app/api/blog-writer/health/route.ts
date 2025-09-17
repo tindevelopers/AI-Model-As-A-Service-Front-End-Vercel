@@ -25,7 +25,6 @@ export async function GET(request: NextRequest) {
       success: true,
       data: {
         service: 'blog-writer-api',
-        timestamp: new Date().toISOString(),
         ...healthStatus
       }
     })
