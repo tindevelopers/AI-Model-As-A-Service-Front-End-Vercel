@@ -152,7 +152,7 @@ export class BlogWriterApiClient {
         method: 'GET'
       })
 
-      return response
+      return response as { status: string; timestamp: string }
     } catch (error) {
       errorLogger.logError('Blog writer API health check failed', {
         component: 'blog-writer-api',
