@@ -72,8 +72,8 @@ export class BlogWriterApiClient {
       const processingTime = Date.now() - startTime
       
       // Add processing time to response metadata
-      if (response.metadata) {
-        response.metadata.processing_time = processingTime
+      if (response && typeof response === 'object' && 'metadata' in response) {
+        (response as any).metadata.processing_time = processingTime
       }
 
       errorLogger.logSuccess('Blog post generated successfully', {
