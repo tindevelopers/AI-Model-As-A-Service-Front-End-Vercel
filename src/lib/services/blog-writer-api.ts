@@ -90,7 +90,7 @@ export class BlogWriterApiClient {
         }
       })
 
-      return response
+      return response as BlogWriterResponse
     } catch (error) {
       const processingTime = Date.now() - startTime
       
