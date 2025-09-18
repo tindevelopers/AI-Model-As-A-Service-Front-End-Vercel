@@ -1,0 +1,12 @@
+Deployment trigger: Sat Sep 13 13:20:13 CEST 2025
+Triggered deploy at 2025-09-14T12:28:42Z
+Triggered deploy at 2025-09-14T12:51:01Z via SSH
+Trigger build fix at 2025-09-14T12:59:38Z
+Test deployment trigger at 2025-01-14T15:30:00Z - README update with deployment status
+Redeploy trigger at 2025-09-15T08:30:12Z - Service role key configuration and dependency updates
+Critical auth session fixes at 2025-09-15T08:47:37Z
+Auth route redirect fixes at 2025-09-15T08:54:48Z
+Magic link debugging deployment at "2025-09-15T09:24:17Z"
+Test API endpoints for magic link debugging at "2025-09-15T09:38:25Z"
+Auth session persistence fixes at 2025-09-15T11:30:00Z
+Feature branch merge deployment trigger at 2025-09-17T12:38:53Z - Merged blog-writer-api-integration into develop
