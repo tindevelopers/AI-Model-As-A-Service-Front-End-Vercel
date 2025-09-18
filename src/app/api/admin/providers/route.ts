@@ -1,22 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase-server'
 import { apiManager } from '@/lib/api-management/api-manager'
 import { AuthMiddleware, createAuthErrorResponse } from '@/lib/auth-middleware'
 import { applyRateLimit, rateLimiters } from '@/lib/rate-limiter'
 import { errorLogger } from '@/utils/errorLogger'
-import { CreateApiProviderRequest, UpdateApiProviderRequest } from '@/lib/api-management/types'
+import { CreateApiProviderRequest } from '@/lib/api-management/types'
 
 // GET: List all API providers
 export async function GET(request: NextRequest) {
   try {
     // Apply rate limiting
-    const rateLimitResult = await applyRateLimit(request, rateLimiters.adminOperations)
+    const rateLimitResult = await applyRateLimit(request, rateLimiters.admin)
     if (!rateLimitResult.allowed) {
       return rateLimitResult.response!
     }
 
     // Authenticate user (admin only)
-    const authResult = await AuthMiddleware.authenticateAdmin(request)
+    const authResult = await AuthMiddleware.requireAdmin(request)
     if (!authResult.success) {
       return createAuthErrorResponse(authResult.error!, authResult.statusCode!)
     }
@@ -28,7 +27,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10')
 
     // List providers
-    const result = await apiManager.listProviders(type as any)
+    const result = await apiManager.listProviders(type as 'blog-writing' | 'content-generation' | 'seo-optimization' | 'keyword-research' | undefined)
 
     if (!result.success) {
       return NextResponse.json({
@@ -75,13 +74,13 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Apply rate limiting
-    const rateLimitResult = await applyRateLimit(request, rateLimiters.adminOperations)
+    const rateLimitResult = await applyRateLimit(request, rateLimiters.admin)
     if (!rateLimitResult.allowed) {
       return rateLimitResult.response!
     }
 
     // Authenticate user (admin only)
-    const authResult = await AuthMiddleware.authenticateAdmin(request)
+    const authResult = await AuthMiddleware.requireAdmin(request)
     if (!authResult.success) {
       return createAuthErrorResponse(authResult.error!, authResult.statusCode!)
     }

@@ -7,7 +7,6 @@ import {
   ApiUsage,
   ApiAssignment,
   ApiKey,
-  ApiAnalytics,
   ApiConfiguration,
   ApiError,
   CreateApiProviderRequest,
@@ -15,9 +14,7 @@ import {
   CreateApiKeyRequest,
   CreateApiAssignmentRequest,
   ApiManagementResponse,
-  PaginatedResponse,
   LoadBalancingStrategy,
-  FailoverStrategy,
   ApiProviderType,
   BlogWriterProvider,
   BlogWriterCapabilities
@@ -120,9 +117,33 @@ export class ApiManager {
         }
       }
 
+      // Handle partial environments update
+      let updatedEnvironments = provider.environments
+      if (request.environments) {
+        updatedEnvironments = provider.environments.map(env => {
+          const update = request.environments?.find(e => e.id === env.id)
+          return update ? { ...env, ...update } : env
+        })
+      }
+
+      // Handle partial credentials update
+      let updatedCredentials = provider.credentials
+      if (request.credentials) {
+        updatedCredentials = {
+          ...provider.credentials,
+          ...request.credentials,
+          encrypted: provider.credentials.encrypted // Preserve the encrypted flag
+        }
+      }
+
       const updatedProvider: ApiProvider = {
         ...provider,
-        ...request,
+        name: request.name ?? provider.name,
+        environments: updatedEnvironments,
+        credentials: updatedCredentials,
+        capabilities: request.capabilities ? { ...provider.capabilities, ...request.capabilities } : provider.capabilities,
+        limits: request.limits ? { ...provider.limits, ...request.limits } : provider.limits,
+        metadata: request.metadata ? { ...provider.metadata, ...request.metadata } : provider.metadata,
         updatedAt: new Date().toISOString()
       }
 
@@ -468,10 +489,15 @@ export class ApiManager {
     for (const environment of provider.environments) {
       try {
         const startTime = Date.now()
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), environment.healthCheck.timeout)
+        
         const response = await fetch(`${environment.baseUrl}${environment.healthCheck.endpoint}`, {
           method: 'GET',
-          timeout: environment.healthCheck.timeout
+          signal: controller.signal
         })
+        
+        clearTimeout(timeoutId)
         const responseTime = Date.now() - startTime
 
         const isHealthy = response.ok && response.status === environment.healthCheck.expectedStatus
@@ -542,7 +568,7 @@ export class ApiManager {
       return { provider: selectedProvider }
     }
 
-    const selectedEnvironment = this.selectEnvironment(healthyEnvironments, assignment?.loadBalancingStrategy)
+    const selectedEnvironment = this.selectEnvironment(healthyEnvironments)
 
     return { provider: selectedProvider, environment: selectedEnvironment }
   }
@@ -564,7 +590,7 @@ export class ApiManager {
     }
   }
 
-  private selectEnvironment(environments: ApiEnvironment[], strategy?: LoadBalancingStrategy): ApiEnvironment {
+  private selectEnvironment(environments: ApiEnvironment[]): ApiEnvironment {
     if (environments.length === 1) return environments[0]
 
     // Sort by priority (lower number = higher priority)

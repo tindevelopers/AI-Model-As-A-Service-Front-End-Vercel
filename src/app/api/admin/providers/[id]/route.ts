@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase-server'
 import { apiManager } from '@/lib/api-management/api-manager'
 import { AuthMiddleware, createAuthErrorResponse } from '@/lib/auth-middleware'
 import { applyRateLimit, rateLimiters } from '@/lib/rate-limiter'
@@ -13,13 +12,13 @@ export async function GET(
 ) {
   try {
     // Apply rate limiting
-    const rateLimitResult = await applyRateLimit(request, rateLimiters.adminOperations)
+    const rateLimitResult = await applyRateLimit(request, rateLimiters.admin)
     if (!rateLimitResult.allowed) {
       return rateLimitResult.response!
     }
 
     // Authenticate user (admin only)
-    const authResult = await AuthMiddleware.authenticateAdmin(request)
+    const authResult = await AuthMiddleware.requireAdmin(request)
     if (!authResult.success) {
       return createAuthErrorResponse(authResult.error!, authResult.statusCode!)
     }
@@ -61,13 +60,13 @@ export async function PUT(
 ) {
   try {
     // Apply rate limiting
-    const rateLimitResult = await applyRateLimit(request, rateLimiters.adminOperations)
+    const rateLimitResult = await applyRateLimit(request, rateLimiters.admin)
     if (!rateLimitResult.allowed) {
       return rateLimitResult.response!
     }
 
     // Authenticate user (admin only)
-    const authResult = await AuthMiddleware.authenticateAdmin(request)
+    const authResult = await AuthMiddleware.requireAdmin(request)
     if (!authResult.success) {
       return createAuthErrorResponse(authResult.error!, authResult.statusCode!)
     }
@@ -113,13 +112,13 @@ export async function DELETE(
 ) {
   try {
     // Apply rate limiting
-    const rateLimitResult = await applyRateLimit(request, rateLimiters.adminOperations)
+    const rateLimitResult = await applyRateLimit(request, rateLimiters.admin)
     if (!rateLimitResult.allowed) {
       return rateLimitResult.response!
     }
 
     // Authenticate user (admin only)
-    const authResult = await AuthMiddleware.authenticateAdmin(request)
+    const authResult = await AuthMiddleware.requireAdmin(request)
     if (!authResult.success) {
       return createAuthErrorResponse(authResult.error!, authResult.statusCode!)
     }

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase-server'
 import { apiManager } from '@/lib/api-management/api-manager'
 import { AuthMiddleware, createAuthErrorResponse } from '@/lib/auth-middleware'
 import { applyRateLimit, rateLimiters } from '@/lib/rate-limiter'
@@ -9,13 +8,13 @@ import { errorLogger } from '@/utils/errorLogger'
 export async function POST(request: NextRequest) {
   try {
     // Apply rate limiting
-    const rateLimitResult = await applyRateLimit(request, rateLimiters.keywordAnalysis)
+    const rateLimitResult = await applyRateLimit(request, rateLimiters.api)
     if (!rateLimitResult.allowed) {
       return rateLimitResult.response!
     }
 
     // Authenticate user
-    const authResult = await AuthMiddleware.authenticateUser(request)
+    const authResult = await AuthMiddleware.authenticateUser()
     if (!authResult.success) {
       return createAuthErrorResponse(authResult.error!, authResult.statusCode!)
     }
@@ -115,13 +114,13 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     // Apply rate limiting
-    const rateLimitResult = await applyRateLimit(request, rateLimiters.keywordAnalysis)
+    const rateLimitResult = await applyRateLimit(request, rateLimiters.api)
     if (!rateLimitResult.allowed) {
       return rateLimitResult.response!
     }
 
     // Authenticate user
-    const authResult = await AuthMiddleware.authenticateUser(request)
+    const authResult = await AuthMiddleware.authenticateUser()
     if (!authResult.success) {
       return createAuthErrorResponse(authResult.error!, authResult.statusCode!)
     }

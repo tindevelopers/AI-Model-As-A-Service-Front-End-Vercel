@@ -1,32 +1,9 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
-import { Switch } from '@/components/ui/switch'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { 
-  Plus, 
-  Settings, 
-  Key, 
-  Activity, 
-  AlertCircle, 
-  CheckCircle, 
-  XCircle,
-  RefreshCw,
-  Eye,
-  EyeOff,
-  Copy,
-  Trash2,
-  Edit
-} from 'lucide-react'
-import { errorLogger } from '@/utils/errorLogger'
+import Button from '@/components/ui/button/Button'
+import Badge from '@/components/ui/badge/Badge'
+import { PlusIcon, EyeIcon, EyeCloseIcon, CopyIcon, DownloadIcon } from '@/icons'
 
 interface ApiProvider {
   id: string
@@ -74,25 +51,13 @@ interface ApiKey {
   createdAt: string
 }
 
-interface ApiAssignment {
-  id: string
-  name: string
-  description: string
-  providerIds: string[]
-  environmentIds: string[]
-  isActive: boolean
-  createdAt: string
-}
-
 export default function ApiManagementDashboard() {
   const [providers, setProviders] = useState<ApiProvider[]>([])
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
-  const [assignments, setAssignments] = useState<ApiAssignment[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('providers')
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showApiKeyModal, setShowApiKeyModal] = useState(false)
-  const [showAssignmentModal, setShowAssignmentModal] = useState(false)
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set())
   const [copiedKey, setCopiedKey] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -113,34 +78,20 @@ export default function ApiManagementDashboard() {
     permissions: [] as string[]
   })
 
-  const [newAssignment, setNewAssignment] = useState({
-    name: '',
-    description: '',
-    providerIds: [] as string[],
-    environmentIds: [] as string[]
-  })
-
   useEffect(() => {
     fetchData()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchData = async () => {
     try {
       setLoading(true)
       await Promise.all([
         fetchProviders(),
-        fetchApiKeys(),
-        fetchAssignments()
+        fetchApiKeys()
       ])
     } catch (error) {
       setError('Failed to load data')
-      errorLogger.logError('Failed to fetch API management data', {
-        component: 'api-management-dashboard',
-        action: 'fetchData',
-        additionalData: {
-          error: error instanceof Error ? error.message : 'Unknown error'
-        }
-      })
+      console.error('Failed to fetch API management data:', error)
     } finally {
       setLoading(false)
     }
@@ -171,20 +122,6 @@ export default function ApiManagementDashboard() {
       }
     } catch (error) {
       console.error('Failed to fetch API keys:', error)
-    }
-  }
-
-  const fetchAssignments = async () => {
-    try {
-      const response = await fetch('/api/admin/assignments')
-      const data = await response.json()
-      if (data.success) {
-        setAssignments(data.data)
-      } else {
-        throw new Error(data.error)
-      }
-    } catch (error) {
-      console.error('Failed to fetch assignments:', error)
     }
   }
 
@@ -329,33 +266,33 @@ export default function ApiManagementDashboard() {
   const getHealthStatusIcon = (status: string) => {
     switch (status) {
       case 'healthy':
-        return <CheckCircle className="h-4 w-4 text-green-500" />
+        return <span className="text-green-500">●</span>
       case 'degraded':
-        return <AlertCircle className="h-4 w-4 text-yellow-500" />
+        return <span className="text-yellow-500">●</span>
       case 'unhealthy':
-        return <XCircle className="h-4 w-4 text-red-500" />
+        return <span className="text-red-500">●</span>
       default:
-        return <AlertCircle className="h-4 w-4 text-gray-500" />
+        return <span className="text-gray-500">●</span>
     }
   }
 
   const getHealthStatusColor = (status: string) => {
     switch (status) {
       case 'healthy':
-        return 'bg-green-100 text-green-800'
+        return 'success'
       case 'degraded':
-        return 'bg-yellow-100 text-yellow-800'
+        return 'warning'
       case 'unhealthy':
-        return 'bg-red-100 text-red-800'
+        return 'error'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'light'
     }
   }
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <RefreshCw className="h-8 w-8 animate-spin" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     )
   }
@@ -370,441 +307,355 @@ export default function ApiManagementDashboard() {
           </p>
         </div>
         <Button onClick={fetchData} variant="outline">
-          <RefreshCw className="h-4 w-4 mr-2" />
+          <DownloadIcon className="w-4 h-4 mr-2" />
           Refresh
         </Button>
       </div>
 
       {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          {error}
+        </div>
       )}
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="providers">Providers</TabsTrigger>
-          <TabsTrigger value="api-keys">API Keys</TabsTrigger>
-          <TabsTrigger value="assignments">Assignments</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-        </TabsList>
+      {/* Tabs */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8">
+          <button
+            onClick={() => setActiveTab('providers')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'providers'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Providers
+          </button>
+          <button
+            onClick={() => setActiveTab('api-keys')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'api-keys'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            API Keys
+          </button>
+          <button
+            onClick={() => setActiveTab('analytics')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'analytics'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Analytics
+          </button>
+        </nav>
+      </div>
 
-        <TabsContent value="providers" className="space-y-4">
+      {/* Providers Tab */}
+      {activeTab === 'providers' && (
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-semibold">API Providers</h2>
             <Button onClick={() => setShowCreateModal(true)}>
-              <Plus className="h-4 w-4 mr-2" />
+              <PlusIcon className="w-4 h-4 mr-2" />
               Add Provider
             </Button>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {providers.map((provider) => (
-              <Card key={provider.id}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{provider.name}</CardTitle>
-                    <Badge className={getHealthStatusColor(provider.status.healthStatus)}>
-                      {getHealthStatusIcon(provider.status.healthStatus)}
-                      <span className="ml-1 capitalize">{provider.status.healthStatus}</span>
-                    </Badge>
+              <div key={provider.id} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">{provider.name}</h3>
+                  <Badge color={getHealthStatusColor(provider.status.healthStatus)}>
+                    {getHealthStatusIcon(provider.status.healthStatus)}
+                    <span className="ml-1 capitalize">{provider.status.healthStatus}</span>
+                  </Badge>
+                </div>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">{provider.metadata.description}</p>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span>Type:</span>
+                    <Badge variant="light" color="info">{provider.type}</Badge>
                   </div>
-                  <CardDescription>{provider.metadata.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Type:</span>
-                      <Badge variant="outline">{provider.type}</Badge>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Environments:</span>
-                      <span>{provider.environments.length}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Total Requests:</span>
-                      <span>{provider.status.totalRequests}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Success Rate:</span>
-                      <span>
-                        {provider.status.totalRequests > 0
-                          ? Math.round((provider.status.successfulRequests / provider.status.totalRequests) * 100)
-                          : 0}%
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Avg Response Time:</span>
-                      <span>{Math.round(provider.status.averageResponseTime)}ms</span>
-                    </div>
+                  <div className="flex justify-between">
+                    <span>Environments:</span>
+                    <span>{provider.environments.length}</span>
                   </div>
-                  <div className="flex gap-2 mt-4">
-                    <Button size="sm" variant="outline">
-                      <Settings className="h-4 w-4 mr-1" />
-                      Configure
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      <Activity className="h-4 w-4 mr-1" />
-                      Monitor
-                    </Button>
+                  <div className="flex justify-between">
+                    <span>Total Requests:</span>
+                    <span>{provider.status.totalRequests}</span>
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="flex justify-between">
+                    <span>Success Rate:</span>
+                    <span>
+                      {provider.status.totalRequests > 0
+                        ? Math.round((provider.status.successfulRequests / provider.status.totalRequests) * 100)
+                        : 0}%
+                    </span>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
-        </TabsContent>
+        </div>
+      )}
 
-        <TabsContent value="api-keys" className="space-y-4">
+      {/* API Keys Tab */}
+      {activeTab === 'api-keys' && (
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-semibold">API Keys</h2>
             <Button onClick={() => setShowApiKeyModal(true)}>
-              <Plus className="h-4 w-4 mr-2" />
+              <PlusIcon className="w-4 h-4 mr-2" />
               Create Key
             </Button>
           </div>
 
           <div className="space-y-4">
             {apiKeys.map((apiKey) => (
-              <Card key={apiKey.id}>
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <h3 className="font-semibold">{apiKey.name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {apiKey.providerIds.length} provider(s) • Created {new Date(apiKey.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant={apiKey.isActive ? 'default' : 'secondary'}>
-                        {apiKey.isActive ? 'Active' : 'Inactive'}
-                      </Badge>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => toggleKeyVisibility(apiKey.id)}
-                      >
-                        {visibleKeys.has(apiKey.id) ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => copyToClipboard(apiKey.key, apiKey.id)}
-                      >
-                        {copiedKey === apiKey.id ? (
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                        ) : (
-                          <Copy className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
+              <div key={apiKey.id} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <h3 className="font-semibold">{apiKey.name}</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {apiKey.providerIds.length} provider(s) • Created {new Date(apiKey.createdAt).toLocaleDateString()}
+                    </p>
                   </div>
-                  {visibleKeys.has(apiKey.id) && (
-                    <div className="mt-4 p-3 bg-muted rounded-md">
-                      <code className="text-sm break-all">{apiKey.key}</code>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                  <div className="flex items-center gap-2">
+                    <Badge color={apiKey.isActive ? 'success' : 'light'}>
+                      {apiKey.isActive ? 'Active' : 'Inactive'}
+                    </Badge>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => toggleKeyVisibility(apiKey.id)}
+                    >
+                      {visibleKeys.has(apiKey.id) ? (
+                        <EyeCloseIcon className="w-4 h-4" />
+                      ) : (
+                        <EyeIcon className="w-4 h-4" />
+                      )}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => copyToClipboard(apiKey.key, apiKey.id)}
+                    >
+                      {copiedKey === apiKey.id ? (
+                        <span className="text-green-600 text-xs">Copied!</span>
+                      ) : (
+                        <CopyIcon className="w-4 h-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+                {visibleKeys.has(apiKey.id) && (
+                  <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-md">
+                    <code className="text-sm break-all">{apiKey.key}</code>
+                  </div>
+                )}
+              </div>
             ))}
           </div>
-        </TabsContent>
+        </div>
+      )}
 
-        <TabsContent value="assignments" className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-semibold">API Assignments</h2>
-            <Button onClick={() => setShowAssignmentModal(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Assignment
-            </Button>
-          </div>
-
-          <div className="space-y-4">
-            {assignments.map((assignment) => (
-              <Card key={assignment.id}>
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <h3 className="font-semibold">{assignment.name}</h3>
-                      <p className="text-sm text-muted-foreground">{assignment.description}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {assignment.providerIds.length} provider(s) • {assignment.environmentIds.length} environment(s)
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant={assignment.isActive ? 'default' : 'secondary'}>
-                        {assignment.isActive ? 'Active' : 'Inactive'}
-                      </Badge>
-                      <Button size="sm" variant="outline">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="analytics" className="space-y-4">
+      {/* Analytics Tab */}
+      {activeTab === 'analytics' && (
+        <div className="space-y-4">
           <h2 className="text-2xl font-semibold">Analytics</h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Providers</CardTitle>
-                <Settings className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{providers.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  {providers.filter(p => p.status.isActive).length} active
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total API Keys</CardTitle>
-                <Key className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{apiKeys.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  {apiKeys.filter(k => k.isActive).length} active
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
-                <Activity className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {providers.reduce((sum, p) => sum + p.status.totalRequests, 0)}
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+              <div className="flex items-center">
+                <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                  <DownloadIcon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Across all providers
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
-                <CheckCircle className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {(() => {
-                    const totalRequests = providers.reduce((sum, p) => sum + p.status.totalRequests, 0)
-                    const totalSuccessful = providers.reduce((sum, p) => sum + p.status.successfulRequests, 0)
-                    return totalRequests > 0 ? Math.round((totalSuccessful / totalRequests) * 100) : 0
-                  })()}%
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Providers</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{providers.length}</p>
+                  <p className="text-xs text-gray-500">
+                    {providers.filter(p => p.status.isActive).length} active
+                  </p>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Overall success rate
-                </p>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+              <div className="flex items-center">
+                <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
+                  <DownloadIcon className="w-6 h-6 text-green-600 dark:text-green-400" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total API Keys</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{apiKeys.length}</p>
+                  <p className="text-xs text-gray-500">
+                    {apiKeys.filter(k => k.isActive).length} active
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+              <div className="flex items-center">
+                <div className="p-2 bg-yellow-100 dark:bg-yellow-900 rounded-lg">
+                  <DownloadIcon className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Requests</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {providers.reduce((sum, p) => sum + p.status.totalRequests, 0)}
+                  </p>
+                  <p className="text-xs text-gray-500">Across all providers</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+              <div className="flex items-center">
+                <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
+                  <DownloadIcon className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Success Rate</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {(() => {
+                      const totalRequests = providers.reduce((sum, p) => sum + p.status.totalRequests, 0)
+                      const totalSuccessful = providers.reduce((sum, p) => sum + p.status.successfulRequests, 0)
+                      return totalRequests > 0 ? Math.round((totalSuccessful / totalRequests) * 100) : 0
+                    })()}%
+                  </p>
+                  <p className="text-xs text-gray-500">Overall success rate</p>
+                </div>
+              </div>
+            </div>
           </div>
-        </TabsContent>
-      </Tabs>
+        </div>
+      )}
 
       {/* Create Provider Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <Card className="w-full max-w-md">
-            <CardHeader>
-              <CardTitle>Create API Provider</CardTitle>
-              <CardDescription>
-                Add a new API provider to the system
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold mb-4">Create API Provider</h3>
+            <div className="space-y-4">
               <div>
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
+                <label className="block text-sm font-medium mb-2">Name</label>
+                <input
+                  type="text"
                   value={newProvider.name}
                   onChange={(e) => setNewProvider(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="Provider name"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <Label htmlFor="type">Type</Label>
-                <Select value={newProvider.type} onValueChange={(value) => setNewProvider(prev => ({ ...prev, type: value }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="blog-writing">Blog Writing</SelectItem>
-                    <SelectItem value="content-generation">Content Generation</SelectItem>
-                    <SelectItem value="seo-optimization">SEO Optimization</SelectItem>
-                    <SelectItem value="keyword-research">Keyword Research</SelectItem>
-                  </SelectContent>
-                </Select>
+                <label className="block text-sm font-medium mb-2">Type</label>
+                <select
+                  value={newProvider.type}
+                  onChange={(e) => setNewProvider(prev => ({ ...prev, type: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select type</option>
+                  <option value="blog-writing">Blog Writing</option>
+                  <option value="content-generation">Content Generation</option>
+                  <option value="seo-optimization">SEO Optimization</option>
+                  <option value="keyword-research">Keyword Research</option>
+                </select>
               </div>
               <div>
-                <Label htmlFor="baseUrl">Base URL</Label>
-                <Input
-                  id="baseUrl"
+                <label className="block text-sm font-medium mb-2">Base URL</label>
+                <input
+                  type="text"
                   value={newProvider.baseUrl}
                   onChange={(e) => setNewProvider(prev => ({ ...prev, baseUrl: e.target.value }))}
                   placeholder="https://api.example.com"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <Label htmlFor="apiKey">API Key</Label>
-                <Input
-                  id="apiKey"
+                <label className="block text-sm font-medium mb-2">API Key</label>
+                <input
                   type="password"
                   value={newProvider.apiKey}
                   onChange={(e) => setNewProvider(prev => ({ ...prev, apiKey: e.target.value }))}
                   placeholder="API key"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
+                <label className="block text-sm font-medium mb-2">Description</label>
+                <textarea
                   value={newProvider.description}
                   onChange={(e) => setNewProvider(prev => ({ ...prev, description: e.target.value }))}
                   placeholder="Provider description"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              <div className="flex gap-2">
-                <Button onClick={createProvider} className="flex-1">
-                  Create
-                </Button>
-                <Button variant="outline" onClick={() => setShowCreateModal(false)}>
-                  Cancel
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+            <div className="flex gap-2 mt-6">
+              <Button onClick={createProvider} className="flex-1">
+                Create
+              </Button>
+              <Button variant="outline" onClick={() => setShowCreateModal(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
         </div>
       )}
 
       {/* Create API Key Modal */}
       {showApiKeyModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <Card className="w-full max-w-md">
-            <CardHeader>
-              <CardTitle>Create API Key</CardTitle>
-              <CardDescription>
-                Generate a new API key for accessing services
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold mb-4">Create API Key</h3>
+            <div className="space-y-4">
               <div>
-                <Label htmlFor="keyName">Name</Label>
-                <Input
-                  id="keyName"
+                <label className="block text-sm font-medium mb-2">Name</label>
+                <input
+                  type="text"
                   value={newApiKey.name}
                   onChange={(e) => setNewApiKey(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="API key name"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <Label>Providers</Label>
+                <label className="block text-sm font-medium mb-2">Providers</label>
                 <div className="space-y-2">
                   {providers.map((provider) => (
                     <div key={provider.id} className="flex items-center space-x-2">
-                      <Switch
+                      <input
+                        type="checkbox"
                         checked={newApiKey.providerIds.includes(provider.id)}
-                        onCheckedChange={(checked) => {
+                        onChange={(e) => {
                           setNewApiKey(prev => ({
                             ...prev,
-                            providerIds: checked
+                            providerIds: e.target.checked
                               ? [...prev.providerIds, provider.id]
                               : prev.providerIds.filter(id => id !== provider.id)
                           }))
                         }}
                       />
-                      <Label>{provider.name}</Label>
+                      <label>{provider.name}</label>
                     </div>
                   ))}
                 </div>
               </div>
-              <div className="flex gap-2">
-                <Button onClick={createApiKey} className="flex-1">
-                  Create
-                </Button>
-                <Button variant="outline" onClick={() => setShowApiKeyModal(false)}>
-                  Cancel
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Create Assignment Modal */}
-      {showAssignmentModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <Card className="w-full max-w-md">
-            <CardHeader>
-              <CardTitle>Create API Assignment</CardTitle>
-              <CardDescription>
-                Create a new assignment for routing requests
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="assignmentName">Name</Label>
-                <Input
-                  id="assignmentName"
-                  value={newAssignment.name}
-                  onChange={(e) => setNewAssignment(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Assignment name"
-                />
-              </div>
-              <div>
-                <Label htmlFor="assignmentDescription">Description</Label>
-                <Textarea
-                  id="assignmentDescription"
-                  value={newAssignment.description}
-                  onChange={(e) => setNewAssignment(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Assignment description"
-                />
-              </div>
-              <div>
-                <Label>Providers</Label>
-                <div className="space-y-2">
-                  {providers.map((provider) => (
-                    <div key={provider.id} className="flex items-center space-x-2">
-                      <Switch
-                        checked={newAssignment.providerIds.includes(provider.id)}
-                        onCheckedChange={(checked) => {
-                          setNewAssignment(prev => ({
-                            ...prev,
-                            providerIds: checked
-                              ? [...prev.providerIds, provider.id]
-                              : prev.providerIds.filter(id => id !== provider.id)
-                          }))
-                        }}
-                      />
-                      <Label>{provider.name}</Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button onClick={() => setShowAssignmentModal(false)} className="flex-1">
-                  Create
-                </Button>
-                <Button variant="outline" onClick={() => setShowAssignmentModal(false)}>
-                  Cancel
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+            <div className="flex gap-2 mt-6">
+              <Button onClick={createApiKey} className="flex-1">
+                Create
+              </Button>
+              <Button variant="outline" onClick={() => setShowApiKeyModal(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>

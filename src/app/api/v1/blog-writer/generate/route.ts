@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase-server'
 import { apiManager } from '@/lib/api-management/api-manager'
 import { AuthMiddleware, createAuthErrorResponse } from '@/lib/auth-middleware'
 import { applyRateLimit, rateLimiters } from '@/lib/rate-limiter'
@@ -16,7 +15,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Authenticate user
-    const authResult = await AuthMiddleware.authenticateUser(request)
+    const authResult = await AuthMiddleware.authenticateUser()
     if (!authResult.success) {
       return createAuthErrorResponse(authResult.error!, authResult.statusCode!)
     }
@@ -72,22 +71,24 @@ export async function POST(request: NextRequest) {
     }
 
     // Transform response to BlogWriterResponse format
-    const response = result.data as any
+    const response = result.data as unknown as Record<string, unknown>
+    const metadata = response.metadata as unknown as Record<string, unknown> | undefined
+    
     const blogResponse: BlogWriterResponse = {
-      title: response.title || 'Generated Blog Post',
-      content: response.content || '',
-      outline: response.outline || [],
-      keywords_used: response.keywords_used || blogRequest.keywords || [],
-      word_count: response.word_count || 0,
-      estimated_reading_time: response.estimated_reading_time || 0,
-      seo_score: response.seo_score,
-      readability_score: response.readability_score,
+      title: (typeof response.title === 'string' ? response.title : 'Generated Blog Post'),
+      content: (typeof response.content === 'string' ? response.content : ''),
+      outline: (Array.isArray(response.outline) ? response.outline : []),
+      keywords_used: (Array.isArray(response.keywords_used) ? response.keywords_used : blogRequest.keywords || []),
+      word_count: (typeof response.word_count === 'number' ? response.word_count : 0),
+      estimated_reading_time: (typeof response.estimated_reading_time === 'number' ? response.estimated_reading_time : 0),
+      seo_score: (typeof response.seo_score === 'number' ? response.seo_score : undefined),
+      readability_score: (typeof response.readability_score === 'number' ? response.readability_score : undefined),
       metadata: {
         generated_at: new Date().toISOString(),
-        model_used: response.metadata?.model_used || 'blog-writer-api',
-        processing_time: response.metadata?.processing_time || 0,
-        provider_used: response.metadata?.provider_used || 'blog-writer-prod',
-        environment_used: response.metadata?.environment_used || 'production'
+        model_used: (metadata && typeof metadata.model_used === 'string' ? metadata.model_used : 'blog-writer-api'),
+        processing_time: (metadata && typeof metadata.processing_time === 'number' ? metadata.processing_time : 0),
+        provider_used: (metadata && typeof metadata.provider_used === 'string' ? metadata.provider_used : 'blog-writer-prod'),
+        environment_used: (metadata && typeof metadata.environment_used === 'string' ? metadata.environment_used : 'production')
       }
     }
 
@@ -128,13 +129,13 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     // Apply rate limiting
-    const rateLimitResult = await applyRateLimit(request, rateLimiters.general)
+    const rateLimitResult = await applyRateLimit(request, rateLimiters.api)
     if (!rateLimitResult.allowed) {
       return rateLimitResult.response!
     }
 
     // Authenticate user
-    const authResult = await AuthMiddleware.authenticateUser(request)
+    const authResult = await AuthMiddleware.authenticateUser()
     if (!authResult.success) {
       return createAuthErrorResponse(authResult.error!, authResult.statusCode!)
     }
