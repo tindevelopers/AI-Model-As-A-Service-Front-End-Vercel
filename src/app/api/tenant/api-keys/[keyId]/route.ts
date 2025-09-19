@@ -155,7 +155,7 @@ export async function PATCH(
     }
 
     // Prepare update data
-    const updateData: any = {}
+    const updateData: Record<string, unknown> = {}
     if (is_active !== undefined) updateData.is_active = is_active
     if (name !== undefined) updateData.name = name
     if (description !== undefined) updateData.description = description

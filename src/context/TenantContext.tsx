@@ -110,7 +110,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoadingRoles(false)
     }
-  }, [user, session])
+  }, [user, session, currentTenant])
 
   // Load tenant admin menu
   const loadTenantMenu = async (tenantId: string) => {
@@ -224,7 +224,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
       loadTenantStats(tenantId),
       loadTenantBilling(tenantId)
     ])
-  }, [])
+  }, [loadTenantMenu, loadTenantStats, loadTenantBilling])
 
   // Load user tenant roles when user changes
   useEffect(() => {

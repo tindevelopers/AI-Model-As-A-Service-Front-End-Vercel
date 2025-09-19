@@ -56,7 +56,7 @@ export default function TenantApiKeys() {
   const [provisioningKeys, setProvisioningKeys] = useState<ProvisioningKey[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
-  const [showProvisioningForm, setShowProvisioningForm] = useState(false)
+  const [, setShowProvisioningForm] = useState(false)
   const [creating, setCreating] = useState(false)
   const [revealedKeys, setRevealedKeys] = useState<Set<string>>(new Set())
   const [activeTab, setActiveTab] = useState<'api-keys' | 'provisioning'>('api-keys')
@@ -83,7 +83,7 @@ export default function TenantApiKeys() {
 
       if (result.success && result.data) {
         // Convert API response to our interface format
-        const apiKeysData: TenantApiKey[] = result.data.map((key: any) => ({
+        const apiKeysData: TenantApiKey[] = result.data.map((key: Record<string, unknown>) => ({
           id: key.id,
           name: key.name,
           api_key: key.api_key,
