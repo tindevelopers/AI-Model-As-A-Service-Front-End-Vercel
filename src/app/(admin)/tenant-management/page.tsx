@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase-server'
 import { Card, CardTitle, CardDescription } from '@/components/ui/card/Card'
 import Button from '@/components/ui/button/Button'
@@ -187,30 +188,33 @@ export default async function TenantManagement() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          startIcon={<Eye className="h-4 w-4" />}
-                          href={`/tenant/dashboard?tenant=${tenant.slug}`}
-                        >
-                          View
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          startIcon={<Edit className="h-4 w-4" />}
-                          href={`/admin/tenant/edit/${tenant.slug}`}
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          startIcon={<Trash2 className="h-4 w-4" />}
-                          href={`/admin/tenant/delete/${tenant.slug}`}
-                        >
-                          Delete
-                        </Button>
+                        <Link href={`/tenant/dashboard?tenant=${tenant.slug}`}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            startIcon={<Eye className="h-4 w-4" />}
+                          >
+                            View
+                          </Button>
+                        </Link>
+                        <Link href={`/admin/tenant/edit/${tenant.slug}`}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            startIcon={<Edit className="h-4 w-4" />}
+                          >
+                            Edit
+                          </Button>
+                        </Link>
+                        <Link href={`/admin/tenant/delete/${tenant.slug}`}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            startIcon={<Trash2 className="h-4 w-4" />}
+                          >
+                            Delete
+                          </Button>
+                        </Link>
                       </div>
                     </td>
                   </tr>
