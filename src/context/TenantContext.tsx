@@ -113,7 +113,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   }, [user, session, currentTenant])
 
   // Load tenant admin menu
-  const loadTenantMenu = async (tenantId: string) => {
+  const loadTenantMenu = useCallback(async (tenantId: string) => {
     if (!user || !session) return
 
     setLoadingMenu(true)
@@ -145,10 +145,10 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoadingMenu(false)
     }
-  }
+  }, [user, session])
 
   // Load tenant statistics
-  const loadTenantStats = async (tenantId: string) => {
+  const loadTenantStats = useCallback(async (tenantId: string) => {
     if (!user || !session) return
 
     setLoadingStats(true)
@@ -180,10 +180,10 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoadingStats(false)
     }
-  }
+  }, [user, session])
 
   // Load tenant billing
-  const loadTenantBilling = async (tenantId: string) => {
+  const loadTenantBilling = useCallback(async (tenantId: string) => {
     if (!user || !session) return
 
     setLoadingBilling(true)
@@ -215,7 +215,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoadingBilling(false)
     }
-  }
+  }, [user, session])
 
   // Refresh all tenant data
   const refreshTenantData = useCallback(async (tenantId: string) => {

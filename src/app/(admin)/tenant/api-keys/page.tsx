@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useTenant } from '@/context/TenantContext'
-import { Card, CardTitle, CardDescription } from '@/components/ui/card/Card'
+import { Card, CardTitle, CardDescription, CardHeader, CardContent } from '@/components/ui/card/Card'
 import Button from '@/components/ui/button/Button'
 import Badge from '@/components/ui/badge/Badge'
 import { 
@@ -17,7 +17,9 @@ import {
   RefreshCw,
   ExternalLink,
   Shield,
-  Zap
+  Zap,
+  Activity,
+  Users
 } from 'lucide-react'
 import { errorLogger } from '@/utils/errorLogger'
 
@@ -80,9 +82,7 @@ export default function TenantApiKeys() {
   const [usageAnalytics, setUsageAnalytics] = useState<UsageAnalytics | null>(null)
   const [loading, setLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
-  const [showProvisioningForm, setShowProvisioningForm] = useState(false)
   const [creating, setCreating] = useState(false)
-  const [creatingProvisioning, setCreatingProvisioning] = useState(false)
   const [revealedKeys, setRevealedKeys] = useState<Set<string>>(new Set())
   const [activeTab, setActiveTab] = useState<'api-keys' | 'provisioning' | 'analytics'>('api-keys')
   
@@ -92,13 +92,6 @@ export default function TenantApiKeys() {
     expires_at: ''
   })
 
-  const [provisioningFormData, setProvisioningFormData] = useState<CreateProvisioningKeyForm>({
-    name: '',
-    provider: '',
-    provider_type: '',
-    endpoint: '',
-    config: {}
-  })
 
   // Load API keys
   const loadApiKeys = useCallback(async () => {
@@ -325,69 +318,6 @@ export default function TenantApiKeys() {
     }
   }
 
-  // Create provisioning key
-  const createProvisioningKey = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!currentTenant) return
-
-    setCreatingProvisioning(true)
-    try {
-      const response = await fetch('/api/tenant/provisioning-keys', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          tenantId: currentTenant.id,
-          name: provisioningFormData.name,
-          provider: provisioningFormData.provider,
-          providerType: provisioningFormData.provider_type,
-          endpoint: provisioningFormData.endpoint,
-          config: provisioningFormData.config
-        })
-      })
-
-      const result = await response.json()
-
-      if (result.success) {
-        setShowProvisioningForm(false)
-        setProvisioningFormData({
-          name: '',
-          provider: '',
-          provider_type: '',
-          endpoint: '',
-          config: {}
-        })
-        await loadProvisioningKeys()
-        alert('Provisioning key created successfully!')
-      } else {
-        errorLogger.logError('Failed to create provisioning key', {
-          component: 'tenant-api-keys',
-          action: 'createProvisioningKey',
-          additionalData: { 
-            error: result.error,
-            tenantId: currentTenant.id,
-            formData: provisioningFormData
-          }
-        })
-        alert(`Failed to create provisioning key: ${result.error}`)
-      }
-      
-    } catch (error) {
-      errorLogger.logError('Failed to create provisioning key', {
-        component: 'tenant-api-keys',
-        action: 'createProvisioningKey',
-        additionalData: { 
-          error: error instanceof Error ? error.message : 'Unknown error',
-          tenantId: currentTenant.id,
-          formData: provisioningFormData
-        }
-      })
-      alert('Failed to create provisioning key. Please try again.')
-    } finally {
-      setCreatingProvisioning(false)
-    }
-  }
 
   // Toggle API key visibility
   const toggleKeyVisibility = (keyId: string) => {
