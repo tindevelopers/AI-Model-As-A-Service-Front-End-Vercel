@@ -5,6 +5,7 @@ import "swiper/swiper-bundle.css";
 import { SidebarProvider } from "@/context/SidebarContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { AuthProvider } from "@/context/AuthContext";
+import { TenantProvider } from "@/context/TenantContext";
 import { ErrorDebugPanel } from "@/components/debug/ErrorDebugPanel";
 import { EnvironmentValidator } from "@/components/debug/EnvironmentValidator";
 import { SessionDebugPanel } from "@/components/debug/SessionDebugPanel";
@@ -22,14 +23,16 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${outfit.className} dark:bg-gray-900`}>
         <AuthProvider>
-          <ThemeProvider>
-            <SidebarProvider>
-                     {children}
-                     <EnvironmentValidator />
-                     <ErrorDebugPanel />
-                     <SessionDebugPanel />
-            </SidebarProvider>
-          </ThemeProvider>
+          <TenantProvider>
+            <ThemeProvider>
+              <SidebarProvider>
+                       {children}
+                       <EnvironmentValidator />
+                       <ErrorDebugPanel />
+                       <SessionDebugPanel />
+              </SidebarProvider>
+            </ThemeProvider>
+          </TenantProvider>
         </AuthProvider>
       </body>
     </html>
