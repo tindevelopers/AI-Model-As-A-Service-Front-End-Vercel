@@ -23,7 +23,7 @@ export default function AdminLayout({
           </div>
         </main>
       </div>
-      {isMobileOpen && <Backdrop onClick={toggleMobileSidebar} />}
+      <Backdrop />
     </div>
   );
 }
