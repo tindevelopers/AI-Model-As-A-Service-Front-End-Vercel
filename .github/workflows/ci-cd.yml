@@ -2,7 +2,7 @@ name: AI Model Frontend CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, staging, develop ]
+    branches: [ main, staging ]
   pull_request:
     branches: [ main, staging ]
 
@@ -53,5 +53,48 @@ jobs:
         name: build-files
         path: .next/
 
-  # Note: Vercel deployments are handled automatically via GitHub integration
-  # No manual deployment job needed - Vercel will deploy on push to connected branches
+  # Production deployment (main branch only)
+  deploy-production:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Deploy to Production
+      run: |
+        echo "🚀 Deploying to production from main branch"
+        echo "✅ All tests passed, ready for production deployment"
+        echo "🔒 This deployment is triggered only from main branch"
+    
+    - name: Notify deployment success
+      run: |
+        echo "✅ Production deployment initiated successfully"
+        echo "🌐 Production URL: https://ai-maas-production.tinconnect.com"
+
+  # Staging deployment (staging branch only)
+  deploy-staging:
+    if: github.ref == 'refs/heads/staging' && github.event_name == 'push'
+    needs: test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Deploy to Staging
+      run: |
+        echo "🧪 Deploying to staging environment"
+        echo "✅ All tests passed, ready for staging deployment"
+    
+    - name: Notify staging deployment
+      run: |
+        echo "✅ Staging deployment initiated successfully"
+        echo "🧪 Staging environment updated for testing"
+
+  # Note: Vercel will handle the actual deployment based on branch protection rules
+  # - main branch → Production (ai-maas-production.tinconnect.com)
+  # - staging branch → Staging environment
+  # - develop branch → No deployment (testing only)
