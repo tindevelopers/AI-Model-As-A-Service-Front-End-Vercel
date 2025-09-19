@@ -13,6 +13,7 @@ import {
   ChatIcon,
   ChevronDownIcon,
   GridIcon,
+  GroupIcon,
   HorizontaLDots,
   ListIcon,
   MailIcon,
@@ -35,6 +36,12 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   {
+    icon: <GroupIcon />,
+    name: "Tenant Management",
+    path: "/tenant-management",
+    new: true,
+  },
+  {
     icon: <GridIcon />,
     name: "Dashboard",
     subItems: [
@@ -45,7 +52,6 @@ const navItems: NavItem[] = [
       { name: "Stocks", path: "/stocks" },
       { name: "SaaS", path: "/saas", new: true },
       { name: "Logistics", path: "/logistics", new: true },
-      { name: "Tenant Management", path: "/tenant-management", new: true },
     ],
   },
   {
