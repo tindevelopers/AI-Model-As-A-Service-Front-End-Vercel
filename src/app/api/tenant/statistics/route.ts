@@ -45,8 +45,8 @@ export async function GET(request: NextRequest) {
         component: 'tenant-statistics-route',
         action: 'GET',
         userId,
-        tenantId,
         additionalData: {
+          tenantId,
           error: error.message,
           errorCode: error.code
         }

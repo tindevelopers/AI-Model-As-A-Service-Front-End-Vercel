@@ -50,9 +50,9 @@ export async function DELETE(
         component: 'tenant-users-route',
         action: 'DELETE',
         userId,
-        tenantId,
-        targetUserId,
         additionalData: {
+          tenantId,
+          targetUserId,
           error: error.message,
           errorCode: error.code
         }

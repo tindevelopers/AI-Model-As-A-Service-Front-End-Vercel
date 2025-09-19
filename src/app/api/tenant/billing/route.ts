@@ -45,8 +45,8 @@ export async function GET(request: NextRequest) {
         component: 'tenant-billing-route',
         action: 'GET',
         userId,
-        tenantId,
         additionalData: {
+          additionalData: { tenantId,
           error: error.message,
           errorCode: error.code
         }
