@@ -44,27 +44,60 @@ interface ProvisioningKey {
   id: string
   name: string
   provider: string
+  provider_type: string
   endpoint: string
   is_active: boolean
+  usage_count: number
   created_at: string
   last_used: string | null
+  config: Record<string, unknown>
+}
+
+interface UsageAnalytics {
+  total_requests: number
+  successful_requests: number
+  failed_requests: number
+  avg_response_time_ms: number
+  total_request_size_bytes: number
+  total_response_size_bytes: number
+  unique_users: number
+  top_endpoints: Array<{ endpoint: string; count: number }>
+  hourly_usage: Array<{ hour: string; count: number }>
+}
+
+interface CreateProvisioningKeyForm {
+  name: string
+  provider: string
+  provider_type: string
+  endpoint: string
+  config: Record<string, unknown>
 }
 
 export default function TenantApiKeys() {
   const { currentTenant } = useTenant()
   const [apiKeys, setApiKeys] = useState<TenantApiKey[]>([])
   const [provisioningKeys, setProvisioningKeys] = useState<ProvisioningKey[]>([])
+  const [usageAnalytics, setUsageAnalytics] = useState<UsageAnalytics | null>(null)
   const [loading, setLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
-  const [, setShowProvisioningForm] = useState(false)
+  const [showProvisioningForm, setShowProvisioningForm] = useState(false)
   const [creating, setCreating] = useState(false)
+  const [creatingProvisioning, setCreatingProvisioning] = useState(false)
   const [revealedKeys, setRevealedKeys] = useState<Set<string>>(new Set())
-  const [activeTab, setActiveTab] = useState<'api-keys' | 'provisioning'>('api-keys')
+  const [activeTab, setActiveTab] = useState<'api-keys' | 'provisioning' | 'analytics'>('api-keys')
   
   const [formData, setFormData] = useState<CreateApiKeyForm>({
     name: '',
     description: '',
     expires_at: ''
+  })
+
+  const [provisioningFormData, setProvisioningFormData] = useState<CreateProvisioningKeyForm>({
+    name: '',
+    provider: '',
+    provider_type: '',
+    endpoint: '',
+    config: {}
   })
 
   // Load API keys
@@ -146,6 +179,80 @@ export default function TenantApiKeys() {
     }
   }, [currentTenant])
 
+  // Load provisioning keys
+  const loadProvisioningKeys = useCallback(async () => {
+    if (!currentTenant) return
+
+    try {
+      const response = await fetch(`/api/tenant/provisioning-keys?tenantId=${currentTenant.id}`, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      
+      const result = await response.json()
+
+      if (result.success && result.data) {
+        setProvisioningKeys(result.data)
+      } else {
+        errorLogger.logError('Failed to load provisioning keys', {
+          component: 'tenant-api-keys',
+          action: 'loadProvisioningKeys',
+          additionalData: { 
+            error: result.error,
+            tenantId: currentTenant.id
+          }
+        })
+      }
+    } catch (error) {
+      errorLogger.logError('Failed to load provisioning keys', {
+        component: 'tenant-api-keys',
+        action: 'loadProvisioningKeys',
+        additionalData: { 
+          error: error instanceof Error ? error.message : 'Unknown error',
+          tenantId: currentTenant.id
+        }
+      })
+    }
+  }, [currentTenant])
+
+  // Load usage analytics
+  const loadUsageAnalytics = useCallback(async () => {
+    if (!currentTenant) return
+
+    try {
+      const response = await fetch(`/api/tenant/usage-analytics?tenantId=${currentTenant.id}`, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      
+      const result = await response.json()
+
+      if (result.success && result.data) {
+        setUsageAnalytics(result.data)
+      } else {
+        errorLogger.logError('Failed to load usage analytics', {
+          component: 'tenant-api-keys',
+          action: 'loadUsageAnalytics',
+          additionalData: { 
+            error: result.error,
+            tenantId: currentTenant.id
+          }
+        })
+      }
+    } catch (error) {
+      errorLogger.logError('Failed to load usage analytics', {
+        component: 'tenant-api-keys',
+        action: 'loadUsageAnalytics',
+        additionalData: { 
+          error: error instanceof Error ? error.message : 'Unknown error',
+          tenantId: currentTenant.id
+        }
+      })
+    }
+  }, [currentTenant])
+
   // Create API key
   const createApiKey = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -215,6 +322,70 @@ export default function TenantApiKeys() {
       alert('Failed to create API key. Please try again.')
     } finally {
       setCreating(false)
+    }
+  }
+
+  // Create provisioning key
+  const createProvisioningKey = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!currentTenant) return
+
+    setCreatingProvisioning(true)
+    try {
+      const response = await fetch('/api/tenant/provisioning-keys', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          tenantId: currentTenant.id,
+          name: provisioningFormData.name,
+          provider: provisioningFormData.provider,
+          providerType: provisioningFormData.provider_type,
+          endpoint: provisioningFormData.endpoint,
+          config: provisioningFormData.config
+        })
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        setShowProvisioningForm(false)
+        setProvisioningFormData({
+          name: '',
+          provider: '',
+          provider_type: '',
+          endpoint: '',
+          config: {}
+        })
+        await loadProvisioningKeys()
+        alert('Provisioning key created successfully!')
+      } else {
+        errorLogger.logError('Failed to create provisioning key', {
+          component: 'tenant-api-keys',
+          action: 'createProvisioningKey',
+          additionalData: { 
+            error: result.error,
+            tenantId: currentTenant.id,
+            formData: provisioningFormData
+          }
+        })
+        alert(`Failed to create provisioning key: ${result.error}`)
+      }
+      
+    } catch (error) {
+      errorLogger.logError('Failed to create provisioning key', {
+        component: 'tenant-api-keys',
+        action: 'createProvisioningKey',
+        additionalData: { 
+          error: error instanceof Error ? error.message : 'Unknown error',
+          tenantId: currentTenant.id,
+          formData: provisioningFormData
+        }
+      })
+      alert('Failed to create provisioning key. Please try again.')
+    } finally {
+      setCreatingProvisioning(false)
     }
   }
 
@@ -342,8 +513,10 @@ export default function TenantApiKeys() {
   useEffect(() => {
     if (currentTenant) {
       loadApiKeys()
+      loadProvisioningKeys()
+      loadUsageAnalytics()
     }
-  }, [currentTenant, loadApiKeys])
+  }, [currentTenant, loadApiKeys, loadProvisioningKeys, loadUsageAnalytics])
 
   if (!currentTenant) {
     return (
@@ -408,6 +581,19 @@ export default function TenantApiKeys() {
             <div className="flex items-center space-x-2">
               <ExternalLink className="h-4 w-4" />
               <span>Provisioning Keys</span>
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab('analytics')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'analytics'
+                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+            }`}
+          >
+            <div className="flex items-center space-x-2">
+              <Activity className="h-4 w-4" />
+              <span>Usage Analytics</span>
             </div>
           </button>
         </nav>
@@ -688,6 +874,138 @@ export default function TenantApiKeys() {
             </div>
           )}
         </Card>
+      )}
+
+      {/* Analytics Tab */}
+      {activeTab === 'analytics' && (
+        <div className="space-y-6">
+          {/* Overview Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
+                <Activity className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {usageAnalytics?.total_requests.toLocaleString() || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {usageAnalytics?.successful_requests.toLocaleString() || 0} successful
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
+                <Shield className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {usageAnalytics ? 
+                    ((usageAnalytics.successful_requests / usageAnalytics.total_requests) * 100).toFixed(1) : 0}%
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {usageAnalytics?.failed_requests || 0} failed requests
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Avg Response Time</CardTitle>
+                <RefreshCw className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {usageAnalytics?.avg_response_time_ms.toFixed(0) || 0}ms
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Average response time
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Unique Users</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {usageAnalytics?.unique_users || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Active users
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Data Transfer Stats */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Data Transfer</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Requests Sent</span>
+                    <span className="text-sm text-muted-foreground">
+                      {usageAnalytics ? 
+                        `${(usageAnalytics.total_request_size_bytes / 1024 / 1024).toFixed(2)} MB` : '0 MB'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Responses Received</span>
+                    <span className="text-sm text-muted-foreground">
+                      {usageAnalytics ? 
+                        `${(usageAnalytics.total_response_size_bytes / 1024 / 1024).toFixed(2)} MB` : '0 MB'}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Top Endpoints</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {usageAnalytics?.top_endpoints?.slice(0, 5).map((endpoint, index) => (
+                    <div key={index} className="flex items-center justify-between">
+                      <span className="text-sm truncate">{endpoint.endpoint}</span>
+                      <span className="text-sm text-muted-foreground">{endpoint.count}</span>
+                    </div>
+                  )) || (
+                    <p className="text-sm text-muted-foreground">No endpoint data available</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Usage Chart Placeholder */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Usage Over Time</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-64 flex items-center justify-center text-muted-foreground">
+                <div className="text-center">
+                  <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>Usage chart visualization coming soon</p>
+                  <p className="text-sm mt-2">
+                    {usageAnalytics?.hourly_usage?.length || 0} data points available
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
     </div>
   )
