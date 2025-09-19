@@ -13,8 +13,8 @@ export async function GET(request: NextRequest) {
       return rateLimitResult.response!
     }
 
-    // Authenticate user
-    const authResult = await AuthMiddleware.authenticateUser()
+    // Authenticate user and check superadmin role
+    const authResult = await AuthMiddleware.requireSuperAdmin()
     if (!authResult.success) {
       return createAuthErrorResponse(authResult.error!, authResult.statusCode!)
     }
@@ -74,8 +74,8 @@ export async function POST(request: NextRequest) {
       return rateLimitResult.response!
     }
 
-    // Authenticate user
-    const authResult = await AuthMiddleware.authenticateUser()
+    // Authenticate user and check superadmin role
+    const authResult = await AuthMiddleware.requireSuperAdmin()
     if (!authResult.success) {
       return createAuthErrorResponse(authResult.error!, authResult.statusCode!)
     }

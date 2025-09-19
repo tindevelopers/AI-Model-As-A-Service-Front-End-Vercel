@@ -26,15 +26,38 @@ export class AuthMiddleware {
   static async authenticateUser(): Promise<AuthResult> {
     try {
       const supabase = await createServerClient()
+      
+      // First try to get the session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError || !session) {
+        errorLogger.logError('Authentication failed - No session', {
+          component: 'auth-middleware',
+          action: 'authenticateUser',
+          additionalData: {
+            error: sessionError?.message || 'No session found',
+            hasSession: !!session
+          }
+        })
+
+        return {
+          success: false,
+          error: 'Unauthorized - Please log in to access this resource',
+          statusCode: 401
+        }
+      }
+
+      // Get user from session
       const { data: { user }, error: authError } = await supabase.auth.getUser()
 
       if (authError || !user) {
-        errorLogger.logError('Authentication failed', {
+        errorLogger.logError('Authentication failed - Invalid user', {
           component: 'auth-middleware',
           action: 'authenticateUser',
           additionalData: {
             error: authError?.message || 'No user found',
-            hasUser: !!user
+            hasUser: !!user,
+            hasSession: !!session
           }
         })
 
@@ -170,7 +193,7 @@ export class AuthMiddleware {
 
     const user = authResult.user!
     
-    if (user.role !== 'admin' && user.role !== 'super_admin') {
+    if (user.role !== 'admin' && user.role !== 'superadmin') {
       errorLogger.logError('Unauthorized admin access attempt', {
         component: 'auth-middleware',
         action: 'requireAdmin',
@@ -184,6 +207,39 @@ export class AuthMiddleware {
       return {
         success: false,
         error: 'Admin access required',
+        statusCode: 403
+      }
+    }
+
+    return authResult
+  }
+
+  /**
+   * Check if user has superadmin role
+   */
+  static async requireSuperAdmin(): Promise<AuthResult> {
+    const authResult = await this.authenticateUser()
+    
+    if (!authResult.success) {
+      return authResult
+    }
+
+    const user = authResult.user!
+    
+    if (user.role !== 'superadmin') {
+      errorLogger.logError('Unauthorized superadmin access attempt', {
+        component: 'auth-middleware',
+        action: 'requireSuperAdmin',
+        additionalData: {
+          userId: user.id,
+          userRole: user.role,
+          userEmail: user.email
+        }
+      })
+
+      return {
+        success: false,
+        error: 'Superadmin access required',
         statusCode: 403
       }
     }
