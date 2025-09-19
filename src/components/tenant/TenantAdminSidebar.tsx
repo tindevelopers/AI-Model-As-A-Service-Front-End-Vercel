@@ -28,6 +28,7 @@ const iconMap = {
   documentation: FileText,
   usage: BarChart3,
   keys: Key,
+  apikeys: Key,
   docs: FileText,
   team: Users,
   permissions: Shield,
