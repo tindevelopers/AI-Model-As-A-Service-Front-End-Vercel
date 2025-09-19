@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useTenant } from '@/context/TenantContext'
-import { Button } from '@/components/ui/button'
+import Button from '@/components/ui/button/Button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,8 +10,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Badge } from '@/components/ui/badge'
+} from '@/components/ui/dropdown-menu/DropdownMenu'
+import Badge from '@/components/ui/badge/Badge'
 import { ChevronDown, Building2, Users, Crown, Shield, User, Eye } from 'lucide-react'
 
 const roleIcons = {
