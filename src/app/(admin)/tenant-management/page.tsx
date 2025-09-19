@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
 import { Card, CardTitle, CardDescription } from '@/components/ui/card/Card'
 import Button from '@/components/ui/button/Button'
 import Badge from '@/components/ui/badge/Badge'
-import { Plus, Building2, Users, Settings, Eye, Edit, Trash2 } from 'lucide-react'
+import { Plus, Building2, Users, Eye, Edit, Trash2 } from 'lucide-react'
 import { errorLogger } from '@/utils/errorLogger'
 
 interface Tenant {
@@ -32,7 +32,7 @@ interface CreateTenantForm {
 }
 
 export default function TenantManagement() {
-  const { user, session } = useAuth()
+  const { session } = useAuth()
   const [tenants, setTenants] = useState<Tenant[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
@@ -44,7 +44,7 @@ export default function TenantManagement() {
   })
 
   // Load tenants
-  const loadTenants = async () => {
+  const loadTenants = useCallback(async () => {
     if (!session) return
 
     setLoading(true)
@@ -76,7 +76,7 @@ export default function TenantManagement() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [session])
 
   // Create tenant
   const createTenant = async (e: React.FormEvent) => {
@@ -162,7 +162,7 @@ export default function TenantManagement() {
     if (session) {
       loadTenants()
     }
-  }, [session])
+  }, [session, loadTenants])
 
   return (
     <ProtectedRoute>
