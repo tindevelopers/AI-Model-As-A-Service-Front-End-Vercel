@@ -66,11 +66,10 @@ export default function TenantDashboard() {
           <Badge 
             variant={currentTenant.subscription_status === 'active' ? 'solid' : 'light'}
             color={currentTenant.subscription_status === 'active' ? 'success' : 'warning'}
-            className="capitalize"
           >
             {currentTenant.subscription_status}
           </Badge>
-          <Badge variant="light" color="info" className="capitalize">
+          <Badge variant="light" color="info">
             {currentTenant.subscription_plan}
           </Badge>
           <Button 
@@ -212,7 +211,6 @@ export default function TenantDashboard() {
                   <Badge 
                     variant={tenantBilling.payment_status === 'paid' ? 'solid' : 'light'}
                     color={tenantBilling.payment_status === 'paid' ? 'success' : 'warning'}
-                    className="capitalize"
                   >
                     {tenantBilling.payment_status}
                   </Badge>
