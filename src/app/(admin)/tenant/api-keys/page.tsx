@@ -133,19 +133,25 @@ export default function TenantApiKeys() {
           id: '1',
           name: 'OpenAI Integration',
           provider: 'OpenAI',
+          provider_type: 'llm',
           endpoint: 'https://api.openai.com/v1',
           is_active: true,
+          usage_count: 1250,
           created_at: '2024-01-12T10:00:00Z',
-          last_used: '2024-01-20T16:45:00Z'
+          last_used: '2024-01-20T16:45:00Z',
+          config: { model: 'gpt-4', max_tokens: 4096 }
         },
         {
           id: '2',
           name: 'Anthropic Claude',
           provider: 'Anthropic',
+          provider_type: 'llm',
           endpoint: 'https://api.anthropic.com',
           is_active: true,
+          usage_count: 890,
           created_at: '2024-01-14T15:30:00Z',
-          last_used: '2024-01-19T12:30:00Z'
+          last_used: '2024-01-19T12:30:00Z',
+          config: { model: 'claude-3-sonnet', max_tokens: 4096 }
         }
       ]
       
