@@ -5,15 +5,12 @@ import AppHeader from "@/layout/AppHeader";
 import AppSidebar from "@/layout/AppSidebar";
 import Backdrop from "@/layout/Backdrop";
 import React from "react";
-import { usePathname } from "next/navigation";
-
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const { isSidebarOpen, toggleSidebar } = useSidebar();
-  const pathname = usePathname();
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
