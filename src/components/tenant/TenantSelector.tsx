@@ -121,7 +121,6 @@ export function TenantSelector() {
                 <Badge 
                   variant="light" 
                   color="info"
-                  className={`text-xs ${roleColors[tenantRole.role as keyof typeof roleColors] || roleColors.member}`}
                 >
                   <RoleIcon className="h-3 w-3 mr-1" />
                   {tenantRole.role}
