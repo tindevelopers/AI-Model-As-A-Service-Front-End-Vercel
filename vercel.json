@@ -1,5 +1,4 @@
 {
-  "name": "ai-model-as-a-service",
   "regions": ["iad1"],
   "functions": {
     "src/app/api/**/*.ts": {
@@ -51,12 +50,5 @@
       "source": "/health",
       "destination": "/api/health"
     }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  },
-  "buildCommand": "npm run build",
-  "outputDirectory": ".next",
-  "installCommand": "npm ci",
-  "framework": "nextjs"
+  ]
 }
