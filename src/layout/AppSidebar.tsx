@@ -45,6 +45,7 @@ const navItems: NavItem[] = [
       { name: "Stocks", path: "/stocks" },
       { name: "SaaS", path: "/saas", new: true },
       { name: "Logistics", path: "/logistics", new: true },
+      { name: "Tenant Management", path: "/tenant-management", new: true },
     ],
   },
   {
@@ -128,7 +129,6 @@ const navItems: NavItem[] = [
       { name: "FAQ", path: "/faq" },
       { name: "API Keys", path: "/api-keys", new: true },
       { name: "Integrations", path: "/integrations", new: true },
-      { name: "Tenant Management", path: "/tenant-management", new: true },
       { name: "Blank Page", path: "/blank" },
       { name: "404 Error", path: "/error-404" },
       { name: "500 Error", path: "/error-500" },
