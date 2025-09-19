@@ -16,7 +16,7 @@ import {
   ChevronRight,
   Building2
 } from 'lucide-react'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible/Collapsible'
 import { useState } from 'react'
 
 const iconMap = {
