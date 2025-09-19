@@ -119,7 +119,8 @@ export function TenantSelector() {
               
               <div className="flex items-center space-x-2 flex-shrink-0">
                 <Badge 
-                  variant="secondary" 
+                  variant="light" 
+                  color="info"
                   className={`text-xs ${roleColors[tenantRole.role as keyof typeof roleColors] || roleColors.member}`}
                 >
                   <RoleIcon className="h-3 w-3 mr-1" />
