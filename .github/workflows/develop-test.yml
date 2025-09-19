@@ -1,0 +1,57 @@
+name: Development Branch Testing
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set up Node.js ${{ env.NODE_VERSION }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+    
+    - name: Clean install dependencies
+      run: npm ci
+
+    - name: Disable Next.js telemetry
+      run: npx next telemetry disable
+    
+    - name: Run ESLint
+      run: npm run lint
+    
+    - name: Build application (no cache)
+      env:
+        NEXT_FORCE_TURBOPACK: 0
+        NEXT_TELEMETRY_DISABLED: 1
+        NODE_OPTIONS: --max-old-space-size=4096
+      run: |
+        rm -rf .next node_modules/.cache || true
+        npm run build
+
+    - name: Verify critical routes exist
+      run: |
+        set -e
+        grep -R "/forgot-password" .next/ || (echo "forgot-password route missing" && exit 1)
+        grep -R "/reset-password" .next/ || (echo "reset-password route missing" && exit 1)
+        grep -R "/auth/callback" .next/ || (echo "auth/callback route missing" && exit 1)
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: develop-build-files
+        path: .next/
+
+  # Note: develop branch only runs tests, no deployment
+  # Production deployments only happen from main branch via Pull Request
