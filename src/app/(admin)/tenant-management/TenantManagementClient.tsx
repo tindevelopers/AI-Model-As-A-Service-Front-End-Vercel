@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useAuth } from '@/context/AuthContext'
 import Button from '@/components/ui/button/Button'
 import { Plus } from 'lucide-react'
 
@@ -12,6 +13,7 @@ interface CreateTenantForm {
 }
 
 export default function TenantManagementClient() {
+  const { session } = useAuth()
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [creating, setCreating] = useState(false)
   const [formData, setFormData] = useState<CreateTenantForm>({
@@ -42,12 +44,18 @@ export default function TenantManagementClient() {
   const createTenant = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    if (!session?.access_token) {
+      alert('You must be logged in to create a tenant.')
+      return
+    }
+    
     setCreating(true)
     try {
       const response = await fetch('/api/admin/tenants', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify(formData)
       })
