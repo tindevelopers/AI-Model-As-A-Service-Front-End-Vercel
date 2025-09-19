@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardTitle, CardDescription } from '@/components/ui/card/Card'
 import Button from '@/components/ui/button/Button'
 import { Plus } from 'lucide-react'
 
@@ -84,12 +83,16 @@ export default function TenantManagementClient() {
       {showCreateForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
-            <Card>
-              <CardTitle>Create New Tenant</CardTitle>
-              <CardDescription>
-                Create a new tenant organization with its own users and settings
-              </CardDescription>
-              <form onSubmit={createTenant} className="mt-4 space-y-4">
+            <div className="space-y-4">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Create New Tenant
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Create a new tenant organization with its own users and settings
+                </p>
+              </div>
+              <form onSubmit={createTenant} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Tenant Name
@@ -128,11 +131,12 @@ export default function TenantManagementClient() {
                     rows={3}
                   />
                 </div>
-                <div className="flex space-x-3">
+                <div className="flex space-x-3 pt-4">
                   <Button
                     type="submit"
                     disabled={creating}
                     startIcon={<Plus className="h-4 w-4" />}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2"
                   >
                     {creating ? 'Creating...' : 'Create Tenant'}
                   </Button>
@@ -140,12 +144,13 @@ export default function TenantManagementClient() {
                     type="button"
                     variant="outline"
                     onClick={() => setShowCreateForm(false)}
+                    className="px-4 py-2"
                   >
                     Cancel
                   </Button>
                 </div>
               </form>
-            </Card>
+            </div>
           </div>
         </div>
       )}
