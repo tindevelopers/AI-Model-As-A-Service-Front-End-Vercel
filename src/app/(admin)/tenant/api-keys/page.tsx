@@ -67,13 +67,6 @@ interface UsageAnalytics {
   hourly_usage: Array<{ hour: string; count: number }>
 }
 
-interface CreateProvisioningKeyForm {
-  name: string
-  provider: string
-  provider_type: string
-  endpoint: string
-  config: Record<string, unknown>
-}
 
 export default function TenantApiKeys() {
   const { currentTenant } = useTenant()
