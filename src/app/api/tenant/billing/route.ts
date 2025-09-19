@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
         action: 'GET',
         userId,
         additionalData: {
-          additionalData: { tenantId,
+          tenantId,
           error: error.message,
           errorCode: error.code
         }
