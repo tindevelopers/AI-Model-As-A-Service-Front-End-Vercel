@@ -57,10 +57,10 @@ export async function POST(request: NextRequest) {
         component: 'tenant-invite-route',
         action: 'POST',
         userId,
-        tenantId: tenant_id,
-        targetUserId: user_id,
-        role,
         additionalData: {
+          tenantId: tenant_id,
+          targetUserId: user_id,
+          role,
           error: error.message,
           errorCode: error.code
         }
