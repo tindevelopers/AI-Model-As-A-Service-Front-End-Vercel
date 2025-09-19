@@ -133,16 +133,14 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         errorLogger.logError('Failed to load tenant menu', {
           component: 'tenant-context',
           action: 'loadTenantMenu',
-          tenantId,
-          additionalData: { error: result.error }
+          additionalData: { additionalData: { tenantId, error: result.error }
         })
       }
     } catch (error) {
       errorLogger.logError('Failed to load tenant menu', {
         component: 'tenant-context',
         action: 'loadTenantMenu',
-        tenantId,
-        additionalData: { error: error instanceof Error ? error.message : 'Unknown error' }
+        additionalData: { additionalData: { tenantId, error: error instanceof Error ? error.message : 'Unknown error' }
       })
     } finally {
       setLoadingMenu(false)
@@ -170,16 +168,14 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         errorLogger.logError('Failed to load tenant statistics', {
           component: 'tenant-context',
           action: 'loadTenantStats',
-          tenantId,
-          additionalData: { error: result.error }
+          additionalData: { tenantId, error: result.error }
         })
       }
     } catch (error) {
       errorLogger.logError('Failed to load tenant statistics', {
         component: 'tenant-context',
         action: 'loadTenantStats',
-        tenantId,
-        additionalData: { error: error instanceof Error ? error.message : 'Unknown error' }
+        additionalData: { tenantId, error: error instanceof Error ? error.message : 'Unknown error' }
       })
     } finally {
       setLoadingStats(false)
@@ -207,16 +203,14 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         errorLogger.logError('Failed to load tenant billing', {
           component: 'tenant-context',
           action: 'loadTenantBilling',
-          tenantId,
-          additionalData: { error: result.error }
+          additionalData: { tenantId, error: result.error }
         })
       }
     } catch (error) {
       errorLogger.logError('Failed to load tenant billing', {
         component: 'tenant-context',
         action: 'loadTenantBilling',
-        tenantId,
-        additionalData: { error: error instanceof Error ? error.message : 'Unknown error' }
+        additionalData: { tenantId, error: error instanceof Error ? error.message : 'Unknown error' }
       })
     } finally {
       setLoadingBilling(false)
