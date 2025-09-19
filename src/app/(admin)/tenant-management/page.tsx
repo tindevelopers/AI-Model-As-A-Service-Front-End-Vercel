@@ -180,6 +180,7 @@ export default function TenantManagement() {
           <Button
             onClick={() => setShowCreateForm(true)}
             startIcon={<Plus className="h-4 w-4" />}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
           >
             Create Tenant
           </Button>
@@ -271,12 +272,21 @@ export default function TenantManagement() {
               <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Get started by creating your first tenant
               </p>
-              <Button
-                onClick={() => setShowCreateForm(true)}
-                startIcon={<Plus className="h-4 w-4" />}
-              >
-                Create First Tenant
-              </Button>
+              <div className="space-y-2">
+                <Button
+                  onClick={() => setShowCreateForm(true)}
+                  startIcon={<Plus className="h-4 w-4" />}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+                >
+                  Create First Tenant
+                </Button>
+                <button
+                  onClick={() => setShowCreateForm(true)}
+                  className="block mx-auto bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm"
+                >
+                  Alternative Create Button
+                </button>
+              </div>
             </div>
           ) : (
             <div className="mt-4 overflow-x-auto">
