@@ -3,7 +3,7 @@ import { createServerClient } from '@/lib/supabase-server'
 import { Card, CardTitle, CardDescription } from '@/components/ui/card/Card'
 import Button from '@/components/ui/button/Button'
 import Badge from '@/components/ui/badge/Badge'
-import { Plus, Building2, Users, Eye, Edit, Trash2 } from 'lucide-react'
+import { Building2, Users, Eye, Edit, Trash2 } from 'lucide-react'
 import TenantManagementClient from './TenantManagementClient'
 
 interface Tenant {
@@ -21,12 +21,6 @@ interface Tenant {
   member_count: number
 }
 
-interface CreateTenantForm {
-  name: string
-  slug: string
-  description: string
-  owner_user_id?: string
-}
 
 // Server-side data fetching function
 async function getTenants(): Promise<Tenant[]> {

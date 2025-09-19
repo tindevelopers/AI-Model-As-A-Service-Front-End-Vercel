@@ -63,7 +63,7 @@ export default function TenantManagementClient() {
       } else {
         alert('Failed to create tenant: ' + result.error)
       }
-    } catch (error) {
+    } catch {
       alert('Failed to create tenant. Please try again.')
     } finally {
       setCreating(false)
