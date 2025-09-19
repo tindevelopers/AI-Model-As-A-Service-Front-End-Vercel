@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode, useRef, useEffect } from 'react'
+import React, { createContext, useContext, useState, ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 
 interface DropdownMenuContextType {
