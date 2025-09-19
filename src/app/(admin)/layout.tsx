@@ -1,6 +1,5 @@
 "use client";
 
-import { useSidebar } from "@/context/SidebarContext";
 import AppHeader from "@/layout/AppHeader";
 import AppSidebar from "@/layout/AppSidebar";
 import Backdrop from "@/layout/Backdrop";
@@ -10,7 +9,6 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { isMobileOpen, toggleMobileSidebar } = useSidebar();
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
