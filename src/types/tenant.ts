@@ -145,7 +145,7 @@ export interface InviteUserRequest {
   role?: 'owner' | 'admin' | 'member' | 'viewer'
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean
   data?: T
   error?: string

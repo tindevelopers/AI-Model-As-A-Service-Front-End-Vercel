@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react'
 import { useAuth } from './AuthContext'
 import { 
   Tenant, 
@@ -60,7 +60,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   const [loadingBilling, setLoadingBilling] = useState(false)
 
   // Load user's tenant roles
-  const loadUserTenantRoles = async () => {
+  const loadUserTenantRoles = useCallback(async () => {
     if (!user || !session) return
 
     setLoadingRoles(true)
@@ -110,7 +110,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoadingRoles(false)
     }
-  }
+  }, [user, session])
 
   // Load tenant admin menu
   const loadTenantMenu = async (tenantId: string) => {
@@ -224,13 +224,13 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   }
 
   // Refresh all tenant data
-  const refreshTenantData = async (tenantId: string) => {
+  const refreshTenantData = useCallback(async (tenantId: string) => {
     await Promise.all([
       loadTenantMenu(tenantId),
       loadTenantStats(tenantId),
       loadTenantBilling(tenantId)
     ])
-  }
+  }, [])
 
   // Load user tenant roles when user changes
   useEffect(() => {
