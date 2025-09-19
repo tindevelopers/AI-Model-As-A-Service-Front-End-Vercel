@@ -7,7 +7,7 @@ import { createServerClient } from '@/lib/supabase-server'
 // DELETE: Remove user from tenant
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
     // Apply rate limiting
@@ -23,7 +23,7 @@ export async function DELETE(
     }
 
     const userId = authResult.user!.id
-    const targetUserId = params.userId
+    const { userId: targetUserId } = await params
 
     // Get tenant_id from query parameters
     const { searchParams } = new URL(request.url)
