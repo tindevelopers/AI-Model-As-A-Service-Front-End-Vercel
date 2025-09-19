@@ -743,7 +743,7 @@ export default function TenantApiKeys() {
               </CardDescription>
             </div>
             <Button
-              onClick={() => setShowProvisioningForm(true)}
+              onClick={() => alert('Provisioning key creation coming soon!')}
               startIcon={<Plus className="h-4 w-4" />}
               variant="outline"
             >
@@ -761,7 +761,7 @@ export default function TenantApiKeys() {
                 Add external LLM providers to expand your AI capabilities
               </p>
               <Button
-                onClick={() => setShowProvisioningForm(true)}
+                onClick={() => alert('Provisioning key creation coming soon!')}
                 startIcon={<Plus className="h-4 w-4" />}
                 variant="outline"
               >
