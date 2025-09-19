@@ -133,14 +133,14 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         errorLogger.logError('Failed to load tenant menu', {
           component: 'tenant-context',
           action: 'loadTenantMenu',
-          additionalData: { additionalData: { tenantId, error: result.error }
+          additionalData: { tenantId, error: result.error }
         })
       }
     } catch (error) {
       errorLogger.logError('Failed to load tenant menu', {
         component: 'tenant-context',
         action: 'loadTenantMenu',
-        additionalData: { additionalData: { tenantId, error: error instanceof Error ? error.message : 'Unknown error' }
+        additionalData: { tenantId, error: error instanceof Error ? error.message : 'Unknown error' }
       })
     } finally {
       setLoadingMenu(false)
