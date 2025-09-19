@@ -10,7 +10,7 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { isSidebarOpen, toggleSidebar } = useSidebar();
+  const { isMobileOpen, toggleMobileSidebar } = useSidebar();
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
@@ -23,7 +23,7 @@ export default function AdminLayout({
           </div>
         </main>
       </div>
-      {isSidebarOpen && <Backdrop onClick={toggleSidebar} />}
+      {isMobileOpen && <Backdrop onClick={toggleMobileSidebar} />}
     </div>
   );
 }
