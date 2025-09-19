@@ -1,6 +1,9 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase-server'
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
 import { Card, CardTitle, CardDescription } from '@/components/ui/card/Card'
 import Button from '@/components/ui/button/Button'
 import Badge from '@/components/ui/badge/Badge'
