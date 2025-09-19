@@ -1,4 +1,5 @@
 {
+  "name": "ai-model-as-a-service",
   "regions": ["iad1"],
   "functions": {
     "src/app/api/**/*.ts": {
