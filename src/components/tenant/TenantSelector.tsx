@@ -37,7 +37,7 @@ export function TenantSelector() {
   } = useTenant()
   const [isOpen, setIsOpen] = useState(false)
 
-  const handleTenantSelect = (tenantRole: any) => {
+  const handleTenantSelect = (tenantRole: { tenant_id: string; tenant_name: string; tenant_slug: string; role: string }) => {
     // Create a basic tenant object from the role data
     const tenant = {
       id: tenantRole.tenant_id,
@@ -73,9 +73,6 @@ export function TenantSelector() {
     )
   }
 
-  const currentRole = userTenantRoles.find(role => 
-    currentTenant && role.tenant_id === currentTenant.id
-  )
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>

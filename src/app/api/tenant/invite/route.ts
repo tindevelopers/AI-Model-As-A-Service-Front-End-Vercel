@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { AuthMiddleware, createAuthErrorResponse } from '@/lib/auth-middleware'
 import { applyRateLimit, rateLimiters } from '@/lib/rate-limiter'
 import { errorLogger } from '@/utils/errorLogger'
-import { createClient } from '@/lib/supabase-server'
+import { createServerClient } from '@/lib/supabase-server'
 
 // POST: Invite user to tenant
 export async function POST(request: NextRequest) {
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create Supabase client
-    const supabase = createClient()
+    const supabase = await createServerClient()
 
     // Call the invite_user_to_tenant function
     const { data, error } = await supabase.rpc('invite_user_to_tenant', {

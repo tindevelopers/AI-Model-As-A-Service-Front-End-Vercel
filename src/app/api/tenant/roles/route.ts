@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { AuthMiddleware, createAuthErrorResponse } from '@/lib/auth-middleware'
 import { applyRateLimit, rateLimiters } from '@/lib/rate-limiter'
 import { errorLogger } from '@/utils/errorLogger'
-import { createClient } from '@/lib/supabase-server'
+import { createServerClient } from '@/lib/supabase-server'
 
 // GET: Get user's tenant roles
 export async function GET(request: NextRequest) {
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     const userId = authResult.user!.id
 
     // Create Supabase client
-    const supabase = createClient()
+    const supabase = await createServerClient()
 
     // Call the get_user_tenant_roles function
     const { data, error } = await supabase.rpc('get_user_tenant_roles')

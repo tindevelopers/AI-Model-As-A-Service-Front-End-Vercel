@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { AuthMiddleware, createAuthErrorResponse } from '@/lib/auth-middleware'
 import { applyRateLimit, rateLimiters } from '@/lib/rate-limiter'
 import { errorLogger } from '@/utils/errorLogger'
-import { createClient } from '@/lib/supabase-server'
+import { createServerClient } from '@/lib/supabase-server'
 
 // GET: List all tenants (superadmin only)
 export async function GET(request: NextRequest) {
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     const userId = authResult.user!.id
 
     // Create Supabase client
-    const supabase = createClient()
+    const supabase = await createServerClient()
 
     // Call the get_all_tenants function (superadmin only)
     const { data, error } = await supabase.rpc('get_all_tenants')
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create Supabase client
-    const supabase = createClient()
+    const supabase = await createServerClient()
 
     // Call the create_tenant function (superadmin only)
     const { data, error } = await supabase.rpc('create_tenant', {

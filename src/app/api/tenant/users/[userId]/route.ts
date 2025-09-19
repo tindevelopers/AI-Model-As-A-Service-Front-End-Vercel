@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { AuthMiddleware, createAuthErrorResponse } from '@/lib/auth-middleware'
 import { applyRateLimit, rateLimiters } from '@/lib/rate-limiter'
 import { errorLogger } from '@/utils/errorLogger'
-import { createClient } from '@/lib/supabase-server'
+import { createServerClient } from '@/lib/supabase-server'
 
 // DELETE: Remove user from tenant
 export async function DELETE(
@@ -37,7 +37,7 @@ export async function DELETE(
     }
 
     // Create Supabase client
-    const supabase = createClient()
+    const supabase = await createServerClient()
 
     // Call the remove_user_from_tenant function
     const { data, error } = await supabase.rpc('remove_user_from_tenant', {

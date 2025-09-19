@@ -244,14 +244,14 @@ export function TenantProvider({ children }: { children: ReactNode }) {
       setTenantStats(null)
       setTenantBilling(null)
     }
-  }, [user, session])
+  }, [user, session, loadUserTenantRoles])
 
   // Load tenant data when current tenant changes
   useEffect(() => {
     if (currentTenant) {
       refreshTenantData(currentTenant.id)
     }
-  }, [currentTenant])
+  }, [currentTenant, refreshTenantData])
 
   const value: TenantContextType = {
     currentTenant,

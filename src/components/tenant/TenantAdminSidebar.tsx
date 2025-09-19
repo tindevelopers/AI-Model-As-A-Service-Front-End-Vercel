@@ -10,8 +10,6 @@ import {
   BarChart3, 
   FileText, 
   DollarSign, 
-  CreditCard, 
-  Receipt, 
   Settings, 
   Users, 
   Shield, 

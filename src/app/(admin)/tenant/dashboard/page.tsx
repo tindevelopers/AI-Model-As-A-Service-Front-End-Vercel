@@ -1,7 +1,6 @@
 'use client'
 
 import { useTenant } from '@/context/TenantContext'
-import { useAuth } from '@/context/AuthContext'
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card/Card'
 import Badge from '@/components/ui/badge/Badge'
 import Button from '@/components/ui/button/Button'
@@ -10,8 +9,6 @@ import {
   Key, 
   Activity, 
   DollarSign, 
-  TrendingUp, 
-  TrendingDown,
   RefreshCw
 } from 'lucide-react'
 import { useEffect } from 'react'
@@ -25,7 +22,6 @@ export default function TenantDashboard() {
     loadingBilling,
     refreshTenantData 
   } = useTenant()
-  const { user } = useAuth()
 
   useEffect(() => {
     if (currentTenant) {
