@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react'
 import { useAuth } from './AuthContext'
 import { 
   Tenant, 
@@ -60,7 +60,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   const [loadingBilling, setLoadingBilling] = useState(false)
 
   // Load user's tenant roles
-  const loadUserTenantRoles = async () => {
+  const loadUserTenantRoles = useCallback(async () => {
     if (!user || !session) return
 
     setLoadingRoles(true)
@@ -110,7 +110,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoadingRoles(false)
     }
-  }
+  }, [user, session])
 
   // Load tenant admin menu
   const loadTenantMenu = async (tenantId: string) => {
@@ -133,16 +133,14 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         errorLogger.logError('Failed to load tenant menu', {
           component: 'tenant-context',
           action: 'loadTenantMenu',
-          tenantId,
-          additionalData: { error: result.error }
+          additionalData: { tenantId, error: result.error }
         })
       }
     } catch (error) {
       errorLogger.logError('Failed to load tenant menu', {
         component: 'tenant-context',
         action: 'loadTenantMenu',
-        tenantId,
-        additionalData: { error: error instanceof Error ? error.message : 'Unknown error' }
+        additionalData: { tenantId, error: error instanceof Error ? error.message : 'Unknown error' }
       })
     } finally {
       setLoadingMenu(false)
@@ -170,16 +168,14 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         errorLogger.logError('Failed to load tenant statistics', {
           component: 'tenant-context',
           action: 'loadTenantStats',
-          tenantId,
-          additionalData: { error: result.error }
+          additionalData: { tenantId, error: result.error }
         })
       }
     } catch (error) {
       errorLogger.logError('Failed to load tenant statistics', {
         component: 'tenant-context',
         action: 'loadTenantStats',
-        tenantId,
-        additionalData: { error: error instanceof Error ? error.message : 'Unknown error' }
+        additionalData: { tenantId, error: error instanceof Error ? error.message : 'Unknown error' }
       })
     } finally {
       setLoadingStats(false)
@@ -207,16 +203,14 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         errorLogger.logError('Failed to load tenant billing', {
           component: 'tenant-context',
           action: 'loadTenantBilling',
-          tenantId,
-          additionalData: { error: result.error }
+          additionalData: { tenantId, error: result.error }
         })
       }
     } catch (error) {
       errorLogger.logError('Failed to load tenant billing', {
         component: 'tenant-context',
         action: 'loadTenantBilling',
-        tenantId,
-        additionalData: { error: error instanceof Error ? error.message : 'Unknown error' }
+        additionalData: { tenantId, error: error instanceof Error ? error.message : 'Unknown error' }
       })
     } finally {
       setLoadingBilling(false)
@@ -224,13 +218,13 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   }
 
   // Refresh all tenant data
-  const refreshTenantData = async (tenantId: string) => {
+  const refreshTenantData = useCallback(async (tenantId: string) => {
     await Promise.all([
       loadTenantMenu(tenantId),
       loadTenantStats(tenantId),
       loadTenantBilling(tenantId)
     ])
-  }
+  }, [])
 
   // Load user tenant roles when user changes
   useEffect(() => {
@@ -244,14 +238,14 @@ export function TenantProvider({ children }: { children: ReactNode }) {
       setTenantStats(null)
       setTenantBilling(null)
     }
-  }, [user, session])
+  }, [user, session, loadUserTenantRoles])
 
   // Load tenant data when current tenant changes
   useEffect(() => {
     if (currentTenant) {
       refreshTenantData(currentTenant.id)
     }
-  }, [currentTenant])
+  }, [currentTenant, refreshTenantData])
 
   const value: TenantContextType = {
     currentTenant,

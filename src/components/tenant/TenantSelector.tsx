@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useTenant } from '@/context/TenantContext'
-import { Button } from '@/components/ui/button'
+import Button from '@/components/ui/button/Button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,8 +10,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Badge } from '@/components/ui/badge'
+} from '@/components/ui/dropdown-menu/DropdownMenu'
+import Badge from '@/components/ui/badge/Badge'
 import { ChevronDown, Building2, Users, Crown, Shield, User, Eye } from 'lucide-react'
 
 const roleIcons = {
@@ -21,12 +21,6 @@ const roleIcons = {
   viewer: Eye
 }
 
-const roleColors = {
-  owner: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-  admin: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-  member: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-  viewer: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
-}
 
 export function TenantSelector() {
   const { 
@@ -37,7 +31,7 @@ export function TenantSelector() {
   } = useTenant()
   const [isOpen, setIsOpen] = useState(false)
 
-  const handleTenantSelect = (tenantRole: any) => {
+  const handleTenantSelect = (tenantRole: { tenant_id: string; tenant_name: string; tenant_slug: string; role: string }) => {
     // Create a basic tenant object from the role data
     const tenant = {
       id: tenantRole.tenant_id,
@@ -73,9 +67,6 @@ export function TenantSelector() {
     )
   }
 
-  const currentRole = userTenantRoles.find(role => 
-    currentTenant && role.tenant_id === currentTenant.id
-  )
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
@@ -122,8 +113,8 @@ export function TenantSelector() {
               
               <div className="flex items-center space-x-2 flex-shrink-0">
                 <Badge 
-                  variant="secondary" 
-                  className={`text-xs ${roleColors[tenantRole.role as keyof typeof roleColors] || roleColors.member}`}
+                  variant="light" 
+                  color="info"
                 >
                   <RoleIcon className="h-3 w-3 mr-1" />
                   {tenantRole.role}

@@ -10,15 +10,13 @@ import {
   BarChart3, 
   FileText, 
   DollarSign, 
-  CreditCard, 
-  Receipt, 
   Settings, 
   Users, 
   Shield, 
   ChevronRight,
   Building2
 } from 'lucide-react'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible/Collapsible'
 import { useState } from 'react'
 
 const iconMap = {

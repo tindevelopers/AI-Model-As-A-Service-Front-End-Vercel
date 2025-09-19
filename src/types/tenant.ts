@@ -20,7 +20,7 @@ export interface TenantUser {
   tenant_id: string
   user_id: string
   role: 'owner' | 'admin' | 'member' | 'viewer'
-  permissions: Record<string, any>
+  permissions: Record<string, unknown>
   invited_by?: string
   invited_at: string
   joined_at?: string
@@ -110,7 +110,7 @@ export interface UserTenantRole {
   tenant_name: string
   tenant_slug: string
   role: string
-  permissions: Record<string, any>
+  permissions: Record<string, unknown>
 }
 
 export interface MenuSection {
@@ -145,7 +145,7 @@ export interface InviteUserRequest {
   role?: 'owner' | 'admin' | 'member' | 'viewer'
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean
   data?: T
   error?: string

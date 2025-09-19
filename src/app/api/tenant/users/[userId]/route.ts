@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { AuthMiddleware, createAuthErrorResponse } from '@/lib/auth-middleware'
 import { applyRateLimit, rateLimiters } from '@/lib/rate-limiter'
 import { errorLogger } from '@/utils/errorLogger'
-import { createClient } from '@/lib/supabase-server'
+import { createServerClient } from '@/lib/supabase-server'
 
 // DELETE: Remove user from tenant
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
     // Apply rate limiting
@@ -23,7 +23,7 @@ export async function DELETE(
     }
 
     const userId = authResult.user!.id
-    const targetUserId = params.userId
+    const { userId: targetUserId } = await params
 
     // Get tenant_id from query parameters
     const { searchParams } = new URL(request.url)
@@ -37,7 +37,7 @@ export async function DELETE(
     }
 
     // Create Supabase client
-    const supabase = createClient()
+    const supabase = await createServerClient()
 
     // Call the remove_user_from_tenant function
     const { data, error } = await supabase.rpc('remove_user_from_tenant', {
@@ -50,9 +50,9 @@ export async function DELETE(
         component: 'tenant-users-route',
         action: 'DELETE',
         userId,
-        tenantId,
-        targetUserId,
         additionalData: {
+          tenantId,
+          targetUserId,
           error: error.message,
           errorCode: error.code
         }

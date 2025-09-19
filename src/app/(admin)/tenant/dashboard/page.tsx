@@ -1,17 +1,14 @@
 'use client'
 
 import { useTenant } from '@/context/TenantContext'
-import { useAuth } from '@/context/AuthContext'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card/Card'
+import Badge from '@/components/ui/badge/Badge'
+import Button from '@/components/ui/button/Button'
 import { 
   Users, 
   Key, 
   Activity, 
   DollarSign, 
-  TrendingUp, 
-  TrendingDown,
   RefreshCw
 } from 'lucide-react'
 import { useEffect } from 'react'
@@ -25,7 +22,6 @@ export default function TenantDashboard() {
     loadingBilling,
     refreshTenantData 
   } = useTenant()
-  const { user } = useAuth()
 
   useEffect(() => {
     if (currentTenant) {
@@ -68,12 +64,12 @@ export default function TenantDashboard() {
         </div>
         <div className="flex items-center space-x-4">
           <Badge 
-            variant={currentTenant.subscription_status === 'active' ? 'default' : 'secondary'}
-            className="capitalize"
+            variant={currentTenant.subscription_status === 'active' ? 'solid' : 'light'}
+            color={currentTenant.subscription_status === 'active' ? 'success' : 'warning'}
           >
             {currentTenant.subscription_status}
           </Badge>
-          <Badge variant="outline" className="capitalize">
+          <Badge variant="light" color="info">
             {currentTenant.subscription_plan}
           </Badge>
           <Button 
@@ -81,8 +77,8 @@ export default function TenantDashboard() {
             size="sm" 
             onClick={handleRefresh}
             disabled={loadingStats || loadingBilling}
+            startIcon={<RefreshCw className={`h-4 w-4 ${(loadingStats || loadingBilling) ? 'animate-spin' : ''}`} />}
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${(loadingStats || loadingBilling) ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
         </div>
@@ -213,8 +209,8 @@ export default function TenantDashboard() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Payment Status</span>
                   <Badge 
-                    variant={tenantBilling.payment_status === 'paid' ? 'default' : 'secondary'}
-                    className="capitalize"
+                    variant={tenantBilling.payment_status === 'paid' ? 'solid' : 'light'}
+                    color={tenantBilling.payment_status === 'paid' ? 'success' : 'warning'}
                   >
                     {tenantBilling.payment_status}
                   </Badge>
@@ -236,20 +232,16 @@ export default function TenantDashboard() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-4">
-            <Button variant="outline">
-              <Key className="h-4 w-4 mr-2" />
+            <Button variant="outline" startIcon={<Key className="h-4 w-4" />}>
               Manage API Keys
             </Button>
-            <Button variant="outline">
-              <Users className="h-4 w-4 mr-2" />
+            <Button variant="outline" startIcon={<Users className="h-4 w-4" />}>
               Manage Team
             </Button>
-            <Button variant="outline">
-              <DollarSign className="h-4 w-4 mr-2" />
+            <Button variant="outline" startIcon={<DollarSign className="h-4 w-4" />}>
               View Billing
             </Button>
-            <Button variant="outline">
-              <Activity className="h-4 w-4 mr-2" />
+            <Button variant="outline" startIcon={<Activity className="h-4 w-4" />}>
               View Analytics
             </Button>
           </div>
