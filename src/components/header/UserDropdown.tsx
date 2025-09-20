@@ -3,6 +3,7 @@ import Image from "next/image";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { createClient } from "@/lib/supabase";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 
@@ -21,8 +22,9 @@ export default function UserDropdown() {
 
   const handleSignOut = async () => {
     try {
-      await signOut();
-      router.push('/signin');
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      router.push('/auth/signin');
     } catch (error) {
       console.error('Error signing out:', error);
     }
@@ -86,7 +88,7 @@ export default function UserDropdown() {
             <DropdownItem
               onItemClick={closeDropdown}
               tag="a"
-              href="/profile"
+              href="/admin/users"
               className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
             >
               <svg
@@ -104,14 +106,14 @@ export default function UserDropdown() {
                   fill=""
                 />
               </svg>
-              Edit profile
+              User Management
             </DropdownItem>
           </li>
           <li>
             <DropdownItem
               onItemClick={closeDropdown}
               tag="a"
-              href="/profile"
+              href="/admin/settings"
               className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
             >
               <svg
@@ -129,14 +131,14 @@ export default function UserDropdown() {
                   fill=""
                 />
               </svg>
-              Account settings
+              Admin Settings
             </DropdownItem>
           </li>
           <li>
             <DropdownItem
               onItemClick={closeDropdown}
               tag="a"
-              href="/profile"
+              href="/dashboard"
               className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
             >
               <svg
@@ -154,7 +156,7 @@ export default function UserDropdown() {
                   fill=""
                 />
               </svg>
-              Support
+              Dashboard
             </DropdownItem>
           </li>
         </ul>

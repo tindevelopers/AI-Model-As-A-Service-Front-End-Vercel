@@ -31,10 +31,10 @@ INSERT INTO auth.users (
   '',
   '',
   ''
-) ON CONFLICT (email) DO NOTHING;
+);
 
 -- Insert corresponding profile
-INSERT INTO profiles (
+INSERT INTO public.user_profiles (
   id,
   email,
   role,
@@ -50,13 +50,4 @@ INSERT INTO profiles (
   role = 'superadmin',
   updated_at = NOW();
 
--- Grant superadmin permissions
-INSERT INTO user_permissions (
-  user_id,
-  permission,
-  created_at
-) VALUES (
-  (SELECT id FROM auth.users WHERE email = 'superadmin@tin.info'),
-  'superadmin',
-  NOW()
-) ON CONFLICT (user_id, permission) DO NOTHING;
+-- Note: superadmin permissions are handled by the role system

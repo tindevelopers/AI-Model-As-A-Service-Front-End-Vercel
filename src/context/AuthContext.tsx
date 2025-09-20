@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session, AuthError } from '@supabase/supabase-js'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase'
 import { errorLogger } from '@/utils/errorLogger'
 import { sessionDebugger } from '@/utils/sessionDebugger'
 
@@ -28,6 +28,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
   const [recoveryAttempted, setRecoveryAttempted] = useState(false)
+  
+  // Create client instance
+  const supabase = createClient()
 
   useEffect(() => {
     // Get initial session

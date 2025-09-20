@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { createServerClient } from '@/lib/supabase-server';
 import { Metadata } from 'next';
 import ServerSidebar from '@/components/sidebar/ServerSidebar';
+import DashboardHeader from '@/components/header/DashboardHeader';
 import TenantManagerCard from '@/components/dashboard/TenantManagerCard';
 import ActiveActionsCard from '@/components/dashboard/ActiveActionsCard';
 import QuickStatsCard from '@/components/dashboard/QuickStatsCard';
@@ -27,6 +28,9 @@ export default async function Dashboard() {
       {/* Main Content */}
       <div className="ml-64">
         {/* Header */}
+        <DashboardHeader user={user} />
+        
+        {/* Dashboard Header */}
         <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
           <div className="px-6 py-6">
             <div className="flex justify-between items-center">

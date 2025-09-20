@@ -316,11 +316,11 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE FUNCTION public.log_api_key_usage(
   target_tenant_id UUID,
   target_api_key_id UUID,
-  target_user_id UUID DEFAULT NULL,
   request_endpoint TEXT,
   request_method TEXT,
   status_code INTEGER,
   response_time_ms INTEGER,
+  target_user_id UUID DEFAULT NULL,
   request_size_bytes INTEGER DEFAULT NULL,
   response_size_bytes INTEGER DEFAULT NULL,
   ip_address INET DEFAULT NULL,
