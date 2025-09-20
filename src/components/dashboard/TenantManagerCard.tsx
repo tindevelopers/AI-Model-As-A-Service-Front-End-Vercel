@@ -45,6 +45,7 @@ export default function TenantManagerCard({
           <Button 
             size="sm" 
             className="bg-blue-600 hover:bg-blue-700 text-white"
+            onClick={() => window.location.href = '/tenant-management/create'}
           >
             <Plus className="h-4 w-4 mr-2" />
             Create Tenant
@@ -121,19 +122,35 @@ export default function TenantManagerCard({
             Quick Actions
           </h4>
           <div className="flex flex-wrap gap-3">
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => window.location.href = '/tenant-management'}
+            >
               <Building2 className="h-4 w-4 mr-2" />
               View All Tenants
             </Button>
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => window.location.href = '/admin/users'}
+            >
               <Users className="h-4 w-4 mr-2" />
               Manage Users
             </Button>
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => window.location.href = '/admin/api-keys'}
+            >
               <Key className="h-4 w-4 mr-2" />
               API Keys
             </Button>
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => window.location.href = '/admin/analytics'}
+            >
               <Activity className="h-4 w-4 mr-2" />
               Usage Analytics
             </Button>

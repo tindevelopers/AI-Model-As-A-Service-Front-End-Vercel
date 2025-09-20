@@ -55,6 +55,11 @@ const nextConfig: NextConfig = {
     };
     
     config.module.rules.push({
+      test: /packages[\\/]tailadmin[\\/]/,
+      use: 'null-loader',
+    });
+    
+    config.module.rules.push({
       test: /\.svg$/,
       use: ["@svgr/webpack"],
     });
