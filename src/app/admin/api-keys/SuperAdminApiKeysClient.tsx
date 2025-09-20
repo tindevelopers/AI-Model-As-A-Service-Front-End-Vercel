@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState } from 'react';
-import { User } from '@supabase/supabase-js';
 import { Card, CardHeader, CardContent } from '@/components/ui/card/Card';
 import Button from '@/components/ui/button/Button';
 import { 
