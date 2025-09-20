@@ -68,12 +68,18 @@ export default function CreateTenantForm({ }: CreateTenantFormProps) {
     
     setLoading(true);
     try {
+      const slug = formData.name.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$|/g,'');
+      const payload = {
+        name: formData.name,
+        slug,
+        description: formData.domain || null,
+        owner_user_id: null
+      };
+
       const response = await fetch('/api/admin/tenants', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
       });
 
       if (response.ok) {
