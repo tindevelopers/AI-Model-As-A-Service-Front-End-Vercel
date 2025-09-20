@@ -7,7 +7,6 @@ import {
   Users, 
   Key, 
   TrendingUp,
-  Activity,
   DollarSign,
   Server,
   Shield

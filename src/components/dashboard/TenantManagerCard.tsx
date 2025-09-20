@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card/Card';
-import { Button } from '@/components/ui/button/Button';
+import Button from '@/components/ui/button/Button';
 import { 
   Building2, 
   Users, 
@@ -25,9 +25,7 @@ export default function TenantManagerCard({
   totalTenants = 12,
   activeTenants = 10,
   newTenantsThisMonth = 3,
-  totalUsers = 156,
-  totalApiKeys = 89,
-  monthlyUsage = 125000
+  totalUsers = 156
 }: TenantManagerCardProps) {
   return (
     <Card className="col-span-full">

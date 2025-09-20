@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card/Card';
-import { Button } from '@/components/ui/button/Button';
+import Button from '@/components/ui/button/Button';
 import { 
   Settings, 
   User, 
@@ -19,7 +19,7 @@ import {
 
 interface SettingsCardProps {
   user?: {
-    email: string;
+    email?: string;
     name?: string;
   };
   isAuthenticated?: boolean;

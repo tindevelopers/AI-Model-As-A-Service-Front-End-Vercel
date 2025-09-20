@@ -6,7 +6,6 @@ import {
   Activity, 
   Clock, 
   AlertTriangle, 
-  CheckCircle,
   Zap,
   Users,
   Key,
