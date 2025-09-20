@@ -1,10 +1,14 @@
 import { redirect } from 'next/navigation';
 import { createServerClient } from '@/lib/supabase-server';
 import { Metadata } from 'next';
+import TenantManagerCard from '@/components/dashboard/TenantManagerCard';
+import ActiveActionsCard from '@/components/dashboard/ActiveActionsCard';
+import QuickStatsCard from '@/components/dashboard/QuickStatsCard';
+import SettingsCard from '@/components/dashboard/SettingsCard';
 
 export const metadata: Metadata = {
-  title: 'Dashboard | AI Model Service',
-  description: 'AI Model Service Dashboard',
+  title: 'Super Admin Dashboard | AI Model Service',
+  description: 'AI Model Service Super Admin Dashboard',
 };
 
 export default async function Dashboard() {
@@ -16,37 +20,42 @@ export default async function Dashboard() {
   }
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
-        Dashboard
-      </h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-            Welcome back!
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400">
-            Hello {user.email}, welcome to your AI Model Service dashboard.
-          </p>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Header */}
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                Super Admin Dashboard
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-1">
+                AI Management System - Multi-tenant platform overview
+              </p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                Welcome back, {user.email}
+              </span>
+            </div>
+          </div>
         </div>
-        
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-            Quick Stats
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400">
-            Your account overview and usage statistics.
-          </p>
-        </div>
-        
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-            Recent Activity
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400">
-            Latest API calls and system activity.
-          </p>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Tenant Manager - Full Width */}
+          <TenantManagerCard />
+          
+          {/* Active Actions - 2 columns */}
+          <ActiveActionsCard />
+          
+          {/* Quick Stats - 2 columns */}
+          <QuickStatsCard />
+          
+          {/* Settings - 1 column */}
+          <SettingsCard user={user} isAuthenticated={true} />
         </div>
       </div>
     </div>
