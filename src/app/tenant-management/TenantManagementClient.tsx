@@ -75,7 +75,7 @@ export default function TenantManagementClient({
           if (tenantResponse.ok) {
             const tenantsResult = await tenantResponse.json();
             if (tenantsResult.success && tenantsResult.data) {
-              const newTenant = tenantsResult.data.find((t: any) => t.id === result.data.tenant_id);
+              const newTenant = tenantsResult.data.find((t: Tenant) => t.id === result.data.tenant_id);
               if (newTenant) {
                 setTenants([newTenant, ...tenants]);
               }
