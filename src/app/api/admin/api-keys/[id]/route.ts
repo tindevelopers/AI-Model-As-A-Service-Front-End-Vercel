@@ -64,9 +64,9 @@ export async function PATCH(
       errorLogger.logError('Failed to update API key', {
         component: 'admin-api-keys-route',
         action: 'PATCH',
-        userId,
-        keyId,
         additionalData: {
+          userId,
+          keyId,
           error: error.message,
           errorCode: error.code
         }
@@ -149,9 +149,9 @@ export async function DELETE(
       errorLogger.logError('Failed to delete API key', {
         component: 'admin-api-keys-route',
         action: 'DELETE',
-        userId,
-        keyId,
         additionalData: {
+          userId,
+          keyId,
           error: error.message,
           errorCode: error.code
         }
