@@ -221,8 +221,8 @@ export async function applyRateLimit(
             error: error instanceof Error ? error.message : 'Unknown error'
           },
           timestamp: new Date().toISOString(),
-          userAgent: 'server',
-          url: 'server'
+          userAgent: request.headers.get('user-agent') || 'server',
+          url: request.url || 'server'
         })
     
     // On error, allow the request to proceed

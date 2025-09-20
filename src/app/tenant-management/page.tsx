@@ -20,16 +20,6 @@ export const metadata: Metadata = {
   description: 'Manage tenants in the AI Model Service platform',
 };
 
-interface Tenant {
-  id: string;
-  name: string;
-  slug: string;
-  description?: string;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-  tenant_users: Array<{ count: number }>;
-}
 
 export default async function TenantManagementPage() {
   const supabase = await createServerClient();
