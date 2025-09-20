@@ -46,11 +46,11 @@ export default async function SuperAdminApiKeysPage() {
 
   // Fetch platform API services (this would come from your API management system)
   const platformApis = [
-    { id: 'blog-writer', name: 'Blog Writer API', description: 'AI-powered blog content generation', status: 'active' },
-    { id: 'listing-optimization', name: 'Listing Optimization API', description: 'Real estate listing optimization', status: 'active' },
-    { id: 'outreach-automation', name: 'Outreach Automation API', description: 'Automated outreach campaigns', status: 'active' },
-    { id: 'custom-llm', name: 'Custom LLM API', description: 'Custom language model access', status: 'active' },
-    { id: 'analytics', name: 'Analytics API', description: 'Usage and performance analytics', status: 'active' }
+    { id: 'blog-writer', name: 'Blog Writer API', description: 'AI-powered blog content generation', status: 'active' as const },
+    { id: 'listing-optimization', name: 'Listing Optimization API', description: 'Real estate listing optimization', status: 'active' as const },
+    { id: 'outreach-automation', name: 'Outreach Automation API', description: 'Automated outreach campaigns', status: 'active' as const },
+    { id: 'custom-llm', name: 'Custom LLM API', description: 'Custom language model access', status: 'active' as const },
+    { id: 'analytics', name: 'Analytics API', description: 'Usage and performance analytics', status: 'active' as const }
   ];
 
   if (apiKeysError) {
