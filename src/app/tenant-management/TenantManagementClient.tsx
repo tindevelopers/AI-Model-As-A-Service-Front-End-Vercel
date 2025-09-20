@@ -51,12 +51,20 @@ export default function TenantManagementClient({
 
     setLoading(true);
     try {
+      const slug = newTenant.name.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+      const payload = {
+        name: newTenant.name,
+        slug,
+        description: newTenant.domain || null,
+        owner_user_id: null
+      };
+
       const response = await fetch('/api/admin/tenants', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(newTenant)
+        body: JSON.stringify(payload)
       });
 
       if (response.ok) {
