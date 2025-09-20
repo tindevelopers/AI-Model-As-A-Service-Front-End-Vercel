@@ -94,7 +94,6 @@ export default async function SuperAdminApiKeysPage() {
             initialApiKeys={allApiKeys || []}
             initialTenants={allTenants || []}
             platformApis={platformApis}
-            user={user}
           />
         </div>
       </div>

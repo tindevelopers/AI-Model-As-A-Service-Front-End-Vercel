@@ -7,7 +7,6 @@ import Button from '@/components/ui/button/Button';
 import { 
   Key, 
   Building2, 
-  Users, 
   Settings,
   Plus,
   Eye,
@@ -16,21 +15,11 @@ import {
   ToggleLeft,
   ToggleRight,
   Activity,
-  Zap,
-  Shield,
   BarChart3,
   Search,
-  Filter,
-  Download,
-  Upload,
-  MoreVertical,
   CheckCircle,
   XCircle,
-  AlertTriangle,
-  Clock,
-  Globe,
-  Database,
-  Cloud
+  Globe
 } from 'lucide-react';
 
 interface Tenant {
@@ -72,21 +61,18 @@ interface SuperAdminApiKeysClientProps {
   initialApiKeys: ApiKey[];
   initialTenants: Tenant[];
   platformApis: PlatformApi[];
-  user: User;
 }
 
 export default function SuperAdminApiKeysClient({
   initialApiKeys,
   initialTenants,
-  platformApis,
-  user
+  platformApis
 }: SuperAdminApiKeysClientProps) {
   const [apiKeys, setApiKeys] = useState<ApiKey[]>(initialApiKeys);
   const [tenants] = useState<Tenant[]>(initialTenants);
   const [activeTab, setActiveTab] = useState<'overview' | 'tenant-keys' | 'platform-apis' | 'usage-analytics'>('overview');
   const [selectedTenant, setSelectedTenant] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [showCreateModal, setShowCreateModal] = useState(false);
 
   // Filter API keys based on selected tenant and search term
   const filteredApiKeys = apiKeys.filter(key => {
@@ -126,13 +112,6 @@ export default function SuperAdminApiKeysClient({
     }
   };
 
-  const getStatusColor = (status: boolean) => {
-    return status ? 'text-green-600' : 'text-red-600';
-  };
-
-  const getStatusIcon = (status: boolean) => {
-    return status ? <CheckCircle className="h-4 w-4" /> : <XCircle className="h-4 w-4" />;
-  };
 
   const getApiStatusColor = (status: string) => {
     switch (status) {
@@ -160,7 +139,7 @@ export default function SuperAdminApiKeysClient({
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => setActiveTab(tab.id as 'overview' | 'tenant-keys' | 'platform-apis' | 'usage-analytics')}
               className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === tab.id
                   ? 'border-blue-500 text-blue-600 dark:text-blue-400'
@@ -314,7 +293,6 @@ export default function SuperAdminApiKeysClient({
               </select>
             </div>
             <Button
-              onClick={() => setShowCreateModal(true)}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               <Plus className="h-4 w-4 mr-2" />
