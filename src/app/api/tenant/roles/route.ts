@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { AuthMiddleware, createAuthErrorResponse } from '@/lib/auth-middleware'
+import { createAuthErrorResponse } from '@/lib/auth-middleware'
 import { applyRateLimit, rateLimiters } from '@/lib/rate-limiter'
 import { errorLogger } from '@/utils/errorLogger'
 import { createServerClient } from '@/lib/supabase-server'
