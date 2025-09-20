@@ -68,10 +68,22 @@ export default function TenantManagementClient({
       });
 
       if (response.ok) {
-        const createdTenant = await response.json();
-        setTenants([createdTenant, ...tenants]);
-        setNewTenant({ name: '', domain: '', status: 'active' });
-        setShowCreateModal(false);
+        const result = await response.json();
+        if (result.success && result.data?.tenant_id) {
+          // Fetch the created tenant to get full details
+          const tenantResponse = await fetch('/api/admin/tenants');
+          if (tenantResponse.ok) {
+            const tenantsResult = await tenantResponse.json();
+            if (tenantsResult.success && tenantsResult.data) {
+              const newTenant = tenantsResult.data.find((t: any) => t.id === result.data.tenant_id);
+              if (newTenant) {
+                setTenants([newTenant, ...tenants]);
+              }
+            }
+          }
+          setNewTenant({ name: '', domain: '', status: 'active' });
+          setShowCreateModal(false);
+        }
       } else {
         const error = await response.json();
         alert(`Failed to create tenant: ${error.error || 'Unknown error'}`);

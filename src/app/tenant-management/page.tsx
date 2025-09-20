@@ -21,7 +21,7 @@ export default async function TenantManagementPage() {
   const { data: profile } = await supabase
     .from('user_profiles')
     .select('role')
-    .eq('user_id', user.id)
+    .eq('id', user.id)
     .single();
 
   if (profile?.role !== 'superadmin') {

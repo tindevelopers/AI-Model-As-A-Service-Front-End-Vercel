@@ -24,10 +24,8 @@ export async function GET(request: NextRequest) {
     // Create Supabase client
     const supabase = await createServerClient()
 
-    // Call the get_user_tenant_roles function
-    const { data, error } = await supabase.rpc('get_user_tenant_roles', {
-      user_id: userId
-    })
+    // Call the get_user_tenant_roles function (no parameters needed - uses auth.uid())
+    const { data, error } = await supabase.rpc('get_user_tenant_roles')
 
     if (error) {
       errorLogger.logError('Failed to get user tenant roles', {
