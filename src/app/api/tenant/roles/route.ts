@@ -13,16 +13,32 @@ export async function GET(request: NextRequest) {
       return rateLimitResult.response!
     }
 
-    // Authenticate user
-    const authResult = await AuthMiddleware.authenticateUser()
-    if (!authResult.success) {
-      return createAuthErrorResponse(authResult.error!, authResult.statusCode!)
+    // Create Supabase client first
+    const supabase = await createServerClient()
+
+    // Check for Authorization header first (for API token auth)
+    const authHeader = request.headers.get('authorization')
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7) // Remove 'Bearer ' prefix
+      // Set the session using the token
+      const { data: { session }, error: sessionError } = await supabase.auth.setSession({
+        access_token: token,
+        refresh_token: '' // We don't have refresh token from header
+      })
+      
+      if (sessionError || !session) {
+        return createAuthErrorResponse('Invalid session token', 401)
+      }
     }
 
-    const userId = authResult.user!.id
+    // Check if user is authenticated
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    
+    if (authError || !user) {
+      return createAuthErrorResponse('Unauthorized - Please log in to access this resource', 401)
+    }
 
-    // Create Supabase client
-    const supabase = await createServerClient()
+    const userId = user.id
 
     // Call the get_user_tenant_roles function (no parameters needed - uses auth.uid())
     const { data, error } = await supabase.rpc('get_user_tenant_roles')
