@@ -22,18 +22,18 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${outfit.className} dark:bg-gray-900`}>
-        <AuthProvider>
-          <TenantProvider>
-            <ThemeProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <TenantProvider>
               <SidebarProvider>
-                       {children}
-                       <EnvironmentValidator />
-                       <ErrorDebugPanel />
-                       <SessionDebugPanel />
+                {children}
+                <ErrorDebugPanel />
+                <EnvironmentValidator />
+                <SessionDebugPanel />
               </SidebarProvider>
-            </ThemeProvider>
-          </TenantProvider>
-        </AuthProvider>
+            </TenantProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

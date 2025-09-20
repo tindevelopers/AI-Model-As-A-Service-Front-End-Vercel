@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { AuthMiddleware, createAuthErrorResponse } from '@/lib/auth-middleware'
+import { createAuthErrorResponse } from '@/lib/auth-middleware'
 import { applyRateLimit, rateLimiters } from '@/lib/rate-limiter'
 import { errorLogger } from '@/utils/errorLogger'
 import { createServerClient } from '@/lib/supabase-server'
@@ -13,18 +13,34 @@ export async function GET(request: NextRequest) {
       return rateLimitResult.response!
     }
 
-    // Authenticate user
-    const authResult = await AuthMiddleware.authenticateUser()
-    if (!authResult.success) {
-      return createAuthErrorResponse(authResult.error!, authResult.statusCode!)
-    }
-
-    const userId = authResult.user!.id
-
-    // Create Supabase client
+    // Create Supabase client first
     const supabase = await createServerClient()
 
-    // Call the get_user_tenant_roles function
+    // Check for Authorization header first (for API token auth)
+    const authHeader = request.headers.get('authorization')
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7) // Remove 'Bearer ' prefix
+      // Set the session using the token
+      const { data: { session }, error: sessionError } = await supabase.auth.setSession({
+        access_token: token,
+        refresh_token: '' // We don't have refresh token from header
+      })
+      
+      if (sessionError || !session) {
+        return createAuthErrorResponse('Invalid session token', 401)
+      }
+    }
+
+    // Check if user is authenticated
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    
+    if (authError || !user) {
+      return createAuthErrorResponse('Unauthorized - Please log in to access this resource', 401)
+    }
+
+    const userId = user.id
+
+    // Call the get_user_tenant_roles function (no parameters needed - uses auth.uid())
     const { data, error } = await supabase.rpc('get_user_tenant_roles')
 
     if (error) {

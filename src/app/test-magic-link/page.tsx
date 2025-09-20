@@ -1,6 +1,6 @@
 "use client";
 import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase';
 
 export default function TestMagicLinkPage() {
   const [email, setEmail] = useState('');
@@ -19,6 +19,7 @@ export default function TestMagicLinkPage() {
     setMessage('');
 
     try {
+      const supabase = createClient();
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
@@ -49,6 +50,7 @@ export default function TestMagicLinkPage() {
   };
 
   const signOut = async () => {
+    const supabase = createClient();
     await supabase.auth.signOut();
     setMessage('Signed out');
     setDebugInfo(null);

@@ -13,6 +13,7 @@ import {
   ChatIcon,
   ChevronDownIcon,
   GridIcon,
+  GroupIcon,
   HorizontaLDots,
   ListIcon,
   MailIcon,
@@ -34,6 +35,12 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
+  {
+    icon: <GroupIcon />,
+    name: "Tenant Management",
+    path: "/tenant-management",
+    new: true,
+  },
   {
     icon: <GridIcon />,
     name: "Dashboard",
@@ -128,7 +135,6 @@ const navItems: NavItem[] = [
       { name: "FAQ", path: "/faq" },
       { name: "API Keys", path: "/api-keys", new: true },
       { name: "Integrations", path: "/integrations", new: true },
-      { name: "Tenant Management", path: "/tenant-management", new: true },
       { name: "Blank Page", path: "/blank" },
       { name: "404 Error", path: "/error-404" },
       { name: "500 Error", path: "/error-500" },

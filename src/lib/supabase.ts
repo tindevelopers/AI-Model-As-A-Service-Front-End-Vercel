@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
+import { createBrowserClient } from '@supabase/ssr'
 import { errorLogger } from '@/utils/errorLogger'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
@@ -20,19 +20,21 @@ if (typeof window !== 'undefined' && !isValidConfig) {
   });
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    flowType: 'pkce',
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-    // Add more robust session persistence settings
-    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-    storageKey: 'supabase.auth.token',
-    // Ensure cookies are properly handled
-    debug: process.env.NODE_ENV === 'development'
-  }
-})
+export const createClient = () => {
+  return createBrowserClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      flowType: 'pkce',
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+      // Ensure cookies are properly handled
+      debug: process.env.NODE_ENV === 'development'
+    }
+  })
+}
+
+// For backwards compatibility, create a default client
+export const supabase = createClient()
 
 // Note: Auth state change handling is done in AuthContext to avoid conflicts
 
