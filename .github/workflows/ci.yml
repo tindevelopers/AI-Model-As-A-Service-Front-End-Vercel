@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop, staging ]
+  pull_request:
+    branches: [ main, develop, staging ]
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set up Node.js ${{ env.NODE_VERSION }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Disable Next.js telemetry
+      run: npx next telemetry disable
+    
+    - name: Run ESLint
+      run: npm run lint
+    
+    - name: Run TypeScript type check
+      run: npx tsc --noEmit
+    
+    - name: Test build (no deployment)
+      env:
+        NEXT_FORCE_TURBOPACK: 0
+        NEXT_TELEMETRY_DISABLED: 1
+        NODE_OPTIONS: --max-old-space-size=4096
+      run: |
+        rm -rf .next node_modules/.cache || true
+        npm run build
+
+    - name: Verify critical routes exist
+      run: |
+        set -e
+        echo "✅ Build completed successfully"
+        echo "🔍 Verifying critical routes..."
+        if [ -d ".next/server/app" ]; then
+          echo "✅ Server-side routes built successfully"
+        else
+          echo "❌ Server-side routes missing"
+          exit 1
+        fi
+        
+        # Check for key pages
+        if [ -f ".next/server/app/dashboard/page.js" ] || [ -f ".next/server/app/dashboard/page.mjs" ]; then
+          echo "✅ Dashboard route exists"
+        else
+          echo "❌ Dashboard route missing"
+          exit 1
+        fi
+        
+        if [ -f ".next/server/app/(full-width-pages)/(auth)/signin/page.js" ] || [ -f ".next/server/app/(full-width-pages)/(auth)/signin/page.mjs" ]; then
+          echo "✅ Sign-in route exists"
+        else
+          echo "❌ Sign-in route missing"
+          exit 1
+        fi
+
+    - name: Upload build artifacts (for debugging)
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-files-${{ github.ref_name }}-${{ github.sha }}
+        path: .next/
+        retention-days: 7
+
+    - name: CI Success
+      run: |
+        echo "✅ All CI checks passed!"
+        echo "🚀 Ready for Vercel deployment"
+        echo "📊 Build artifacts uploaded for debugging"
