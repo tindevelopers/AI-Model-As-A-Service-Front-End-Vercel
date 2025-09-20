@@ -21,6 +21,26 @@ export default async function Dashboard() {
     redirect('/auth/signin');
   }
 
+  // Fetch real tenant statistics from database
+  const [tenantsResult, usersResult] = await Promise.all([
+    supabase.from('tenants').select('*'),
+    supabase.rpc('get_all_users_with_roles')
+  ]);
+
+  const tenants = tenantsResult.data || [];
+  const users = usersResult.data || [];
+
+  // Calculate real statistics
+  const totalTenants = tenants.length;
+  const activeTenants = tenants.filter(t => t.status === 'active').length;
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  const newTenantsThisMonth = tenants.filter(t => {
+    const createdDate = new Date(t.created_at);
+    return createdDate.getMonth() === currentMonth && createdDate.getFullYear() === currentYear;
+  }).length;
+  const totalUsers = users.length;
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <ServerSidebar currentPath="/dashboard" />
@@ -55,7 +75,12 @@ export default async function Dashboard() {
         <div className="p-6">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Tenant Manager - Full Width */}
-            <TenantManagerCard />
+            <TenantManagerCard 
+              totalTenants={totalTenants}
+              activeTenants={activeTenants}
+              newTenantsThisMonth={newTenantsThisMonth}
+              totalUsers={totalUsers}
+            />
             
             {/* Active Actions - 2 columns */}
             <ActiveActionsCard />

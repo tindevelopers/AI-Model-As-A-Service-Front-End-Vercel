@@ -1,8 +1,5 @@
-'use client'
-
 import React from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card/Card';
-import Button from '@/components/ui/button/Button';
 import { 
   Building2, 
   Users, 
@@ -11,6 +8,7 @@ import {
   Activity,
   Key
 } from 'lucide-react';
+import Link from 'next/link';
 
 interface TenantManagerCardProps {
   totalTenants?: number;
@@ -22,10 +20,10 @@ interface TenantManagerCardProps {
 }
 
 export default function TenantManagerCard({
-  totalTenants = 12,
-  activeTenants = 10,
-  newTenantsThisMonth = 3,
-  totalUsers = 156
+  totalTenants = 0,
+  activeTenants = 0,
+  newTenantsThisMonth = 0,
+  totalUsers = 0
 }: TenantManagerCardProps) {
   return (
     <Card className="col-span-full">
@@ -42,14 +40,13 @@ export default function TenantManagerCard({
               </p>
             </div>
           </div>
-          <Button 
-            size="sm" 
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-            onClick={() => window.location.href = '/tenant-management/create'}
+          <Link 
+            href="/tenant-management/create"
+            className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors"
           >
             <Plus className="h-4 w-4 mr-2" />
             Create Tenant
-          </Button>
+          </Link>
         </div>
       </CardHeader>
       
@@ -122,38 +119,34 @@ export default function TenantManagerCard({
             Quick Actions
           </h4>
           <div className="flex flex-wrap gap-3">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => window.location.href = '/tenant-management'}
+            <Link 
+              href="/tenant-management"
+              className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600 transition-colors"
             >
               <Building2 className="h-4 w-4 mr-2" />
               View All Tenants
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => window.location.href = '/admin/users'}
+            </Link>
+            <Link 
+              href="/admin/users"
+              className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600 transition-colors"
             >
               <Users className="h-4 w-4 mr-2" />
               Manage Users
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => window.location.href = '/admin/api-keys'}
+            </Link>
+            <Link 
+              href="/admin/api-keys"
+              className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600 transition-colors"
             >
               <Key className="h-4 w-4 mr-2" />
               API Keys
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => window.location.href = '/admin/analytics'}
+            </Link>
+            <Link 
+              href="/admin/analytics"
+              className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600 transition-colors"
             >
               <Activity className="h-4 w-4 mr-2" />
               Usage Analytics
-            </Button>
+            </Link>
           </div>
         </div>
       </CardContent>
