@@ -7,7 +7,7 @@ import { createServerClient } from '@/lib/supabase-server'
 // PATCH: Update API key (superadmin only)
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Apply rate limiting
@@ -41,7 +41,8 @@ export async function PATCH(
       }, { status: 403 })
     }
 
-    const keyId = params.id
+    const resolvedParams = await params
+    const keyId = resolvedParams.id
     const body = await request.json()
 
     // Update the API key
@@ -101,7 +102,7 @@ export async function PATCH(
 // DELETE: Delete API key (superadmin only)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Apply rate limiting
@@ -135,7 +136,8 @@ export async function DELETE(
       }, { status: 403 })
     }
 
-    const keyId = params.id
+    const resolvedParams = await params
+    const keyId = resolvedParams.id
 
     // Delete the API key
     const { error } = await supabase
