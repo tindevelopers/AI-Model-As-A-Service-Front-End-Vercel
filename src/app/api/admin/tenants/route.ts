@@ -82,17 +82,33 @@ export async function POST(request: NextRequest) {
 
     const userId = authResult.user!.id
 
-    // Parse request body
-    const body = await request.json()
+    // Parse request body (handle both JSON and form data)
+    let body
+    const contentType = request.headers.get('content-type')
+    
+    if (contentType?.includes('application/json')) {
+      body = await request.json()
+    } else {
+      // Handle form data
+      const formData = await request.formData()
+      body = {
+        name: formData.get('name'),
+        description: formData.get('description')
+      }
+    }
+
     const { name, slug, description, owner_user_id } = body
 
     // Validate required fields
-    if (!name || !slug) {
+    if (!name) {
       return NextResponse.json({
         success: false,
-        error: 'name and slug are required'
+        error: 'name is required'
       }, { status: 400 })
     }
+
+    // Generate slug if not provided
+    const generatedSlug = slug || name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 
     // Create Supabase client
     const supabase = await createServerClient()
@@ -100,7 +116,7 @@ export async function POST(request: NextRequest) {
     // Call the create_tenant function (superadmin only)
     const { data, error } = await supabase.rpc('create_tenant', {
       tenant_name: name,
-      tenant_slug: slug,
+      tenant_slug: generatedSlug,
       tenant_description: description || null,
       owner_user_id: owner_user_id || null
     })
@@ -114,7 +130,7 @@ export async function POST(request: NextRequest) {
           error: error.message,
           errorCode: error.code,
           tenantName: name,
-          tenantSlug: slug
+          tenantSlug: generatedSlug
         }
       })
 
@@ -122,6 +138,11 @@ export async function POST(request: NextRequest) {
         success: false,
         error: 'Failed to create tenant'
       }, { status: 500 })
+    }
+
+    // If this is a form submission, redirect to tenant management
+    if (contentType?.includes('application/x-www-form-urlencoded') || contentType?.includes('multipart/form-data')) {
+      return NextResponse.redirect(new URL('/tenant-management', request.url), { status: 303 })
     }
 
     return NextResponse.json({
