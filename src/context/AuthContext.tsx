@@ -294,7 +294,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     )
 
     return () => subscription.unsubscribe()
-  }, [recoveryAttempted])
+  }, [recoveryAttempted, supabase.auth])
 
   const signUp = async (email: string, password: string, userData?: UserMetadata) => {
     const { error } = await supabase.auth.signUp({

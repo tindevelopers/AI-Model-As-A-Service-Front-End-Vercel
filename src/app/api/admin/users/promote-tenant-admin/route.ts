@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     const supabase = await createServerClient()
 
     // Call the promote_user_to_tenant_admin function (superadmin only)
-    const { data, error } = await supabase.rpc('promote_user_to_tenant_admin', {
+    const { error } = await supabase.rpc('promote_user_to_tenant_admin', {
       target_user_id: targetUserId
     })
 

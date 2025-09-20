@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     const supabase = await createServerClient()
 
     // Call the demote_admin_to_user function (superadmin only)
-    const { data, error } = await supabase.rpc('demote_admin_to_user', {
+    const { error } = await supabase.rpc('demote_admin_to_user', {
       target_user_id: targetUserId
     })
 

@@ -7,13 +7,11 @@ import Button from '@/components/ui/button/Button';
 import { 
   Users, 
   Plus, 
-  Edit,
   Trash2,
   Shield,
   UserCheck,
   UserCog,
   User as UserIcon,
-  MoreVertical,
   Search,
   Filter
 } from 'lucide-react';

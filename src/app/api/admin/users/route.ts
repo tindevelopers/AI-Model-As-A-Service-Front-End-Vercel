@@ -106,7 +106,7 @@ export async function DELETE(request: NextRequest) {
     const supabase = await createServerClient()
 
     // Call the delete_user function (superadmin only, with protection)
-    const { data, error } = await supabase.rpc('delete_user', {
+    const { error } = await supabase.rpc('delete_user', {
       target_user_id: targetUserId
     })
 

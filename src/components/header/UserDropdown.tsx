@@ -9,7 +9,7 @@ import { DropdownItem } from "../ui/dropdown/DropdownItem";
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
 
   function toggleDropdown() {
