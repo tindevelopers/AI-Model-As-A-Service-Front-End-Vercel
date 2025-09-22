@@ -23,20 +23,43 @@ export const metadata: Metadata = {
 
 export default async function TenantManagementPage() {
   const supabase = await createServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  
+  // First try to get the session
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  
+  // Then get the user
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+  // Debug logging
+  console.log('Tenant Management Debug:', {
+    hasSession: !!session,
+    hasUser: !!user,
+    sessionError: sessionError?.message,
+    userError: userError?.message,
+    userId: user?.id,
+    userEmail: user?.email
+  });
 
   if (!user) {
+    console.log('No user found, redirecting to signin');
     redirect('/auth/signin');
   }
 
   // Check if user has admin privileges (superadmin or tenant_admin)
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from('user_profiles')
-    .select('role')
+    .select('role, email, full_name')
     .eq('id', user.id)
     .single();
 
+  console.log('Profile check:', {
+    profile,
+    profileError: profileError?.message,
+    userRole: profile?.role
+  });
+
   if (!profile || !['superadmin', 'tenant_admin'].includes(profile.role)) {
+    console.log('User does not have required role, redirecting to dashboard');
     redirect('/dashboard');
   }
 
