@@ -9,7 +9,6 @@ import { TenantProvider } from "@/context/TenantContext";
 import { ErrorDebugPanel } from "@/components/debug/ErrorDebugPanel";
 import { EnvironmentValidator } from "@/components/debug/EnvironmentValidator";
 import { SessionDebugPanel } from "@/components/debug/SessionDebugPanel";
-import AuthDebugPanel from "@/components/debug/AuthDebugPanel";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -31,7 +30,6 @@ export default function RootLayout({
                 <ErrorDebugPanel />
                 <EnvironmentValidator />
                 <SessionDebugPanel />
-                <AuthDebugPanel />
               </SidebarProvider>
             </TenantProvider>
           </AuthProvider>

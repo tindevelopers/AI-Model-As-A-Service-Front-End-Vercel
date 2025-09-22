@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
   distDir: '.next',
   
   // Set output file tracing root to fix workspace detection warning
-  outputFileTracingRoot: path.join(__dirname),
+  outputFileTracingRoot: process.cwd(),
   
   // Minimal experimental features to reduce build complexity
   experimental: {
@@ -36,17 +36,17 @@ const nextConfig: NextConfig = {
   webpack(config) {
     // Removed simplebar-core alias after dropping SimpleBar dependency
     
-    // Enable persistent caching with proper configuration
-    // Only enable filesystem cache in development to avoid CI/CD issues
-    if (process.env.NODE_ENV === 'development') {
-      config.cache = {
-        type: 'filesystem',
-        cacheDirectory: path.join(__dirname, '.next/cache/webpack'),
-        buildDependencies: {
-          config: [__filename],
-        },
-      };
-    }
+    // Disable filesystem cache to avoid path issues with special characters
+    // Use memory cache instead for better compatibility
+    config.cache = {
+      type: 'memory',
+    };
+    
+    // Override problematic paths to avoid special characters
+    const os = require('os');
+    const safeDir = path.join(os.tmpdir(), 'next-build-safe');
+    
+    // Don't override context - just fix the problematic paths in the configuration
     
     // Reduce memory usage during build
     config.optimization = {
@@ -62,6 +62,49 @@ const nextConfig: NextConfig = {
     config.module.rules.push({
       test: /\.svg$/,
       use: ["@svgr/webpack"],
+    });
+    
+    // Fix module rules paths to avoid special characters
+    config.module.rules.forEach((rule) => {
+      // Fix main rule level paths
+      if (rule.resource && typeof rule.resource === 'string' && rule.resource.includes('!')) {
+        rule.resource = rule.resource.replace(/\/Users\/gene\/Library\/CloudStorage\/Dropbox\/ !! @Cursor Projects\/@ Vercel Deployment\/TIN FRONT ENDS FOR GOOGLE CLOUD RUN\/AI-Model-As-A-Service-Front-End-Vercel/g, safeDir);
+      }
+      
+      if (rule.oneOf) {
+        rule.oneOf.forEach((oneOfRule) => {
+          // Fix issuer paths
+          if (oneOfRule.issuer && oneOfRule.issuer.and) {
+            oneOfRule.issuer.and = oneOfRule.issuer.and.map((issuerPath) => {
+              if (typeof issuerPath === 'string' && issuerPath.includes('!')) {
+                return safeDir;
+              }
+              return issuerPath;
+            });
+          }
+          // Fix include paths
+          if (oneOfRule.include) {
+            oneOfRule.include = oneOfRule.include.map((includePath) => {
+              if (typeof includePath === 'string' && includePath.includes('!')) {
+                return safeDir;
+              }
+              return includePath;
+            });
+          }
+          // Fix test paths
+          if (oneOfRule.test) {
+            if (typeof oneOfRule.test === 'string' && oneOfRule.test.includes('!')) {
+              oneOfRule.test = oneOfRule.test.replace(/\/Users\/gene\/Library\/CloudStorage\/Dropbox\/ !! @Cursor Projects\/@ Vercel Deployment\/TIN FRONT ENDS FOR GOOGLE CLOUD RUN\/AI-Model-As-A-Service-Front-End-Vercel/g, safeDir);
+            }
+          }
+          // Fix resource paths
+          if (oneOfRule.resource) {
+            if (typeof oneOfRule.resource === 'string' && oneOfRule.resource.includes('!')) {
+              oneOfRule.resource = oneOfRule.resource.replace(/\/Users\/gene\/Library\/CloudStorage\/Dropbox\/ !! @Cursor Projects\/@ Vercel Deployment\/TIN FRONT ENDS FOR GOOGLE CLOUD RUN\/AI-Model-As-A-Service-Front-End-Vercel/g, safeDir);
+            }
+          }
+        });
+      }
     });
     
     return config;
