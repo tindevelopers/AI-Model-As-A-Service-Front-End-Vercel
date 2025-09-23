@@ -1,6 +1,8 @@
 "use client";
 import { useState } from 'react';
-import { CopyIcon } from '@/icons';
+
+// Force dynamic rendering to prevent prerender issues
+export const dynamic = 'force-dynamic';
 
 export default function ApiDocsPage() {
   const [selectedEndpoint, setSelectedEndpoint] = useState('chat');
@@ -199,7 +201,7 @@ export default function ApiDocsPage() {
                 onClick={() => copyToClipboard(generateCurlCommand())}
                 className="flex items-center space-x-1 text-sm text-blue-600 hover:underline"
               >
-                <CopyIcon className="w-4 h-4" />
+                <span>📋</span>
                 <span>Copy</span>
               </button>
             </div>
@@ -232,7 +234,7 @@ export default function ApiDocsPage() {
                   onClick={() => copyToClipboard(response)}
                   className="flex items-center space-x-1 text-sm text-blue-600 hover:underline"
                 >
-                  <CopyIcon className="w-4 h-4" />
+                  <span>📋</span>
                   <span>Copy</span>
                 </button>
               )}
