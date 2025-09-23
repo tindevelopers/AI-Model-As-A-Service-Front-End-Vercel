@@ -1,7 +1,7 @@
 {
   "name": "tailadmin-next-typescript-pro",
-  "version": "2.2.2",
-  "deploymentTimestamp": "2025-01-23T10:30:00Z",
+  "version": "2.2.3",
+  "deploymentTimestamp": "2025-01-23T12:55:00Z",
   "private": true,
   "scripts": {
     "dev": "next dev ",
