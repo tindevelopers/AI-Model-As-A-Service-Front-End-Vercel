@@ -8,6 +8,14 @@ const nextConfig: NextConfig = {
   images: {
     formats: ['image/webp'],
   },
+  
+  // Disable webpack cache to avoid path issues
+  webpack: (config: any) => {
+    // Disable cache to avoid exclamation mark issues
+    config.cache = false;
+    
+    return config;
+  },
 };
 
 export default nextConfig;
