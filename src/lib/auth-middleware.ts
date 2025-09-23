@@ -68,15 +68,22 @@ export class AuthMiddleware {
         }
       }
 
-      // Get user metadata for role and permissions
+      // Get user profile from database for role and permissions
+      const { data: userProfile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('role, permissions')
+        .eq('id', user.id)
+        .single()
+
+      // Fallback to user metadata if profile not found
       const userMetadata = user.user_metadata || {}
       const appMetadata = user.app_metadata || {}
 
       const authenticatedUser: AuthenticatedUser = {
         id: user.id,
         email: user.email || '',
-        role: userMetadata.role || appMetadata.role || 'user',
-        permissions: userMetadata.permissions || appMetadata.permissions || []
+        role: userProfile?.role || userMetadata.role || appMetadata.role || 'user',
+        permissions: userProfile?.permissions || userMetadata.permissions || appMetadata.permissions || []
       }
 
       return {
@@ -240,6 +247,39 @@ export class AuthMiddleware {
       return {
         success: false,
         error: 'Superadmin access required',
+        statusCode: 403
+      }
+    }
+
+    return authResult
+  }
+
+  /**
+   * Check if user has tenant admin role
+   */
+  static async requireTenantAdmin(): Promise<AuthResult> {
+    const authResult = await this.authenticateUser()
+    
+    if (!authResult.success) {
+      return authResult
+    }
+
+    const user = authResult.user!
+    
+    if (user.role !== 'tenant_admin' && user.role !== 'superadmin') {
+      errorLogger.logError('Unauthorized tenant admin access attempt', {
+        component: 'auth-middleware',
+        action: 'requireTenantAdmin',
+        additionalData: {
+          userId: user.id,
+          userRole: user.role,
+          userEmail: user.email
+        }
+      })
+
+      return {
+        success: false,
+        error: 'Tenant admin access required',
         statusCode: 403
       }
     }
