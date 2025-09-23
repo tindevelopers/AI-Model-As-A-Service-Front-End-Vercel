@@ -29,6 +29,13 @@ export async function GET(request: NextRequest) {
       if (sessionError || !session) {
         return createAuthErrorResponse('Invalid session token', 401)
       }
+    } else {
+      // For cookie-based auth, get the session first
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError || !session) {
+        return createAuthErrorResponse('No valid session found', 401)
+      }
     }
 
     // Check if user is authenticated
