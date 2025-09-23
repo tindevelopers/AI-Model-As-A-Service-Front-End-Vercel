@@ -3,7 +3,7 @@ import { applyRateLimit, rateLimiters } from '@/lib/rate-limiter'
 import { errorLogger } from '@/utils/errorLogger'
 import { createServerClient } from '@/lib/supabase-server'
 
-// GET: Get user's tenant roles
+// GET: Get user's tenant roles - TEST DEPLOYMENT
 export async function GET(request: NextRequest) {
   try {
     // Apply rate limiting
