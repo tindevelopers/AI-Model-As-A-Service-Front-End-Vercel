@@ -6,9 +6,6 @@ import { SidebarProvider } from "@/context/SidebarContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { TenantProvider } from "@/context/TenantContext";
-import { ErrorDebugPanel } from "@/components/debug/ErrorDebugPanel";
-import { EnvironmentValidator } from "@/components/debug/EnvironmentValidator";
-import { SessionDebugPanel } from "@/components/debug/SessionDebugPanel";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -27,9 +24,6 @@ export default function RootLayout({
             <TenantProvider>
               <SidebarProvider>
                 {children}
-                <ErrorDebugPanel />
-                <EnvironmentValidator />
-                <SessionDebugPanel />
               </SidebarProvider>
             </TenantProvider>
           </AuthProvider>
