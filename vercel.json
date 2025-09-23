@@ -5,6 +5,7 @@
   "outputDirectory": ".next",
   "installCommand": "npm install",
   "framework": "nextjs",
+  "buildCache": false,
   "functions": {
     "src/app/api/**/*.ts": {
       "maxDuration": 30
