@@ -1,6 +1,16 @@
 "use client";
 import { useState, useEffect } from 'react';
-import SignInForm from "@/components/auth/SignInForm";
+import dynamic from 'next/dynamic';
+
+// Dynamically import SignInForm to avoid prerender issues
+const SignInForm = dynamic(() => import("@/components/auth/SignInForm"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex justify-center items-center p-4">
+      <div className="text-gray-600 dark:text-gray-400">Loading sign-in form...</div>
+    </div>
+  )
+});
 
 export default function TestSignIn() {
   const [isClient, setIsClient] = useState(false);
