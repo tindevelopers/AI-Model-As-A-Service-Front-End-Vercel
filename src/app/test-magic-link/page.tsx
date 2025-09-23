@@ -1,5 +1,5 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 
 export default function TestMagicLinkPage() {
@@ -7,7 +7,11 @@ export default function TestMagicLinkPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [debugInfo, setDebugInfo] = useState<Record<string, unknown> | null>(null);
+  const [isClient, setIsClient] = useState(false);
 
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const sendMagicLink = async () => {
     if (!email) {
@@ -55,6 +59,17 @@ export default function TestMagicLinkPage() {
     setMessage('Signed out');
     setDebugInfo(null);
   };
+
+  if (!isClient) {
+    return (
+      <div className="max-w-2xl mx-auto p-6">
+        <h1 className="text-2xl font-bold mb-6">Magic Link Test</h1>
+        <div className="p-4 bg-gray-100 rounded">
+          Loading...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto p-6">
