@@ -2,6 +2,9 @@
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 
+// Force dynamic rendering to prevent prerender issues
+export const dynamic = 'force-dynamic';
+
 // Dynamically import SignInForm to avoid prerender issues
 const SignInForm = dynamic(() => import("@/components/auth/SignInForm"), {
   ssr: false,
