@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { AuthMiddleware, createAuthErrorResponse } from '@/lib/auth-middleware'
 import { applyRateLimit, rateLimiters } from '@/lib/rate-limiter'
 import { errorLogger } from '@/utils/errorLogger'
 import { createServerClient } from '@/lib/supabase-server'
@@ -40,7 +39,7 @@ export async function GET(request: NextRequest) {
     if (profileError || !userProfile) {
       // If no profile exists, create one for tenantadmin@tin.info
       if (userEmail === 'tenantadmin@tin.info') {
-        const { data: newProfile, error: createError } = await supabase
+        const { error: createError } = await supabase
           .from('user_profiles')
           .insert({
             id: userId,

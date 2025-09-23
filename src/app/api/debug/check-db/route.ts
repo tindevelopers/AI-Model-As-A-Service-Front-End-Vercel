@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase-server'
 
 // GET: Check database state and apply migration if needed
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const supabase = await createServerClient()
 

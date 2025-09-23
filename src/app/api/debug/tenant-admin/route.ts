@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase-server'
 
 // GET: Debug endpoint to check tenant admin setup
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const supabase = await createServerClient()
 

@@ -69,7 +69,7 @@ export class AuthMiddleware {
       }
 
       // Get user profile from database for role and permissions
-      const { data: userProfile, error: profileError } = await supabase
+      const { data: userProfile } = await supabase
         .from('user_profiles')
         .select('role, permissions')
         .eq('id', user.id)
