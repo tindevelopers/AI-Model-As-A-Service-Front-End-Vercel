@@ -135,7 +135,7 @@ SELECT * FROM ensure_tenant_admin_user_exists();
 -- Step 2: Verify the setup
 SELECT 
   'Tenant Admin Setup Verification' as status,
-  up.email,
+  up.email as user_email,
   up.role,
   up.full_name,
   up.is_active,
