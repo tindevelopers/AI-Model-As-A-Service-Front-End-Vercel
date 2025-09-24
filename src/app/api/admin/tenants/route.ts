@@ -13,13 +13,28 @@ export async function GET(request: NextRequest) {
       return rateLimitResult.response!
     }
 
-    // Authenticate user and check superadmin role
-    const authResult = await AuthMiddleware.requireSuperAdmin(request)
+    // Authenticate user and check admin role (superadmin or tenant_admin)
+    const authResult = await AuthMiddleware.authenticateUser(request)
     if (!authResult.success) {
       return createAuthErrorResponse(authResult.error!, authResult.statusCode!)
     }
 
-    const userId = authResult.user!.id
+    const user = authResult.user!
+    if (user.role !== 'superadmin' && user.role !== 'tenant_admin') {
+      errorLogger.logError('Unauthorized tenant access attempt', {
+        component: 'admin-tenants-route',
+        action: 'GET',
+        additionalData: {
+          userId: user.id,
+          userRole: user.role,
+          userEmail: user.email
+        }
+      })
+
+      return createAuthErrorResponse('Superadmin or Tenant Admin access required', 403)
+    }
+
+    const userId = user.id
 
     // Create Supabase client
     const supabase = await createServerClient(request)
@@ -74,13 +89,28 @@ export async function POST(request: NextRequest) {
       return rateLimitResult.response!
     }
 
-    // Authenticate user and check superadmin role
-    const authResult = await AuthMiddleware.requireSuperAdmin(request)
+    // Authenticate user and check admin role (superadmin or tenant_admin)
+    const authResult = await AuthMiddleware.authenticateUser(request)
     if (!authResult.success) {
       return createAuthErrorResponse(authResult.error!, authResult.statusCode!)
     }
 
-    const userId = authResult.user!.id
+    const user = authResult.user!
+    if (user.role !== 'superadmin' && user.role !== 'tenant_admin') {
+      errorLogger.logError('Unauthorized tenant creation attempt', {
+        component: 'admin-tenants-route',
+        action: 'POST',
+        additionalData: {
+          userId: user.id,
+          userRole: user.role,
+          userEmail: user.email
+        }
+      })
+
+      return createAuthErrorResponse('Superadmin or Tenant Admin access required', 403)
+    }
+
+    const userId = user.id
 
     // Parse request body (handle both JSON and form data)
     let body
