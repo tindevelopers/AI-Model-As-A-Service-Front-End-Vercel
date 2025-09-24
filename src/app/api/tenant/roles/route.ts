@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { applyRateLimit, rateLimiters } from '@/lib/rate-limiter'
 import { errorLogger } from '@/utils/errorLogger'
-import { createServerClient } from '@/lib/supabase-server'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 // GET: Get user's tenant roles - TEST DEPLOYMENT
 export async function GET(request: NextRequest) {
@@ -12,47 +12,50 @@ export async function GET(request: NextRequest) {
       return rateLimitResult.response!
     }
 
-    // Create Supabase client with request context
-    const supabase = await createServerClient(request)
-
-    // Try to get session first
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
-    // If no session from cookies, try to get user directly
-    let user = null
-    if (!session) {
-      const { data: { user: userData }, error: userError } = await supabase.auth.getUser()
-      if (userData && !userError) {
-        user = userData
-      }
-    } else {
-      user = session.user
-    }
-    
-    // If still no user, try to extract from Authorization header manually
-    if (!user) {
-      const authHeader = request.headers.get('authorization')
-      if (authHeader && authHeader.startsWith('Bearer ')) {
-        const token = authHeader.substring(7)
-        // Try to verify the token manually
-        try {
-          const { data: { user: tokenUser }, error: tokenError } = await supabase.auth.getUser(token)
-          if (tokenUser && !tokenError) {
-            user = tokenUser
-          }
-        } catch (error) {
-          console.error('Token verification failed:', error)
-        }
-      }
-    }
-    
-    if (!user) {
+    // Header-based auth: require Authorization: Bearer <access_token>
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader || !authHeader.toLowerCase().startsWith('bearer ')) {
       return NextResponse.json({
         success: false,
-        error: 'No valid session found',
-        details: sessionError?.message || 'No session or user found'
+        error: 'Authorization header missing',
+        details: 'Expected Authorization: Bearer <token>'
       }, { status: 401 })
     }
+
+    const accessToken = authHeader.slice(7).trim()
+    if (!accessToken) {
+      return NextResponse.json({
+        success: false,
+        error: 'Invalid Authorization header',
+        details: 'Empty bearer token'
+      }, { status: 401 })
+    }
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return NextResponse.json({
+        success: false,
+        error: 'Server misconfiguration',
+        details: 'Supabase environment variables are missing'
+      }, { status: 500 })
+    }
+
+    // Create a direct Supabase client and bind the bearer token so RLS runs as the user
+    const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey)
+    supabase.auth.setAuth(accessToken)
+
+    // Verify user via token
+    const { data: userResult, error: userErr } = await supabase.auth.getUser()
+    if (userErr || !userResult?.user) {
+      return NextResponse.json({
+        success: false,
+        error: 'Invalid or expired token',
+        details: userErr?.message || 'No user for token'
+      }, { status: 401 })
+    }
+
+    const user = userResult.user
 
     const userId = user.id
     const userEmail = user.email
