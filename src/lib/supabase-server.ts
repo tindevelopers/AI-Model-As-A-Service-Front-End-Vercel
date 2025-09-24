@@ -69,16 +69,13 @@ export const createServerClient = async (request?: Request) => {
     },
   })
 
-  // If we have a request with Authorization header, set the session
+  // If we have a request with Authorization header, set the auth token
   if (request) {
     const authHeader = request.headers.get('authorization')
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7)
-      // Set the session using the access token
-      await client.auth.setSession({
-        access_token: token,
-        refresh_token: '' // We don't have the refresh token from the header
-      })
+      // Set the auth token directly
+      client.auth.setAuth(token)
     }
   }
 
