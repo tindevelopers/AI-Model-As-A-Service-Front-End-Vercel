@@ -39,7 +39,7 @@ export default async function TenantManagementPage() {
     userId: user?.id,
     userEmail: user?.email,
     // Note: access token is only present with header-based calls; log presence only
-    tokenPresent: !!(session as any)?.access_token
+    tokenPresent: !!(session as { access_token?: string } | null)?.access_token
   });
 
   if (!user) {
