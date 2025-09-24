@@ -62,8 +62,7 @@ export default function TenantManagementClient({
       const response = await fetch('/api/admin/tenants', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.access_token}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
       });
