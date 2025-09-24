@@ -62,7 +62,8 @@ export default function TenantManagementClient({
       const response = await fetch('/api/admin/tenants', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`
         },
         body: JSON.stringify(payload)
       });
@@ -71,7 +72,11 @@ export default function TenantManagementClient({
         const result = await response.json();
         if (result.success && result.data?.tenant_id) {
           // Fetch the created tenant to get full details
-          const tenantResponse = await fetch('/api/admin/tenants');
+          const tenantResponse = await fetch('/api/admin/tenants', {
+            headers: {
+              'Authorization': `Bearer ${session?.access_token}`
+            }
+          });
           if (tenantResponse.ok) {
             const tenantsResult = await tenantResponse.json();
             if (tenantsResult.success && tenantsResult.data) {

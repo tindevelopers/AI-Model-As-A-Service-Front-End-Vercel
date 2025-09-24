@@ -23,9 +23,9 @@ export class AuthMiddleware {
   /**
    * Authenticate user via Supabase session
    */
-  static async authenticateUser(): Promise<AuthResult> {
+  static async authenticateUser(request?: NextRequest): Promise<AuthResult> {
     try {
-      const supabase = await createServerClient()
+      const supabase = await createServerClient(request)
       
       // First try to get the session
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
@@ -69,11 +69,20 @@ export class AuthMiddleware {
       }
 
       // Get user profile from database for role and permissions
-      const { data: userProfile } = await supabase
+      const { data: userProfile, error: profileError } = await supabase
         .from('user_profiles')
         .select('role, permissions')
         .eq('id', user.id)
         .single()
+
+      // Debug logging for profile retrieval
+      console.log('[AuthMiddleware] Profile retrieval:', {
+        userId: user.id,
+        userEmail: user.email,
+        profileExists: !!userProfile,
+        profileError: profileError?.message,
+        profileRole: userProfile?.role
+      })
 
       // Fallback to user metadata if profile not found
       const userMetadata = user.user_metadata || {}
@@ -85,6 +94,16 @@ export class AuthMiddleware {
         role: userProfile?.role || userMetadata.role || appMetadata.role || 'user',
         permissions: userProfile?.permissions || userMetadata.permissions || appMetadata.permissions || []
       }
+
+      // Debug logging for final role assignment
+      console.log('[AuthMiddleware] Final role assignment:', {
+        userId: user.id,
+        userEmail: user.email,
+        profileRole: userProfile?.role,
+        metadataRole: userMetadata.role,
+        appMetadataRole: appMetadata.role,
+        finalRole: authenticatedUser.role
+      })
 
       return {
         success: true,
@@ -190,9 +209,8 @@ export class AuthMiddleware {
   /**
    * Check if user has admin role
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  static async requireAdmin(_request: NextRequest): Promise<AuthResult> {
-    const authResult = await this.authenticateUser()
+  static async requireAdmin(request?: NextRequest): Promise<AuthResult> {
+    const authResult = await this.authenticateUser(request)
     
     if (!authResult.success) {
       return authResult
@@ -224,8 +242,8 @@ export class AuthMiddleware {
   /**
    * Check if user has superadmin role
    */
-  static async requireSuperAdmin(): Promise<AuthResult> {
-    const authResult = await this.authenticateUser()
+  static async requireSuperAdmin(request?: NextRequest): Promise<AuthResult> {
+    const authResult = await this.authenticateUser(request)
     
     if (!authResult.success) {
       return authResult
@@ -257,8 +275,8 @@ export class AuthMiddleware {
   /**
    * Check if user has tenant admin role
    */
-  static async requireTenantAdmin(): Promise<AuthResult> {
-    const authResult = await this.authenticateUser()
+  static async requireTenantAdmin(request?: NextRequest): Promise<AuthResult> {
+    const authResult = await this.authenticateUser(request)
     
     if (!authResult.success) {
       return authResult
@@ -291,7 +309,7 @@ export class AuthMiddleware {
    * Check if user has specific permission
    */
   static async requirePermission(request: NextRequest, permission: string): Promise<AuthResult> {
-    const authResult = await this.authenticateUser()
+    const authResult = await this.authenticateUser(request)
     
     if (!authResult.success) {
       return authResult
@@ -332,7 +350,7 @@ export class AuthMiddleware {
     }
 
     // Fall back to user session authentication
-    return await this.authenticateUser()
+    return await this.authenticateUser(request)
   }
 
   /**

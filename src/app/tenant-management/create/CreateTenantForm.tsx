@@ -5,6 +5,7 @@ import { User } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardContent } from '@/components/ui/card/Card';
 import Button from '@/components/ui/button/Button';
+import { useAuth } from '@/context/AuthContext';
 import { 
   Building2, 
   ArrowLeft,
@@ -18,6 +19,7 @@ interface CreateTenantFormProps {
 
 export default function CreateTenantForm({ }: CreateTenantFormProps) {
   const router = useRouter();
+  const { session } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -78,7 +80,10 @@ export default function CreateTenantForm({ }: CreateTenantFormProps) {
 
       const response = await fetch('/api/admin/tenants', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`
+        },
         body: JSON.stringify(payload)
       });
 
