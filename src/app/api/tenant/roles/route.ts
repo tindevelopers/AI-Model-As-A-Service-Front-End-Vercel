@@ -29,6 +29,23 @@ export async function GET(request: NextRequest) {
       user = session.user
     }
     
+    // If still no user, try to extract from Authorization header manually
+    if (!user) {
+      const authHeader = request.headers.get('authorization')
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.substring(7)
+        // Try to verify the token manually
+        try {
+          const { data: { user: tokenUser }, error: tokenError } = await supabase.auth.getUser(token)
+          if (tokenUser && !tokenError) {
+            user = tokenUser
+          }
+        } catch (error) {
+          console.error('Token verification failed:', error)
+        }
+      }
+    }
+    
     if (!user) {
       return NextResponse.json({
         success: false,
