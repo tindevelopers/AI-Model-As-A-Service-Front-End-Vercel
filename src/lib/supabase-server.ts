@@ -59,23 +59,8 @@ export const createServerClient = async (request?: Request) => {
     },
   } as unknown as CookieMethodsServer
 
-  // If we have a request with Authorization header, use it to set the session
-  let authHeaders = {}
-  if (request) {
-    const authHeader = request.headers.get('authorization')
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.substring(7)
-      authHeaders = {
-        Authorization: `Bearer ${token}`
-      }
-    }
-  }
-
-  return createSSRClient(supabaseUrl, supabaseAnonKey, {
+  const client = createSSRClient(supabaseUrl, supabaseAnonKey, {
     cookies: cookieAdapter,
-    global: {
-      headers: authHeaders
-    },
     auth: {
       flowType: 'pkce',
       autoRefreshToken: true,
@@ -83,6 +68,21 @@ export const createServerClient = async (request?: Request) => {
       detectSessionInUrl: true,
     },
   })
+
+  // If we have a request with Authorization header, set the session
+  if (request) {
+    const authHeader = request.headers.get('authorization')
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7)
+      // Set the session using the access token
+      await client.auth.setSession({
+        access_token: token,
+        refresh_token: '' // We don't have the refresh token from the header
+      })
+    }
+  }
+
+  return client
 }
 
 export const createAdminClient = () => {
