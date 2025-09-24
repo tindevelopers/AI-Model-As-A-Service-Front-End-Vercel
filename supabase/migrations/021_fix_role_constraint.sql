@@ -13,6 +13,6 @@ CHECK (role IN ('user', 'admin', 'superadmin', 'tenant_admin'));
 -- Verify the constraint was added
 SELECT 
   conname as constraint_name,
-  consrc as constraint_definition
+  pg_get_constraintdef(oid) as constraint_definition
 FROM pg_constraint 
 WHERE conname = 'user_profiles_role_check';
