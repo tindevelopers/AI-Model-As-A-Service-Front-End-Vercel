@@ -41,12 +41,14 @@ export async function GET(request: NextRequest) {
       }, { status: 500 })
     }
 
-    // Create a direct Supabase client and bind the bearer token so RLS runs as the user
-    const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey)
-    supabase.auth.setAuth(accessToken)
+    // Create a direct Supabase client and inject the Authorization header so RLS runs as the user
+    const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: `Bearer ${accessToken}` } },
+      auth: { persistSession: false, autoRefreshToken: false }
+    })
 
-    // Verify user via token
-    const { data: userResult, error: userErr } = await supabase.auth.getUser()
+    // Verify user via token (explicit)
+    const { data: userResult, error: userErr } = await supabase.auth.getUser(accessToken)
     if (userErr || !userResult?.user) {
       return NextResponse.json({
         success: false,
