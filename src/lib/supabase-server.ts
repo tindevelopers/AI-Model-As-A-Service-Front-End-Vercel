@@ -17,7 +17,7 @@ type CookieSetRemoveOptions = Partial<{
 }>
 
 
-export const createServerClient = async () => {
+export const createServerClient = async (request?: Request) => {
   const cookieStore = await cookies()
   const cookieAdapter = {
     async getAll() {
@@ -59,8 +59,23 @@ export const createServerClient = async () => {
     },
   } as unknown as CookieMethodsServer
 
+  // If we have a request with Authorization header, use it to set the session
+  let authHeaders = {}
+  if (request) {
+    const authHeader = request.headers.get('authorization')
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7)
+      authHeaders = {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  }
+
   return createSSRClient(supabaseUrl, supabaseAnonKey, {
     cookies: cookieAdapter,
+    global: {
+      headers: authHeaders
+    },
     auth: {
       flowType: 'pkce',
       autoRefreshToken: true,

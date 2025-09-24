@@ -12,8 +12,8 @@ export async function GET(request: NextRequest) {
       return rateLimitResult.response!
     }
 
-    // Create Supabase client first
-    const supabase = await createServerClient()
+    // Create Supabase client with request context
+    const supabase = await createServerClient(request)
 
     // Get session first
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
