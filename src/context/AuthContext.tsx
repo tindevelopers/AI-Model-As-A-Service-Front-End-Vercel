@@ -43,20 +43,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // If no session but we have Supabase auth token cookies, try to recover
       if (!session && !recoveryAttempted) {
+        // Check for various Supabase cookie patterns
         const authSessionEstablished = document.cookie.includes('auth-session-established=true')
         const hasSupabaseAuthToken = document.cookie.includes('sb-') && document.cookie.includes('auth-token')
         const hasSupabaseCookies = document.cookie.includes('supabase')
+        
+        // Also check for the actual Supabase cookie patterns that are set
+        const hasSupabaseSessionCookie = document.cookie.includes('sb-') && document.cookie.includes('auth-token')
+        const hasSupabaseRefreshCookie = document.cookie.includes('sb-') && document.cookie.includes('refresh-token')
+        const hasAnySupabaseCookie = document.cookie.includes('sb-') || document.cookie.includes('supabase')
         
         console.log('🔍 Session recovery check:', { 
           hasSession: !!session, 
           hasAuthCookie: authSessionEstablished,
           hasSupabaseAuthToken,
           hasSupabaseCookies,
+          hasSupabaseSessionCookie,
+          hasSupabaseRefreshCookie,
+          hasAnySupabaseCookie,
           recoveryAttempted,
-          shouldAttemptRecovery: authSessionEstablished || hasSupabaseAuthToken || hasSupabaseCookies
+          shouldAttemptRecovery: authSessionEstablished || hasSupabaseAuthToken || hasSupabaseCookies || hasAnySupabaseCookie,
+          allCookies: document.cookie.split(';').map(c => c.trim().split('=')[0])
         })
         
-        if (authSessionEstablished || hasSupabaseAuthToken || hasSupabaseCookies) {
+        if (authSessionEstablished || hasSupabaseAuthToken || hasSupabaseCookies || hasAnySupabaseCookie) {
           setRecoveryAttempted(true) // Prevent multiple recovery attempts
           console.log('🔄 Auth session cookie found, attempting session recovery...')
           console.log('🔄 Recovery attempt started at:', new Date().toISOString())
@@ -102,14 +112,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             
             console.log('🍪 Available cookies:', Object.keys(cookies));
             
-            // Look for Supabase auth token cookies
+            // Look for Supabase auth token cookies (various patterns)
             const authTokenCookie = Object.keys(cookies).find(key => 
-              key.includes('supabase') && key.includes('auth-token')
+              (key.includes('supabase') && key.includes('auth-token')) ||
+              (key.includes('sb-') && key.includes('auth-token'))
             );
             
             // Also check for the new format cookies we set in the callback
             const accessToken = cookies['supabase-auth-token'];
             const refreshToken = cookies['supabase-refresh-token'];
+            
+            // Look for standard Supabase session cookies
+            const supabaseSessionCookie = Object.keys(cookies).find(key => 
+              key.includes('sb-') && (key.includes('auth-token') || key.includes('session'))
+            );
+            
+            console.log('🍪 Cookie analysis:', {
+              authTokenCookie,
+              supabaseSessionCookie,
+              accessToken: !!accessToken,
+              refreshToken: !!refreshToken,
+              availableCookies: Object.keys(cookies).filter(k => k.includes('sb-') || k.includes('supabase'))
+            });
             
             console.log('🍪 Token extraction:', {
               hasAuthTokenCookie: !!authTokenCookie,
@@ -200,7 +224,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               }
             }
             
-            // Method 4: Clear invalid cookies and stop trying
+            // Method 4: Try one more time with a fresh getSession call
+            console.log('🔄 Final attempt: fresh getSession call...')
+            const { data: { session: finalSession } } = await supabase.auth.getSession()
+            if (finalSession) {
+              console.log('✅ Session recovered via final attempt:', { hasSession: !!finalSession, userId: finalSession?.user?.id })
+              sessionDebugger.logSessionState(finalSession, finalSession?.user, 'SESSION_RECOVERED_FINAL')
+              setSession(finalSession)
+              setUser(finalSession?.user ?? null)
+              setLoading(false)
+              return
+            }
+            
+            // Method 5: Clear invalid cookies and stop trying
             console.log('❌ Session recovery failed - clearing invalid cookies')
             document.cookie = 'auth-session-established=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
             // Also clear the Supabase auth token cookie if it's invalid

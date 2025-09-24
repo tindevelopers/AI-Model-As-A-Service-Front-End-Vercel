@@ -166,3 +166,4 @@ export default function HomePage() {
     </div>
   )
 }
+// Force fresh deployment with real Supabase credentials

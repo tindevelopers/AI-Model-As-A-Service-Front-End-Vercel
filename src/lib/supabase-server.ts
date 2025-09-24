@@ -18,6 +18,18 @@ type CookieSetRemoveOptions = Partial<{
 
 
 export const createServerClient = async (request?: Request) => {
+  // Prefer header-based auth for API routes (ensures RLS runs as the user)
+  const bearer = request?.headers.get('authorization')
+  if (bearer && bearer.startsWith('Bearer ')) {
+    const token = bearer.substring(7)
+    const headerClient = createSupabaseClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+      auth: { persistSession: false, autoRefreshToken: false },
+    })
+    return headerClient
+  }
+
+  // Fallback: cookie-based SSR client for pages
   const cookieStore = await cookies()
   const cookieAdapter = {
     async getAll() {
@@ -30,7 +42,6 @@ export const createServerClient = async (request?: Request) => {
             name, 
             value, 
             ...(options || {}),
-            // Ensure cookies are set with proper security settings
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
             path: '/'
@@ -68,20 +79,6 @@ export const createServerClient = async (request?: Request) => {
       detectSessionInUrl: true,
     },
   })
-
-  // If we have a request with Authorization header, set the session
-  if (request) {
-    const authHeader = request.headers.get('authorization')
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.substring(7)
-      // Set the session using the access token
-      await client.auth.setSession({
-        access_token: token,
-        refresh_token: '' // We don't have the refresh token from the header
-      })
-    }
-  }
-
   return client
 }
 

@@ -59,12 +59,25 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   const [loadingStats, setLoadingStats] = useState(false)
   const [loadingBilling, setLoadingBilling] = useState(false)
 
+  // Debug: trace session changes and token prefix
+  useEffect(() => {
+    const tokenPrefix = session?.access_token ? session.access_token.slice(0, 12) : 'none'
+    console.log('[TenantContext] session update', {
+      hasUser: !!user,
+      hasSession: !!session,
+      tokenPrefix,
+    })
+  }, [user, session])
+
   // Load user's tenant roles
   const loadUserTenantRoles = useCallback(async () => {
     if (!user || !session) return
 
     setLoadingRoles(true)
     try {
+      console.log('[TenantContext] calling /api/tenant/roles with token', {
+        tokenPrefix: session.access_token?.slice(0, 12) || 'none'
+      })
       const response = await fetch('/api/tenant/roles', {
         headers: {
           'Authorization': `Bearer ${session.access_token}`,

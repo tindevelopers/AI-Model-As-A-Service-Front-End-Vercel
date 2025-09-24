@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { applyRateLimit, rateLimiters } from '@/lib/rate-limiter'
 import { errorLogger } from '@/utils/errorLogger'
-import { createServerClient } from '@/lib/supabase-server'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 // GET: Get user's tenant roles - TEST DEPLOYMENT
 export async function GET(request: NextRequest) {
@@ -12,30 +12,57 @@ export async function GET(request: NextRequest) {
       return rateLimitResult.response!
     }
 
-    // Create Supabase client with request context
-    const supabase = await createServerClient(request)
-
-    // Try to get session first
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
-    // If no session from cookies, try to get user directly
-    let user = null
-    if (!session) {
-      const { data: { user: userData }, error: userError } = await supabase.auth.getUser()
-      if (userData && !userError) {
-        user = userData
-      }
-    } else {
-      user = session.user
-    }
-    
-    if (!user) {
+    // Header-based auth: require Authorization: Bearer <access_token>
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader || !authHeader.toLowerCase().startsWith('bearer ')) {
+      console.log('[tenant/roles] missing Authorization header')
       return NextResponse.json({
         success: false,
-        error: 'No valid session found',
-        details: sessionError?.message || 'No session or user found'
+        error: 'Authorization header missing',
+        details: 'Expected Authorization: Bearer <token>'
       }, { status: 401 })
     }
+
+    const accessToken = authHeader.slice(7).trim()
+    if (!accessToken) {
+      console.log('[tenant/roles] empty bearer token')
+      return NextResponse.json({
+        success: false,
+        error: 'Invalid Authorization header',
+        details: 'Empty bearer token'
+      }, { status: 401 })
+    }
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.log('[tenant/roles] missing env vars', { hasUrl: !!supabaseUrl, hasKey: !!supabaseAnonKey })
+      return NextResponse.json({
+        success: false,
+        error: 'Server misconfiguration',
+        details: 'Supabase environment variables are missing'
+      }, { status: 500 })
+    }
+
+    // Create a direct Supabase client and inject the Authorization header so RLS runs as the user
+    const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: `Bearer ${accessToken}` } },
+      auth: { persistSession: false, autoRefreshToken: false }
+    })
+
+    // Verify user via token (explicit)
+    console.log('[tenant/roles] verifying user via token', { tokenPrefix: accessToken.slice(0, 12) })
+    const { data: userResult, error: userErr } = await supabase.auth.getUser(accessToken)
+    if (userErr || !userResult?.user) {
+      console.log('[tenant/roles] token invalid', { userErr: userErr?.message })
+      return NextResponse.json({
+        success: false,
+        error: 'Invalid or expired token',
+        details: userErr?.message || 'No user for token'
+      }, { status: 401 })
+    }
+
+    const user = userResult.user
 
     const userId = user.id
     const userEmail = user.email
@@ -48,6 +75,7 @@ export async function GET(request: NextRequest) {
       .single()
 
     if (profileError || !userProfile) {
+      console.log('[tenant/roles] profile missing for user, attempting bootstrap', { userEmail })
       // If no profile exists, create one for tenantadmin@tin.info
       if (userEmail === 'tenantadmin@tin.info') {
         const { error: createError } = await supabase
@@ -65,6 +93,7 @@ export async function GET(request: NextRequest) {
           .single()
 
         if (createError) {
+          console.log('[tenant/roles] failed to create profile', { createError: createError.message })
           return NextResponse.json({
             success: false,
             error: 'Failed to create user profile',
@@ -98,6 +127,7 @@ export async function GET(request: NextRequest) {
             .single()
 
           if (tenantError) {
+            console.log('[tenant/roles] failed to create tenant', { tenantError: tenantError.message })
             return NextResponse.json({
               success: false,
               error: 'Failed to create test tenant',
@@ -122,6 +152,7 @@ export async function GET(request: NextRequest) {
           })
 
         if (tenantUserError) {
+          console.log('[tenant/roles] failed to create tenant_user', { tenantUserError: tenantUserError.message })
           return NextResponse.json({
             success: false,
             error: 'Failed to create tenant user relationship',
@@ -129,6 +160,7 @@ export async function GET(request: NextRequest) {
           }, { status: 500 })
         }
       } else {
+        console.log('[tenant/roles] profile not found and not tenantadmin email')
         return NextResponse.json({
           success: false,
           error: 'User profile not found',
@@ -159,6 +191,7 @@ export async function GET(request: NextRequest) {
           errorCode: error.code
         }
       })
+      console.log('[tenant/roles] rpc get_user_tenant_roles failed', { message: error.message, code: error.code })
 
       return NextResponse.json({
         success: false,
@@ -186,3 +219,4 @@ export async function GET(request: NextRequest) {
     }, { status: 500 })
   }
 }
+// Force redeploy Wed Sep 24 16:28:48 BST 2025
