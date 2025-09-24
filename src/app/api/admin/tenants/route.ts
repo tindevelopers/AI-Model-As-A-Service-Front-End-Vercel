@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Authenticate user and check superadmin role
-    const authResult = await AuthMiddleware.requireSuperAdmin()
+    const authResult = await AuthMiddleware.requireSuperAdmin(request)
     if (!authResult.success) {
       return createAuthErrorResponse(authResult.error!, authResult.statusCode!)
     }
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     const userId = authResult.user!.id
 
     // Create Supabase client
-    const supabase = await createServerClient()
+    const supabase = await createServerClient(request)
 
     // Call the get_all_tenants function (superadmin only)
     const { data, error } = await supabase.rpc('get_all_tenants')
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Authenticate user and check superadmin role
-    const authResult = await AuthMiddleware.requireSuperAdmin()
+    const authResult = await AuthMiddleware.requireSuperAdmin(request)
     if (!authResult.success) {
       return createAuthErrorResponse(authResult.error!, authResult.statusCode!)
     }
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
     const generatedSlug = slug || name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 
     // Create Supabase client
-    const supabase = await createServerClient()
+    const supabase = await createServerClient(request)
 
     // Call the create_tenant function (superadmin only)
     const { data, error } = await supabase.rpc('create_tenant', {

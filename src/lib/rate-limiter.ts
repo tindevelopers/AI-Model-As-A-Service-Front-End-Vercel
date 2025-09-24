@@ -129,7 +129,7 @@ export class RateLimiter {
   /**
    * Get client IP address
    */
-  private getClientIP(request: NextRequest): string {
+  getClientIP(request: NextRequest): string {
     const forwarded = request.headers.get('x-forwarded-for')
     const realIP = request.headers.get('x-real-ip')
     const cfConnectingIP = request.headers.get('cf-connecting-ip')

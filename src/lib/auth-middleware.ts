@@ -23,9 +23,9 @@ export class AuthMiddleware {
   /**
    * Authenticate user via Supabase session
    */
-  static async authenticateUser(): Promise<AuthResult> {
+  static async authenticateUser(request?: NextRequest): Promise<AuthResult> {
     try {
-      const supabase = await createServerClient()
+      const supabase = await createServerClient(request)
       
       // First try to get the session
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
@@ -224,8 +224,8 @@ export class AuthMiddleware {
   /**
    * Check if user has superadmin role
    */
-  static async requireSuperAdmin(): Promise<AuthResult> {
-    const authResult = await this.authenticateUser()
+  static async requireSuperAdmin(request?: NextRequest): Promise<AuthResult> {
+    const authResult = await this.authenticateUser(request)
     
     if (!authResult.success) {
       return authResult

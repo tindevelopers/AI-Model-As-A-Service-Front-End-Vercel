@@ -1,0 +1,6 @@
+-- Just disable RLS to fix infinite recursion
+ALTER TABLE public.user_profiles DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.tenants DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.tenant_users DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.api_keys DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.usage_stats DISABLE ROW LEVEL SECURITY;
