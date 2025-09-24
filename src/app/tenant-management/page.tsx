@@ -37,7 +37,9 @@ export default async function TenantManagementPage() {
     sessionError: sessionError?.message,
     userError: userError?.message,
     userId: user?.id,
-    userEmail: user?.email
+    userEmail: user?.email,
+    // Note: access token is only present with header-based calls; log presence only
+    tokenPresent: !!(session as any)?.access_token
   });
 
   if (!user) {
@@ -59,7 +61,9 @@ export default async function TenantManagementPage() {
   });
 
   if (!profile || !['superadmin', 'tenant_admin'].includes(profile.role)) {
-    console.log('User does not have required role, redirecting to dashboard');
+    console.log('User does not have required role, redirecting to dashboard', {
+      role: profile?.role
+    });
     redirect('/dashboard');
   }
 
