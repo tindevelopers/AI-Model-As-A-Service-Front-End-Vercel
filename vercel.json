@@ -1,6 +1,10 @@
 {
-  "name": "ai-model-as-a-service",
+  "version": 2,
   "regions": ["iad1"],
+  "buildCommand": "npm run build --force",
+  "outputDirectory": ".next",
+  "installCommand": "npm install",
+  "framework": "nextjs",
   "functions": {
     "src/app/api/**/*.ts": {
       "maxDuration": 30
@@ -51,8 +55,5 @@
       "source": "/health",
       "destination": "/api/health"
     }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  ]
 }

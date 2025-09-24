@@ -129,7 +129,7 @@ export class RateLimiter {
   /**
    * Get client IP address
    */
-  private getClientIP(request: NextRequest): string {
+  getClientIP(request: NextRequest): string {
     const forwarded = request.headers.get('x-forwarded-for')
     const realIP = request.headers.get('x-real-ip')
     const cfConnectingIP = request.headers.get('cf-connecting-ip')
@@ -214,13 +214,16 @@ export async function applyRateLimit(
     
     return { allowed: true }
   } catch (error) {
-    errorLogger.logError('Rate limiting error', {
-      component: 'rate-limiter',
-      action: 'applyRateLimit',
-      additionalData: {
-        error: error instanceof Error ? error.message : 'Unknown error'
-      }
-    })
+        errorLogger.logError('Rate limiting error', {
+          component: 'rate-limiter',
+          action: 'applyRateLimit',
+          additionalData: {
+            error: error instanceof Error ? error.message : 'Unknown error'
+          },
+          timestamp: new Date().toISOString(),
+          userAgent: request.headers.get('user-agent') || 'server',
+          url: request.url || 'server'
+        })
     
     // On error, allow the request to proceed
     return { allowed: true }

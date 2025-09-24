@@ -59,12 +59,25 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   const [loadingStats, setLoadingStats] = useState(false)
   const [loadingBilling, setLoadingBilling] = useState(false)
 
+  // Debug: trace session changes and token prefix
+  useEffect(() => {
+    const tokenPrefix = session?.access_token ? session.access_token.slice(0, 12) : 'none'
+    console.log('[TenantContext] session update', {
+      hasUser: !!user,
+      hasSession: !!session,
+      tokenPrefix,
+    })
+  }, [user, session])
+
   // Load user's tenant roles
   const loadUserTenantRoles = useCallback(async () => {
     if (!user || !session) return
 
     setLoadingRoles(true)
     try {
+      console.log('[TenantContext] calling /api/tenant/roles with token', {
+        tokenPrefix: session.access_token?.slice(0, 12) || 'none'
+      })
       const response = await fetch('/api/tenant/roles', {
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
@@ -110,10 +123,10 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoadingRoles(false)
     }
-  }, [user, session])
+  }, [user, session, currentTenant])
 
   // Load tenant admin menu
-  const loadTenantMenu = async (tenantId: string) => {
+  const loadTenantMenu = useCallback(async (tenantId: string) => {
     if (!user || !session) return
 
     setLoadingMenu(true)
@@ -145,10 +158,10 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoadingMenu(false)
     }
-  }
+  }, [user, session])
 
   // Load tenant statistics
-  const loadTenantStats = async (tenantId: string) => {
+  const loadTenantStats = useCallback(async (tenantId: string) => {
     if (!user || !session) return
 
     setLoadingStats(true)
@@ -180,10 +193,10 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoadingStats(false)
     }
-  }
+  }, [user, session])
 
   // Load tenant billing
-  const loadTenantBilling = async (tenantId: string) => {
+  const loadTenantBilling = useCallback(async (tenantId: string) => {
     if (!user || !session) return
 
     setLoadingBilling(true)
@@ -215,7 +228,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoadingBilling(false)
     }
-  }
+  }, [user, session])
 
   // Refresh all tenant data
   const refreshTenantData = useCallback(async (tenantId: string) => {
@@ -224,7 +237,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
       loadTenantStats(tenantId),
       loadTenantBilling(tenantId)
     ])
-  }, [])
+  }, [loadTenantMenu, loadTenantStats, loadTenantBilling])
 
   // Load user tenant roles when user changes
   useEffect(() => {
