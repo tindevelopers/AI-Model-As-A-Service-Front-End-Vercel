@@ -15,19 +15,30 @@ export async function GET(request: NextRequest) {
     // Create Supabase client with request context
     const supabase = await createServerClient(request)
 
-    // Get session first
+    // Try to get session first
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
     
-    if (sessionError || !session) {
+    // If no session from cookies, try to get user directly
+    let user = null
+    if (!session) {
+      const { data: { user: userData }, error: userError } = await supabase.auth.getUser()
+      if (userData && !userError) {
+        user = userData
+      }
+    } else {
+      user = session.user
+    }
+    
+    if (!user) {
       return NextResponse.json({
         success: false,
         error: 'No valid session found',
-        details: sessionError?.message || 'No session'
+        details: sessionError?.message || 'No session or user found'
       }, { status: 401 })
     }
 
-    const userId = session.user.id
-    const userEmail = session.user.email
+    const userId = user.id
+    const userEmail = user.email
 
     // Check if user profile exists
     const { data: userProfile, error: profileError } = await supabase
