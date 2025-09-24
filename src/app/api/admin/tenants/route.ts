@@ -13,16 +13,31 @@ export async function GET(request: NextRequest) {
       return rateLimitResult.response!
     }
 
-    // Authenticate user
-    const authResult = await AuthMiddleware.authenticateUser()
+    // Authenticate user and check admin role (superadmin or tenant_admin)
+    const authResult = await AuthMiddleware.authenticateUser(request)
     if (!authResult.success) {
       return createAuthErrorResponse(authResult.error!, authResult.statusCode!)
     }
 
-    const userId = authResult.user!.id
+    const user = authResult.user!
+    if (user.role !== 'superadmin' && user.role !== 'tenant_admin') {
+      errorLogger.logError('Unauthorized tenant access attempt', {
+        component: 'admin-tenants-route',
+        action: 'GET',
+        additionalData: {
+          userId: user.id,
+          userRole: user.role,
+          userEmail: user.email
+        }
+      })
+
+      return createAuthErrorResponse('Superadmin or Tenant Admin access required', 403)
+    }
+
+    const userId = user.id
 
     // Create Supabase client
-    const supabase = await createServerClient()
+    const supabase = await createServerClient(request)
 
     // Call the get_all_tenants function (superadmin only)
     const { data, error } = await supabase.rpc('get_all_tenants')
@@ -74,33 +89,64 @@ export async function POST(request: NextRequest) {
       return rateLimitResult.response!
     }
 
-    // Authenticate user
-    const authResult = await AuthMiddleware.authenticateUser()
+    // Authenticate user and check admin role (superadmin or tenant_admin)
+    const authResult = await AuthMiddleware.authenticateUser(request)
     if (!authResult.success) {
       return createAuthErrorResponse(authResult.error!, authResult.statusCode!)
     }
 
-    const userId = authResult.user!.id
+    const user = authResult.user!
+    if (user.role !== 'superadmin' && user.role !== 'tenant_admin') {
+      errorLogger.logError('Unauthorized tenant creation attempt', {
+        component: 'admin-tenants-route',
+        action: 'POST',
+        additionalData: {
+          userId: user.id,
+          userRole: user.role,
+          userEmail: user.email
+        }
+      })
 
-    // Parse request body
-    const body = await request.json()
+      return createAuthErrorResponse('Superadmin or Tenant Admin access required', 403)
+    }
+
+    const userId = user.id
+
+    // Parse request body (handle both JSON and form data)
+    let body
+    const contentType = request.headers.get('content-type')
+    
+    if (contentType?.includes('application/json')) {
+      body = await request.json()
+    } else {
+      // Handle form data
+      const formData = await request.formData()
+      body = {
+        name: formData.get('name'),
+        description: formData.get('description')
+      }
+    }
+
     const { name, slug, description, owner_user_id } = body
 
     // Validate required fields
-    if (!name || !slug) {
+    if (!name) {
       return NextResponse.json({
         success: false,
-        error: 'name and slug are required'
+        error: 'name is required'
       }, { status: 400 })
     }
 
+    // Generate slug if not provided
+    const generatedSlug = slug || name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+
     // Create Supabase client
-    const supabase = await createServerClient()
+    const supabase = await createServerClient(request)
 
     // Call the create_tenant function (superadmin only)
     const { data, error } = await supabase.rpc('create_tenant', {
       tenant_name: name,
-      tenant_slug: slug,
+      tenant_slug: generatedSlug,
       tenant_description: description || null,
       owner_user_id: owner_user_id || null
     })
@@ -114,7 +160,7 @@ export async function POST(request: NextRequest) {
           error: error.message,
           errorCode: error.code,
           tenantName: name,
-          tenantSlug: slug
+          tenantSlug: generatedSlug
         }
       })
 
@@ -122,6 +168,11 @@ export async function POST(request: NextRequest) {
         success: false,
         error: 'Failed to create tenant'
       }, { status: 500 })
+    }
+
+    // If this is a form submission, redirect to tenant management
+    if (contentType?.includes('application/x-www-form-urlencoded') || contentType?.includes('multipart/form-data')) {
+      return NextResponse.redirect(new URL('/tenant-management', request.url), { status: 303 })
     }
 
     return NextResponse.json({

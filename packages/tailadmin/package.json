@@ -1,0 +1,9 @@
+{
+  "name": "@design/tailadmin",
+  "private": true,
+  "version": "0.0.0",
+  "dependencies": {
+    "simplebar": "^6.3.2",
+    "simplebar-react": "^3.3.2"
+  }
+}

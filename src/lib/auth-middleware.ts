@@ -23,18 +23,20 @@ export class AuthMiddleware {
   /**
    * Authenticate user via Supabase session
    */
-  static async authenticateUser(): Promise<AuthResult> {
+  static async authenticateUser(request?: NextRequest): Promise<AuthResult> {
     try {
-      const supabase = await createServerClient()
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
-
-      if (authError || !user) {
-        errorLogger.logError('Authentication failed', {
+      const supabase = await createServerClient(request)
+      
+      // First try to get the session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError || !session) {
+        errorLogger.logError('Authentication failed - No session', {
           component: 'auth-middleware',
           action: 'authenticateUser',
           additionalData: {
-            error: authError?.message || 'No user found',
-            hasUser: !!user
+            error: sessionError?.message || 'No session found',
+            hasSession: !!session
           }
         })
 
@@ -45,16 +47,63 @@ export class AuthMiddleware {
         }
       }
 
-      // Get user metadata for role and permissions
+      // Get user from session
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+      if (authError || !user) {
+        errorLogger.logError('Authentication failed - Invalid user', {
+          component: 'auth-middleware',
+          action: 'authenticateUser',
+          additionalData: {
+            error: authError?.message || 'No user found',
+            hasUser: !!user,
+            hasSession: !!session
+          }
+        })
+
+        return {
+          success: false,
+          error: 'Unauthorized - Please log in to access this resource',
+          statusCode: 401
+        }
+      }
+
+      // Get user profile from database for role and permissions
+      const { data: userProfile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('role, permissions')
+        .eq('id', user.id)
+        .single()
+
+      // Debug logging for profile retrieval
+      console.log('[AuthMiddleware] Profile retrieval:', {
+        userId: user.id,
+        userEmail: user.email,
+        profileExists: !!userProfile,
+        profileError: profileError?.message,
+        profileRole: userProfile?.role
+      })
+
+      // Fallback to user metadata if profile not found
       const userMetadata = user.user_metadata || {}
       const appMetadata = user.app_metadata || {}
 
       const authenticatedUser: AuthenticatedUser = {
         id: user.id,
         email: user.email || '',
-        role: userMetadata.role || appMetadata.role || 'user',
-        permissions: userMetadata.permissions || appMetadata.permissions || []
+        role: userProfile?.role || userMetadata.role || appMetadata.role || 'user',
+        permissions: userProfile?.permissions || userMetadata.permissions || appMetadata.permissions || []
       }
+
+      // Debug logging for final role assignment
+      console.log('[AuthMiddleware] Final role assignment:', {
+        userId: user.id,
+        userEmail: user.email,
+        profileRole: userProfile?.role,
+        metadataRole: userMetadata.role,
+        appMetadataRole: appMetadata.role,
+        finalRole: authenticatedUser.role
+      })
 
       return {
         success: true,
@@ -160,9 +209,8 @@ export class AuthMiddleware {
   /**
    * Check if user has admin role
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  static async requireAdmin(_request: NextRequest): Promise<AuthResult> {
-    const authResult = await this.authenticateUser()
+  static async requireAdmin(request?: NextRequest): Promise<AuthResult> {
+    const authResult = await this.authenticateUser(request)
     
     if (!authResult.success) {
       return authResult
@@ -170,7 +218,7 @@ export class AuthMiddleware {
 
     const user = authResult.user!
     
-    if (user.role !== 'admin' && user.role !== 'super_admin') {
+    if (user.role !== 'admin' && user.role !== 'superadmin') {
       errorLogger.logError('Unauthorized admin access attempt', {
         component: 'auth-middleware',
         action: 'requireAdmin',
@@ -192,10 +240,76 @@ export class AuthMiddleware {
   }
 
   /**
+   * Check if user has superadmin role
+   */
+  static async requireSuperAdmin(request?: NextRequest): Promise<AuthResult> {
+    const authResult = await this.authenticateUser(request)
+    
+    if (!authResult.success) {
+      return authResult
+    }
+
+    const user = authResult.user!
+    
+    if (user.role !== 'superadmin') {
+      errorLogger.logError('Unauthorized superadmin access attempt', {
+        component: 'auth-middleware',
+        action: 'requireSuperAdmin',
+        additionalData: {
+          userId: user.id,
+          userRole: user.role,
+          userEmail: user.email
+        }
+      })
+
+      return {
+        success: false,
+        error: 'Superadmin access required',
+        statusCode: 403
+      }
+    }
+
+    return authResult
+  }
+
+  /**
+   * Check if user has tenant admin role
+   */
+  static async requireTenantAdmin(request?: NextRequest): Promise<AuthResult> {
+    const authResult = await this.authenticateUser(request)
+    
+    if (!authResult.success) {
+      return authResult
+    }
+
+    const user = authResult.user!
+    
+    if (user.role !== 'tenant_admin' && user.role !== 'superadmin') {
+      errorLogger.logError('Unauthorized tenant admin access attempt', {
+        component: 'auth-middleware',
+        action: 'requireTenantAdmin',
+        additionalData: {
+          userId: user.id,
+          userRole: user.role,
+          userEmail: user.email
+        }
+      })
+
+      return {
+        success: false,
+        error: 'Tenant admin access required',
+        statusCode: 403
+      }
+    }
+
+    return authResult
+  }
+
+  /**
    * Check if user has specific permission
    */
   static async requirePermission(request: NextRequest, permission: string): Promise<AuthResult> {
-    const authResult = await this.authenticateUser()
+    const authResult = await this.authenticateUser(request)
     
     if (!authResult.success) {
       return authResult
@@ -236,7 +350,7 @@ export class AuthMiddleware {
     }
 
     // Fall back to user session authentication
-    return await this.authenticateUser()
+    return await this.authenticateUser(request)
   }
 
   /**

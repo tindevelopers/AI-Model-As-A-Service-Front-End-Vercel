@@ -17,7 +17,19 @@ type CookieSetRemoveOptions = Partial<{
 }>
 
 
-export const createServerClient = async () => {
+export const createServerClient = async (request?: Request) => {
+  // Prefer header-based auth for API routes (ensures RLS runs as the user)
+  const bearer = request?.headers.get('authorization')
+  if (bearer && bearer.startsWith('Bearer ')) {
+    const token = bearer.substring(7)
+    const headerClient = createSupabaseClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+      auth: { persistSession: false, autoRefreshToken: false },
+    })
+    return headerClient
+  }
+
+  // Fallback: cookie-based SSR client for pages
   const cookieStore = await cookies()
   const cookieAdapter = {
     async getAll() {
@@ -30,7 +42,6 @@ export const createServerClient = async () => {
             name, 
             value, 
             ...(options || {}),
-            // Ensure cookies are set with proper security settings
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
             path: '/'
@@ -59,7 +70,7 @@ export const createServerClient = async () => {
     },
   } as unknown as CookieMethodsServer
 
-  return createSSRClient(supabaseUrl, supabaseAnonKey, {
+  const client = createSSRClient(supabaseUrl, supabaseAnonKey, {
     cookies: cookieAdapter,
     auth: {
       flowType: 'pkce',
@@ -68,6 +79,7 @@ export const createServerClient = async () => {
       detectSessionInUrl: true,
     },
   })
+  return client
 }
 
 export const createAdminClient = () => {
